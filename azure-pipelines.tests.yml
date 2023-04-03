@@ -1,0 +1,5 @@
+jobs:
+  - template: ../../azure-pipelines/jobs/run-tests.yml
+    parameters:
+      serviceName: ci-job-configuration
+      testCommand: composer ci
