@@ -8,6 +8,11 @@
             "Keboola\\JobQueue\\JobConfiguration\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Keboola\\JobQueue\\JobConfiguration\\Tests\\": "tests/"
+        }
+    },
     "config": {
         "lock": false,
         "sort-packages": true,

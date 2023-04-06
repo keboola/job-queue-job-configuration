@@ -7,7 +7,7 @@ namespace Keboola\JobQueue\JobConfiguration\State\Storage\Files;
 readonly class File
 {
     public function __construct(
-        /** @var $tags string[] */
+        /** @var $tags FileTag[] */
         public array $tags,
         public string $lastImportId,
     ) {

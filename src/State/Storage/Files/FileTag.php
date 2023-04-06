@@ -8,7 +8,7 @@ readonly class FileTag
 {
     public function __construct(
         public string $name,
-        public ?string $match,
+        public ?string $match = null,
     ) {
     }
 
