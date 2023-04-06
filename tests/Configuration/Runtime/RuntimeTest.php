@@ -20,6 +20,7 @@ class RuntimeTest extends TestCase
                 'type' => 'testType',
                 'context' => 'testContext',
             ],
+            'foo' => 'bar',
         ];
 
         $runtime = Runtime::fromArray($data);
@@ -30,6 +31,7 @@ class RuntimeTest extends TestCase
         self::assertInstanceOf(Backend::class, $runtime->backend);
         self::assertSame('testType', $runtime->backend->type);
         self::assertSame('testContext', $runtime->backend->context);
+        self::assertSame(['foo' => 'bar'], $runtime->extraProps);
     }
 
     public function testToArray(): void
@@ -44,6 +46,7 @@ class RuntimeTest extends TestCase
             imageTag: false,
             useFileStorageOnly: true,
             backend: $backend,
+            extraProps: ['foo' => 'bar'],
         );
 
         self::assertSame([
@@ -54,6 +57,7 @@ class RuntimeTest extends TestCase
                 'type' => 'testType',
                 'context' => 'testContext',
             ],
+            'foo' => 'bar',
         ], $runtime->toArray());
     }
 }

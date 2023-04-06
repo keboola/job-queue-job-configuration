@@ -9,8 +9,8 @@ readonly class Configuration
     public function __construct(
         public array $parameters,
         public Storage\Storage $storage,
-        public array $processors,
-        public ?Runtime\Runtime $runtime,
+        public array $processors = [],
+        public ?Runtime\Runtime $runtime = null,
     ) {
     }
 

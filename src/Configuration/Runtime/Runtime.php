@@ -11,6 +11,7 @@ readonly class Runtime
         public ?bool $imageTag,
         public ?bool $useFileStorageOnly,
         public ?Backend $backend,
+        public ?array $extraProps = [],
     ) {
     }
 
@@ -21,6 +22,12 @@ readonly class Runtime
             imageTag: $data['image_tag'] ?? null,
             useFileStorageOnly: isset($data['use_file_storage_only']) ? (bool) $data['use_file_storage_only'] : null,
             backend: isset($data['backend']) ? Backend::fromArray($data['backend']) : null,
+            extraProps: array_diff_key($data, array_flip([
+                'safe',
+                'image_tag',
+                'use_file_storage_only',
+                'backend',
+            ])),
         );
     }
 
@@ -44,6 +51,6 @@ readonly class Runtime
             $data['backend'] = $this->backend->toArray();
         }
 
-        return $data;
+        return array_merge($data, $this->extraProps);
     }
 }
