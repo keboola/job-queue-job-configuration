@@ -27,13 +27,15 @@
         "keboola/output-mapping": "^21.1",
         "keboola/staging-provider": "^6.0",
         "keboola/storage-api-client": "^14.8",
-        "psr/log": "^1.1"
+        "psr/log": "^1.1",
+        "symfony/config": "^6.2"
     },
     "require-dev": {
         "keboola/coding-standard": "^14.0",
         "keboola/php-temp": "^2.0",
         "phpstan/phpstan": "^1.10",
         "phpstan/phpstan-phpunit": "^1.3",
+        "phpstan/phpstan-symfony": "^1.2",
         "phpunit/phpunit": "^10.0",
         "symfony/dotenv": "^6.2"
     },

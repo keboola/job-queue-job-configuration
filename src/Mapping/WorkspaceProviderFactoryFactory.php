@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\Mapping;
 
 use Keboola\InputMapping\Staging\AbstractStrategyFactory;
-use Keboola\JobQueue\JobConfiguration\Component;
-use Keboola\JobQueue\JobConfiguration\Configuration\Runtime\Backend;
 use Keboola\JobQueue\JobConfiguration\Exception\ApplicationException;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\Component;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\Backend;
 use Keboola\StagingProvider\Staging\Workspace\AbsWorkspaceStaging;
 use Keboola\StagingProvider\Staging\Workspace\RedshiftWorkspaceStaging;
 use Keboola\StagingProvider\WorkspaceProviderFactory\AbstractCachedWorkspaceProviderFactory;

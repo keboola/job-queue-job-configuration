@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\Mapping;
 
-use Keboola\JobQueue\JobConfiguration\Component;
-use Keboola\JobQueue\JobConfiguration\Configuration\Configuration;
-use Keboola\JobQueue\JobConfiguration\Configuration\Runtime\Runtime;
 use Keboola\JobQueue\JobConfiguration\Exception\UserException;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\Component;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\Runtime;
 use Keboola\OutputMapping\DeferredTasks\LoadTableQueue;
 use Keboola\OutputMapping\Exception\InvalidOutputException;
 use Keboola\OutputMapping\Staging\StrategyFactory as OutputStrategyFactory;

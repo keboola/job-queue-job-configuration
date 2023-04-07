@@ -1,0 +1,49 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Keboola\JobQueue\JobConfiguration\JobDefinition\Component;
+
+use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
+use Symfony\Component\Config\Definition\Builder\NodeDefinition;
+use Symfony\Component\Config\Definition\Builder\TreeBuilder;
+use Symfony\Component\Config\Definition\ConfigurationInterface;
+
+class ImageSpec implements ConfigurationInterface
+{
+    public const KNOWN_IMAGE_TYPES = ['dockerhub', 'quayio', 'aws-ecr'];
+
+    public function getConfigTreeBuilder(): TreeBuilder
+    {
+        $treeBuilder = new TreeBuilder('image');
+        $root = $treeBuilder->getRootNode();
+        self::configureNode($root);
+        return $treeBuilder;
+    }
+
+    public static function configureNode(NodeDefinition $node): void
+    {
+        /** @var ArrayNodeDefinition $node */
+        $node
+            ->children()
+            ->scalarNode('type')
+                ->isRequired()
+                ->validate()
+                    ->ifNotInArray(self::KNOWN_IMAGE_TYPES)
+                        ->thenInvalid('Invalid image type %s.')
+                    ->end()
+                ->end()
+            ->scalarNode('uri')->isRequired()->cannotBeEmpty()->end()
+            ->scalarNode('tag')->defaultValue('latest')->end()
+            ->scalarNode('digest')->defaultValue('')->end()
+            ->arrayNode('repository')
+                ->children()
+                    ->scalarNode('region')->end()
+                    ->scalarNode('username')->end()
+                    ->scalarNode('#password')->end()
+                    ->scalarNode('server')->end()
+                ->end()
+            ->end()
+        ->end();
+    }
+}

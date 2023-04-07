@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\Tests;
 
-use Keboola\JobQueue\JobConfiguration\Component;
-use Keboola\JobQueue\JobConfiguration\Configuration\Configuration;
-use Keboola\JobQueue\JobConfiguration\JobDefinition;
-use Keboola\JobQueue\JobConfiguration\State\State;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\Component;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\JobDefinition;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\State\State;
 use PHPUnit\Framework\TestCase;
 
 class JobDefinitionTest extends TestCase
@@ -19,7 +19,8 @@ class JobDefinitionTest extends TestCase
             'data' => [
                 'network' => 'bridge',
                 'definition' => [
-                    'type' => 'transformation',
+                    'type' => 'aws-ecr',
+                    'uri' => '123456789.dkr.ecr.us-east-1.amazonaws.com/keboola.python-transformation-v2:latest',
                 ],
             ],
         ]);

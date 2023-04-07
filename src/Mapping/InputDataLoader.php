@@ -13,10 +13,10 @@ use Keboola\InputMapping\State\InputTableStateList;
 use Keboola\InputMapping\Table\Options\InputTableOptionsList;
 use Keboola\InputMapping\Table\Options\ReaderOptions;
 use Keboola\InputMapping\Table\Result as InputTableResult;
-use Keboola\JobQueue\JobConfiguration\Component;
-use Keboola\JobQueue\JobConfiguration\Configuration\Configuration;
 use Keboola\JobQueue\JobConfiguration\Exception\UserException;
-use Keboola\JobQueue\JobConfiguration\State\State;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\Component;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\State\State;
 use Keboola\StorageApi\ClientException;
 use Psr\Log\LoggerInterface;
 
