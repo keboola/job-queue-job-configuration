@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keboola\JobQueue\JobConfiguration\Tests;
+namespace Keboola\JobQueue\JobConfiguration\Tests\JobDefinition;
 
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\Component;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
@@ -12,15 +12,14 @@ use PHPUnit\Framework\TestCase;
 
 class JobDefinitionTest extends TestCase
 {
-    public function testConstructor(): void
+    public function testConstruct(): void
     {
         $component = new Component([
-            'id' => 'keboola.python-transformation-v2',
+            'id' => 'my.component',
             'data' => [
-                'network' => 'bridge',
                 'definition' => [
-                    'type' => 'aws-ecr',
-                    'uri' => '123456789.dkr.ecr.us-east-1.amazonaws.com/keboola.python-transformation-v2:latest',
+                    'type' => 'dockerhub',
+                    'uri' => 'keboola/docker-demo',
                 ],
             ],
         ]);
@@ -30,17 +29,16 @@ class JobDefinitionTest extends TestCase
 
         $jobDefinition = new JobDefinition(
             component: $component,
-            configId: 'config1',
-            rowId: 'row1',
-            isDisabled: false,
+            configId: 'configId',
+            rowId: 'rowId',
+            isDisabled: true,
             configuration: $configuration,
             state: $state,
         );
-
         self::assertSame($component, $jobDefinition->component);
-        self::assertSame('config1', $jobDefinition->configId);
-        self::assertSame('row1', $jobDefinition->rowId);
-        self::assertFalse($jobDefinition->isDisabled);
+        self::assertSame('configId', $jobDefinition->configId);
+        self::assertSame('rowId', $jobDefinition->rowId);
+        self::assertTrue($jobDefinition->isDisabled);
         self::assertSame($configuration, $jobDefinition->configuration);
         self::assertSame($state, $jobDefinition->state);
     }

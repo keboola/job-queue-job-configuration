@@ -13,6 +13,7 @@ readonly class JobDefinition
         public Component\Component $component,
         public ?string $configId,
         public ?string $rowId,
+        public bool $isDisabled,
         public Configuration\Configuration $configuration,
         public State\State $state,
     ) {

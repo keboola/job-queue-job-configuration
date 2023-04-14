@@ -33,4 +33,24 @@ readonly class Configuration
             runtime: isset($data['runtime']) ? Runtime\Runtime::fromArray($data['runtime']) : null,
         );
     }
+
+    public function toArray(): array
+    {
+        $data = [
+            'parameters' => $this->parameters,
+            'storage' => $this->storage->toArray(),
+            'processors' => $this->processors,
+        ];
+
+        if ($this->runtime) {
+            $data['runtime'] = $this->runtime->toArray();
+        }
+
+        return $data;
+    }
+
+    public function mergeArray(array $data): self
+    {
+        return self::fromArray(array_replace_recursive($this->toArray(), $data));
+    }
 }
