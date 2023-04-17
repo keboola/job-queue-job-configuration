@@ -47,6 +47,7 @@ class ComponentTest extends TestCase
         self::assertEquals(true, $component->forwardToken());
         self::assertEquals(true, $component->forwardTokenDetails());
         self::assertEquals(true, $component->hasDefaultBucket());
+        self::assertSame('keboola/docker-demo', $component->getImageUri());
         self::assertSame('master', $component->getImageTag());
     }
 

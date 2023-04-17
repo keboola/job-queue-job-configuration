@@ -176,6 +176,11 @@ class Component
         $this->data['definition']['tag'] = $tag;
     }
 
+    public function getImageUri(): string
+    {
+        return $this->data['definition']['uri'];
+    }
+
     public function getImageTag(): string
     {
         return $this->data['definition']['tag'];
