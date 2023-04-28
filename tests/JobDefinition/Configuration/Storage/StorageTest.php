@@ -8,7 +8,7 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\FilesL
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Input;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Output;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Storage;
-use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TableFilesList;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TableFiles;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TablesList;
 use PHPUnit\Framework\TestCase;
 
@@ -72,7 +72,7 @@ class StorageTest extends TestCase
         $output = new Output(
             tables: TablesList::fromArray(['table3', 'table4']),
             files: FilesList::fromArray(['file3.csv', 'file4.csv']),
-            tableFiles: TableFilesList::fromArray(['file1.csv' => ['table1'], 'file2.csv' => ['table2']]),
+            tableFiles: TableFiles::fromArray(['file1.csv' => ['table1'], 'file2.csv' => ['table2']]),
             defaultBucket: 'output-bucket'
         );
 

@@ -6,7 +6,7 @@ namespace Keboola\JobQueue\JobConfiguration\Tests\JobDefinition\Configuration\St
 
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\FilesList;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Output;
-use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TableFilesList;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TableFiles;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TablesList;
 use PHPUnit\Framework\TestCase;
 
@@ -61,7 +61,7 @@ class OutputTest extends TestCase
             ],
         ]), $output->files);
 
-        self::assertEquals(TableFilesList::fromArray([
+        self::assertEquals(TableFiles::fromArray([
             [
                 'tableId' => 'in.c-my-bucket.my-table',
                 'tags' => ['my-tag'],
@@ -87,7 +87,7 @@ class OutputTest extends TestCase
                 'path' => '/my-file.csv',
             ],
         ]);
-        $tableFilesList = TableFilesList::fromArray([
+        $tableFilesList = TableFiles::fromArray([
             [
                 'tableId' => 'in.c-my-bucket.my-table',
                 'tags' => ['my-tag'],
@@ -117,7 +117,7 @@ class OutputTest extends TestCase
         $output = new Output(
             tables: new TablesList([]),
             files: new FilesList([]),
-            tableFiles: new TableFilesList([]),
+            tableFiles: new TableFiles(),
             defaultBucket: 'out.c-my-bucket'
         );
 
@@ -134,7 +134,7 @@ class OutputTest extends TestCase
                 ],
             ]),
             files: new FilesList([]),
-            tableFiles: new TableFilesList([]),
+            tableFiles: new TableFiles(),
             defaultBucket: 'out.c-my-bucket'
         );
 
@@ -148,7 +148,7 @@ class OutputTest extends TestCase
                     'path' => '/my-file.csv',
                 ],
             ]),
-            tableFiles: new TableFilesList([]),
+            tableFiles: new TableFiles(),
             defaultBucket: 'out.c-my-bucket'
         );
 
@@ -157,16 +157,10 @@ class OutputTest extends TestCase
         $output = new Output(
             tables: new TablesList([]),
             files: new FilesList([]),
-            tableFiles: new TableFilesList([
-                [
-                    'tableId' => 'in.c-my-bucket.my-table',
-                    'tags' => ['my-tag'],
-                    'path' => '/my-file.csv',
-                ],
-            ]),
+            tableFiles: new TableFiles(['tag1', 'tag2']),
             defaultBucket: 'out.c-my-bucket'
         );
 
-        self::assertFalse($output->isEmpty());
+        self::assertTrue($output->isEmpty());
     }
 }

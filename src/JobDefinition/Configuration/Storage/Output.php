@@ -9,7 +9,7 @@ readonly class Output
     public function __construct(
         public TablesList $tables,
         public FilesList $files,
-        public TableFilesList $tableFiles,
+        public TableFiles $tableFiles,
         public ?string $defaultBucket,
     ) {
     }
@@ -19,7 +19,7 @@ readonly class Output
         return new self(
             tables: TablesList::fromArray($data['tables'] ?? []),
             files: FilesList::fromArray($data['files'] ?? []),
-            tableFiles: TableFilesList::fromArray($data['table_files'] ?? []),
+            tableFiles: TableFiles::fromArray($data['table_files'] ?? []),
             defaultBucket: isset($data['default_bucket']) ? (string) $data['default_bucket'] : null,
         );
     }
@@ -36,6 +36,6 @@ readonly class Output
 
     public function isEmpty(): bool
     {
-        return $this->tables->isEmpty() && $this->files->isEmpty() && $this->tableFiles->isEmpty();
+        return $this->tables->isEmpty() && $this->files->isEmpty();
     }
 }
