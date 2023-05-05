@@ -16,7 +16,7 @@ class ComponentSpecificationDefinition implements ConfigurationInterface
         $root = $treeBuilder->getRootNode();
 
         $definition = $root->children()->arrayNode('definition')->isRequired();
-        ImageSpec::configureNode($definition);
+        ImageDefinition::configureNode($definition);
 
         $root->children()
             ->scalarNode('memory')->defaultValue('256m')->end()

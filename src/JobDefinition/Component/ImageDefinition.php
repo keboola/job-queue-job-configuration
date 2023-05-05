@@ -9,7 +9,7 @@ use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
-class ImageSpec implements ConfigurationInterface
+class ImageDefinition implements ConfigurationInterface
 {
     public const KNOWN_IMAGE_TYPES = ['dockerhub', 'quayio', 'aws-ecr'];
 
