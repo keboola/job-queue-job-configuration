@@ -21,7 +21,7 @@ readonly class Configuration
     public static function fromArray(array $data): self
     {
         try {
-            $data = (new Processor())->processConfiguration(new ConfigurationSpec(), ['configuration' => $data]);
+            $data = (new Processor())->processConfiguration(new ConfigurationDefinition(), ['configuration' => $data]);
         } catch (InvalidConfigurationException $e) {
             throw new ApplicationException(sprintf('Job configuration is not valid: %s', $e->getMessage()), $data, $e);
         }

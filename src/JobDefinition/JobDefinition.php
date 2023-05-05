@@ -10,7 +10,7 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\State;
 readonly class JobDefinition
 {
     public function __construct(
-        public Component\Component $component,
+        public Component\ComponentSpecification $component,
         public ?string $configId,
         public ?string $rowId,
         public bool $isDisabled,

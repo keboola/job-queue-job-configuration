@@ -6,7 +6,7 @@ namespace Keboola\JobQueue\JobConfiguration\Mapping;
 
 use Keboola\InputMapping\Staging\AbstractStrategyFactory;
 use Keboola\JobQueue\JobConfiguration\Exception\ApplicationException;
-use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\Component;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\Backend;
 use Keboola\StagingProvider\Staging\Workspace\AbsWorkspaceStaging;
 use Keboola\StagingProvider\Staging\Workspace\RedshiftWorkspaceStaging;
@@ -35,7 +35,7 @@ class WorkspaceProviderFactoryFactory
      */
     public function getWorkspaceProviderFactory(
         string $stagingStorage,
-        Component $component,
+        ComponentSpecification $component,
         ?string $configId,
         ?Backend $backendConfig,
         ?bool $useReadonlyRole
@@ -69,7 +69,7 @@ class WorkspaceProviderFactoryFactory
      * @param non-empty-string $configId
      */
     private function getWorkspaceFactoryForPersistentRedshiftWorkspace(
-        Component $component,
+        ComponentSpecification $component,
         string $configId
     ): ExistingDatabaseWorkspaceProviderFactory {
         $listOptions = (new ListConfigurationWorkspacesOptions())
@@ -116,7 +116,7 @@ class WorkspaceProviderFactoryFactory
      * @param non-empty-string $configId
      */
     private function getWorkspaceFactoryForPersistentAbsWorkspace(
-        Component $component,
+        ComponentSpecification $component,
         string $configId,
     ): ExistingFilesystemWorkspaceProviderFactory {
         // ABS workspaces are persistent, but only if configId is present

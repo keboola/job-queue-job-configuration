@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\Tests;
 
-use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\Component;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\JobDefinition;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\State\State;
@@ -14,7 +14,7 @@ class JobDefinitionTest extends TestCase
 {
     public function testConstructor(): void
     {
-        $component = new Component([
+        $component = new ComponentSpecification([
             'id' => 'keboola.python-transformation-v2',
             'data' => [
                 'network' => 'bridge',

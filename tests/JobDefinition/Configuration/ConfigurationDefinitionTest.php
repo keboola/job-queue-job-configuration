@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\Tests\JobDefinition\Configuration;
 
-use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\ConfigurationSpec;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\ConfigurationDefinition;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 
-class ConfigurationSpecTest extends TestCase
+class ConfigurationDefinitionTest extends TestCase
 {
     public function testConfiguration(): void
     {
-        (new Processor())->processConfiguration(new ConfigurationSpec(), [
+        (new Processor())->processConfiguration(new ConfigurationDefinition(), [
             'configuration' => [
                 'storage' => [
                     'input' => [
@@ -94,7 +94,7 @@ class ConfigurationSpecTest extends TestCase
 
     public function testConfigurationWithWorkspaceConnection(): void
     {
-        (new Processor())->processConfiguration(new ConfigurationSpec(), [
+        (new Processor())->processConfiguration(new ConfigurationDefinition(), [
             'configuration' => [
                 'storage' => [
                     'input' => [
@@ -174,7 +174,7 @@ class ConfigurationSpecTest extends TestCase
 
     public function testRuntimeConfiguration(): void
     {
-        $config = (new Processor())->processConfiguration(new ConfigurationSpec(), [
+        $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
             'configuration' => [
                 'runtime' => [
                     'safe' => true,
@@ -195,7 +195,7 @@ class ConfigurationSpecTest extends TestCase
 
     public function testRuntimeBackendConfigurationHasDefaultEmptyValue(): void
     {
-        $config = (new Processor())->processConfiguration(new ConfigurationSpec(), [
+        $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
             'configuration' => [
                 'runtime' => [],
             ],
@@ -206,7 +206,7 @@ class ConfigurationSpecTest extends TestCase
 
     public function testRuntimeBackendConfigurationIgnoreExtraKeys(): void
     {
-        $config = (new Processor())->processConfiguration(new ConfigurationSpec(), [
+        $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
             'configuration' => [
                 'runtime' => [
                     'backend' => [
@@ -229,7 +229,7 @@ class ConfigurationSpecTest extends TestCase
 
     public function testConfigurationWithTableFiles(): void
     {
-        (new Processor())->processConfiguration(new ConfigurationSpec(), [
+        (new Processor())->processConfiguration(new ConfigurationDefinition(), [
             'configuration' => [
                 'storage' => [
                     'input' => [
@@ -254,7 +254,7 @@ class ConfigurationSpecTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage('Unrecognized option "backend" under "configuration.artifacts".');
 
-        (new Processor())->processConfiguration(new ConfigurationSpec(), [
+        (new Processor())->processConfiguration(new ConfigurationDefinition(), [
             'configuration' => [
                 'artifacts' => [
                     'backend' => [
@@ -326,7 +326,7 @@ class ConfigurationSpecTest extends TestCase
         array $runsConfiguration,
         array $expectedRunsConfiguration
     ): void {
-        $config = (new Processor())->processConfiguration(new ConfigurationSpec(), [
+        $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
             'configuration' => [
                 'artifacts' => [
                     'runs' => $runsConfiguration,
@@ -390,7 +390,7 @@ class ConfigurationSpecTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage($expecterErrorMessage);
 
-        (new Processor())->processConfiguration(new ConfigurationSpec(), [
+        (new Processor())->processConfiguration(new ConfigurationDefinition(), [
             'configuration' => [
                 'artifacts' => [
                     'runs' => $runsConfiguration,
@@ -424,7 +424,7 @@ class ConfigurationSpecTest extends TestCase
         array $sharedConfiguration,
         array $expectedSharedConfiguration
     ): void {
-        $config = (new Processor())->processConfiguration(new ConfigurationSpec(), [
+        $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
             'configuration' => [
                 'artifacts' => [
                     'shared' => $sharedConfiguration,
@@ -461,7 +461,7 @@ class ConfigurationSpecTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage($expecterErrorMessage);
 
-        (new Processor())->processConfiguration(new ConfigurationSpec(), [
+        (new Processor())->processConfiguration(new ConfigurationDefinition(), [
             'configuration' => [
                 'artifacts' => [
                     'shared' => $sharedConfiguration,
@@ -587,7 +587,7 @@ class ConfigurationSpecTest extends TestCase
         array $customConfiguration,
         array $expectedCustomConfiguration
     ): void {
-        $config = (new Processor())->processConfiguration(new ConfigurationSpec(), [
+        $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
             'configuration' => [
                 'artifacts' => [
                     'custom' => $customConfiguration,
@@ -651,7 +651,7 @@ class ConfigurationSpecTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage($expecterErrorMessage);
 
-        (new Processor())->processConfiguration(new ConfigurationSpec(), [
+        (new Processor())->processConfiguration(new ConfigurationDefinition(), [
             'configuration' => [
                 'artifacts' => [
                     'custom' => $customConfiguration,
@@ -662,7 +662,7 @@ class ConfigurationSpecTest extends TestCase
 
     public function testArtifactsHavingMultipleFiltersEnabled(): void
     {
-        $config = (new Processor())->processConfiguration(new ConfigurationSpec(), [
+        $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
             'configuration' => [
                 'artifacts' => [
                     'runs' => [
@@ -703,7 +703,7 @@ class ConfigurationSpecTest extends TestCase
 
     public function testConfigurationWithReadonlyRole(): void
     {
-        (new Processor())->processConfiguration(new ConfigurationSpec(), [
+        (new Processor())->processConfiguration(new ConfigurationDefinition(), [
             'configuration' => [
                 'storage' => [
                     'input' => [

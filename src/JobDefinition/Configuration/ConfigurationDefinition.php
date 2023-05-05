@@ -12,7 +12,7 @@ use Keboola\OutputMapping\Configuration\TableFile as OutputTableFile;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
-class ConfigurationSpec implements ConfigurationInterface
+class ConfigurationDefinition implements ConfigurationInterface
 {
     public function getConfigTreeBuilder(): TreeBuilder
     {

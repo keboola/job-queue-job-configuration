@@ -8,7 +8,7 @@ use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
-class StateSpec implements ConfigurationInterface
+class StateDefinition implements ConfigurationInterface
 {
     public const NAMESPACE_COMPONENT = 'component';
     public const NAMESPACE_STORAGE = 'storage';

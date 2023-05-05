@@ -14,7 +14,7 @@ use Keboola\InputMapping\Table\Options\InputTableOptionsList;
 use Keboola\InputMapping\Table\Options\ReaderOptions;
 use Keboola\InputMapping\Table\Result as InputTableResult;
 use Keboola\JobQueue\JobConfiguration\Exception\UserException;
-use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\Component;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\State\State;
 use Keboola\StorageApi\ClientException;
@@ -30,7 +30,7 @@ class InputDataLoader
     }
 
     public function loadInputData(
-        Component $component,
+        ComponentSpecification $component,
         Configuration $jobConfiguration,
         State $jobState,
     ): LoadInputDataResult {

@@ -10,7 +10,7 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 
-class Component
+class ComponentSpecification
 {
     private string $id;
     private array $data;
@@ -31,7 +31,7 @@ class Component
         }
 
         try {
-            $this->data = (new Processor())->processConfiguration(new ComponentSpec(), ['component' => $data]);
+            $this->data = (new Processor())->processConfiguration(new ComponentSpecificationDefinition(), ['component' => $data]);
         } catch (InvalidConfigurationException $e) {
             throw new ApplicationException(
                 'Component definition is invalid. Verify the deployment setup and the repository settings ' .

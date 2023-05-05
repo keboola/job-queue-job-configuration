@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\Tests\JobDefinition;
 
-use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\Component;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\JobDefinition;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\State\State;
@@ -14,7 +14,7 @@ class JobDefinitionTest extends TestCase
 {
     public function testConstruct(): void
     {
-        $component = new Component([
+        $component = new ComponentSpecification([
             'id' => 'my.component',
             'data' => [
                 'definition' => [

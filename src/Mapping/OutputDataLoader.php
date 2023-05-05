@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\Mapping;
 
 use Keboola\JobQueue\JobConfiguration\Exception\UserException;
-use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\Component;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\Runtime;
 use Keboola\OutputMapping\DeferredTasks\LoadTableQueue;
@@ -29,7 +29,7 @@ class OutputDataLoader
     }
 
     public function storeOutput(
-        Component $component,
+        ComponentSpecification $component,
         Configuration $jobConfiguration,
         ?string $branchId,
         ?string $runId,
@@ -126,7 +126,7 @@ class OutputDataLoader
         }
     }
 
-    private function getDefaultBucket(Component $component, ?string $configId): string
+    private function getDefaultBucket(ComponentSpecification $component, ?string $configId): string
     {
         if ($component->hasDefaultBucket()) {
             if (!$configId) {
@@ -138,7 +138,7 @@ class OutputDataLoader
         }
     }
 
-    private function useFileStorageOnly(Component $component, ?Runtime $runtimeConfig): bool
+    private function useFileStorageOnly(ComponentSpecification $component, ?Runtime $runtimeConfig): bool
     {
         return $component->allowUseFileStorageOnly() && $runtimeConfig?->useFileStorageOnly;
     }

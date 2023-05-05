@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\Tests\JobDefinition\Component;
 
 use Keboola\CommonExceptions\ApplicationExceptionInterface;
-use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\Component;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use PHPUnit\Framework\TestCase;
 
-class ComponentTest extends TestCase
+class ComponentSpecificationTest extends TestCase
 {
     public function testConfiguration(): void
     {
@@ -27,7 +27,7 @@ class ComponentTest extends TestCase
             ],
         ];
 
-        $component = new Component($configuration);
+        $component = new ComponentSpecification($configuration);
         self::assertEquals('128m', $component->getMemory());
         self::assertEquals(7200, $component->getProcessTimeout());
         self::assertEquals('standard', $component->getLoggerType());
@@ -63,7 +63,7 @@ class ComponentTest extends TestCase
             ],
         ];
 
-        $component = new Component($configuration);
+        $component = new ComponentSpecification($configuration);
         self::assertEquals('256m', $component->getMemory());
         self::assertEquals(3600, $component->getProcessTimeout());
         self::assertEquals('standard', $component->getLoggerType());
@@ -92,7 +92,7 @@ class ComponentTest extends TestCase
             'Component definition is invalid. Verify the deployment setup and the repository settings in ' .
             'the Developer Portal. Detail: The child config "definition" under "component" must be configured.'
         );
-        new Component([]);
+        new ComponentSpecification([]);
     }
 
     public function testInvalidComponentEmptyDefinition(): void
@@ -102,7 +102,7 @@ class ComponentTest extends TestCase
             'Component definition is invalid. Verify the deployment setup and the repository settings in the ' .
             'Developer Portal. Detail: The child config "definition" under "component" must be configured'
         );
-        new Component([
+        new ComponentSpecification([
             'data' => [
             ],
         ]);
@@ -115,7 +115,7 @@ class ComponentTest extends TestCase
             'Component definition is invalid. Verify the deployment setup and the repository settings in the ' .
             'Developer Portal. Detail: The path "component.definition.uri" cannot contain an empty value, but got "".'
         );
-        new Component([
+        new ComponentSpecification([
             'data' => [
                 'definition' => [
                     'type' => 'aws-ecr',
@@ -136,7 +136,7 @@ class ComponentTest extends TestCase
                 ],
             ],
         ];
-        $component = new Component($component);
+        $component = new ComponentSpecification($component);
         self::assertEquals('in.c-keboola-ex-generic-test', $component->getDefaultBucketName('test'));
     }
 
@@ -151,7 +151,7 @@ class ComponentTest extends TestCase
                 ],
             ],
         ];
-        $component = new Component($component);
+        $component = new ComponentSpecification($component);
         self::assertEquals('in.c-ex-generic-test', $component->getDefaultBucketName('test'));
     }
 
@@ -166,7 +166,7 @@ class ComponentTest extends TestCase
                 ],
             ],
         ];
-        $component = new Component($component);
+        $component = new ComponentSpecification($component);
         self::assertEquals('in.c-keboola-ex-generic-test', $component->getDefaultBucketName('test'));
     }
 
@@ -181,7 +181,7 @@ class ComponentTest extends TestCase
                 ],
             ],
         ];
-        $component = new Component($componentData);
+        $component = new ComponentSpecification($componentData);
         self::assertFalse($component->runAsRoot());
         self::assertFalse($component->allowBranchMapping());
         self::assertFalse($component->blockBranchJobs());
@@ -206,7 +206,7 @@ class ComponentTest extends TestCase
                 'container-tcpkeepalive-60s-override',
             ],
         ];
-        $component = new Component($componentData);
+        $component = new ComponentSpecification($componentData);
         self::assertTrue($component->runAsRoot());
         self::assertTrue($component->allowBranchMapping());
         self::assertTrue($component->blockBranchJobs());
@@ -225,7 +225,7 @@ class ComponentTest extends TestCase
                 ],
             ],
         ];
-        $component = new Component($componentData);
+        $component = new ComponentSpecification($componentData);
         self::assertFalse($component->hasNoSwap());
     }
 
@@ -243,7 +243,7 @@ class ComponentTest extends TestCase
                 'no-swap',
             ],
         ];
-        $component = new Component($componentData);
+        $component = new ComponentSpecification($componentData);
         self::assertTrue($component->hasNoSwap());
     }
 
@@ -261,7 +261,7 @@ class ComponentTest extends TestCase
                 'no-swap',
             ],
         ];
-        $component = new Component($componentData);
+        $component = new ComponentSpecification($componentData);
         $component->setImageTag('1.2.3');
         self::assertSame('1.2.3', $component->getImageTag());
     }

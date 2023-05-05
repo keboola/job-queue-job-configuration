@@ -8,7 +8,7 @@ use Monolog\Logger;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
-class ComponentSpec implements ConfigurationInterface
+class ComponentSpecificationDefinition implements ConfigurationInterface
 {
     public function getConfigTreeBuilder(): TreeBuilder
     {

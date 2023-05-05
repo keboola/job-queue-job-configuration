@@ -4,41 +4,41 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\Tests\JobDefinition\State;
 
-use Keboola\JobQueue\JobConfiguration\JobDefinition\State\StateSpec;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\State\StateDefinition;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 
-class StateSpecTest extends TestCase
+class StateDefinitionTest extends TestCase
 {
     public function testEmptyState(): void
     {
         $state = [];
         $expected = [
-            StateSpec::NAMESPACE_COMPONENT => [],
+            StateDefinition::NAMESPACE_COMPONENT => [],
         ];
-        $processed = (new Processor())->processConfiguration(new StateSpec(), ['state' => $state]);
+        $processed = (new Processor())->processConfiguration(new StateDefinition(), ['state' => $state]);
         self::assertEquals($expected, $processed);
     }
 
     public function testComponentState(): void
     {
         $state = [
-            StateSpec::NAMESPACE_COMPONENT => ['key' => 'foo'],
+            StateDefinition::NAMESPACE_COMPONENT => ['key' => 'foo'],
         ];
         $expected = [
-            StateSpec::NAMESPACE_COMPONENT => ['key' => 'foo'],
+            StateDefinition::NAMESPACE_COMPONENT => ['key' => 'foo'],
         ];
-        $processed = (new Processor())->processConfiguration(new StateSpec(), ['state' => $state]);
+        $processed = (new Processor())->processConfiguration(new StateDefinition(), ['state' => $state]);
         self::assertEquals($expected, $processed);
     }
 
     public function testStorageInputTablesState(): void
     {
         $state = [
-            StateSpec::NAMESPACE_STORAGE => [
-                StateSpec::NAMESPACE_INPUT => [
-                    StateSpec::NAMESPACE_TABLES => [
+            StateDefinition::NAMESPACE_STORAGE => [
+                StateDefinition::NAMESPACE_INPUT => [
+                    StateDefinition::NAMESPACE_TABLES => [
                         [
                             'source' => 'sourceTable',
                             'lastImportDate' => 'someDate',
@@ -48,29 +48,29 @@ class StateSpecTest extends TestCase
             ],
         ];
         $expected = [
-            StateSpec::NAMESPACE_COMPONENT => [],
-            StateSpec::NAMESPACE_STORAGE => [
-                StateSpec::NAMESPACE_INPUT => [
-                    StateSpec::NAMESPACE_TABLES => [
+            StateDefinition::NAMESPACE_COMPONENT => [],
+            StateDefinition::NAMESPACE_STORAGE => [
+                StateDefinition::NAMESPACE_INPUT => [
+                    StateDefinition::NAMESPACE_TABLES => [
                         [
                             'source' => 'sourceTable',
                             'lastImportDate' => 'someDate',
                         ],
                     ],
-                    StateSpec::NAMESPACE_FILES => [],
+                    StateDefinition::NAMESPACE_FILES => [],
                 ],
             ],
         ];
-        $processed = (new Processor())->processConfiguration(new StateSpec(), ['state' => $state]);
+        $processed = (new Processor())->processConfiguration(new StateDefinition(), ['state' => $state]);
         self::assertEquals($expected, $processed);
     }
 
     public function testStorageInputTablesStateExtraKey(): void
     {
         $state = [
-            StateSpec::NAMESPACE_STORAGE => [
-                StateSpec::NAMESPACE_INPUT => [
-                    StateSpec::NAMESPACE_TABLES => [
+            StateDefinition::NAMESPACE_STORAGE => [
+                StateDefinition::NAMESPACE_INPUT => [
+                    StateDefinition::NAMESPACE_TABLES => [
                         [
                             'source' => 'sourceTable',
                             'lastImportDate' => 'someDate',
@@ -83,15 +83,15 @@ class StateSpecTest extends TestCase
 
         self::expectException(InvalidConfigurationException::class);
         self::expectExceptionMessage('Unrecognized option "invalidKey" under "state.storage.input.tables.0"');
-        (new Processor())->processConfiguration(new StateSpec(), ['state' => $state]);
+        (new Processor())->processConfiguration(new StateDefinition(), ['state' => $state]);
     }
 
     public function testStorageInputTablesStateMissingKey(): void
     {
         $state = [
-            StateSpec::NAMESPACE_STORAGE => [
-                StateSpec::NAMESPACE_INPUT => [
-                    StateSpec::NAMESPACE_TABLES => [
+            StateDefinition::NAMESPACE_STORAGE => [
+                StateDefinition::NAMESPACE_INPUT => [
+                    StateDefinition::NAMESPACE_TABLES => [
                         [
                             'source' => 'sourceTable',
                         ],
@@ -104,15 +104,15 @@ class StateSpecTest extends TestCase
         self::expectExceptionMessage(
             'The child config "lastImportDate" under "state.storage.input.tables.0" must be configured'
         );
-        (new Processor())->processConfiguration(new StateSpec(), ['state' => $state]);
+        (new Processor())->processConfiguration(new StateDefinition(), ['state' => $state]);
     }
 
     public function testStorageInputFilesState(): void
     {
         $state = [
-            StateSpec::NAMESPACE_STORAGE => [
-                StateSpec::NAMESPACE_INPUT => [
-                    StateSpec::NAMESPACE_FILES => [
+            StateDefinition::NAMESPACE_STORAGE => [
+                StateDefinition::NAMESPACE_INPUT => [
+                    StateDefinition::NAMESPACE_FILES => [
                         [
                             'tags' => [
                                 [
@@ -126,11 +126,11 @@ class StateSpecTest extends TestCase
             ],
         ];
         $expected = [
-            StateSpec::NAMESPACE_COMPONENT => [],
-            StateSpec::NAMESPACE_STORAGE => [
-                StateSpec::NAMESPACE_INPUT => [
-                    StateSpec::NAMESPACE_TABLES => [],
-                    StateSpec::NAMESPACE_FILES => [
+            StateDefinition::NAMESPACE_COMPONENT => [],
+            StateDefinition::NAMESPACE_STORAGE => [
+                StateDefinition::NAMESPACE_INPUT => [
+                    StateDefinition::NAMESPACE_TABLES => [],
+                    StateDefinition::NAMESPACE_FILES => [
                         [
                             'tags' => [
                                 [
@@ -143,16 +143,16 @@ class StateSpecTest extends TestCase
                 ],
             ],
         ];
-        $processed = (new Processor())->processConfiguration(new StateSpec(), ['state' => $state]);
+        $processed = (new Processor())->processConfiguration(new StateDefinition(), ['state' => $state]);
         self::assertEquals($expected, $processed);
     }
 
     public function testStorageInputFilesStateExtraKey(): void
     {
         $state = [
-            StateSpec::NAMESPACE_STORAGE => [
-                StateSpec::NAMESPACE_INPUT => [
-                    StateSpec::NAMESPACE_FILES => [
+            StateDefinition::NAMESPACE_STORAGE => [
+                StateDefinition::NAMESPACE_INPUT => [
+                    StateDefinition::NAMESPACE_FILES => [
                         [
                             'tags' => [
                                 [
@@ -169,15 +169,15 @@ class StateSpecTest extends TestCase
 
         self::expectException(InvalidConfigurationException::class);
         self::expectExceptionMessage('Unrecognized option "extraKey" under "state.storage.input.files.0"');
-        (new Processor())->processConfiguration(new StateSpec(), ['state' => $state]);
+        (new Processor())->processConfiguration(new StateDefinition(), ['state' => $state]);
     }
 
     public function testStorageInputFilesStateMissingKey(): void
     {
         $state = [
-            StateSpec::NAMESPACE_STORAGE => [
-                StateSpec::NAMESPACE_INPUT => [
-                    StateSpec::NAMESPACE_FILES => [
+            StateDefinition::NAMESPACE_STORAGE => [
+                StateDefinition::NAMESPACE_INPUT => [
+                    StateDefinition::NAMESPACE_FILES => [
                         [
                             'tags' => [
                                 [
@@ -194,7 +194,7 @@ class StateSpecTest extends TestCase
         self::expectExceptionMessage(
             'The child config "lastImportId" under "state.storage.input.files.0" must be configured'
         );
-        (new Processor())->processConfiguration(new StateSpec(), ['state' => $state]);
+        (new Processor())->processConfiguration(new StateDefinition(), ['state' => $state]);
     }
 
     public function testInvalidRootKey(): void
@@ -205,6 +205,6 @@ class StateSpecTest extends TestCase
 
         self::expectException(InvalidConfigurationException::class);
         self::expectExceptionMessage('Unrecognized option "invalidKey" under "state"');
-        (new Processor())->processConfiguration(new StateSpec(), ['state' => $state]);
+        (new Processor())->processConfiguration(new StateDefinition(), ['state' => $state]);
     }
 }

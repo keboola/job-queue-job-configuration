@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\Tests\JobDefinition\Component;
 
-use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpec;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecificationDefinition;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 
-class ComponentSpecTest extends TestCase
+class ComponentSpecificationDefinitionTest extends TestCase
 {
     public function testConfiguration(): void
     {
@@ -59,7 +59,7 @@ class ComponentSpecTest extends TestCase
             ],
         ];
         $processedConfiguration =
-            (new Processor())->processConfiguration(new ComponentSpec(), ['component' => $config]);
+            (new Processor())->processConfiguration(new ComponentSpecificationDefinition(), ['component' => $config]);
         self::assertEquals($expectedConfiguration, $processedConfiguration);
     }
 
@@ -72,7 +72,7 @@ class ComponentSpecTest extends TestCase
             ],
         ];
         $processedConfiguration =
-            (new Processor())->processConfiguration(new ComponentSpec(), ['component' => $config]);
+            (new Processor())->processConfiguration(new ComponentSpecificationDefinition(), ['component' => $config]);
         $expectedConfiguration = [
             'definition' => [
                 'type' => 'dockerhub',
@@ -126,7 +126,7 @@ class ComponentSpecTest extends TestCase
         self::expectExceptionMessage(
             'Invalid configuration for path "component.definition.type": Invalid image type "whatever".'
         );
-        (new Processor())->processConfiguration(new ComponentSpec(), ['component' => $config]);
+        (new Processor())->processConfiguration(new ComponentSpecificationDefinition(), ['component' => $config]);
     }
 
     public function testWrongConfigurationFormat(): void
@@ -143,7 +143,7 @@ class ComponentSpecTest extends TestCase
         self::expectExceptionMessage(
             'Invalid configuration for path "component.configuration_format": Invalid configuration_format "fail".'
         );
-        (new Processor())->processConfiguration(new ComponentSpec(), ['component' => $config]);
+        (new Processor())->processConfiguration(new ComponentSpecificationDefinition(), ['component' => $config]);
     }
 
     public function testExtraConfigurationField(): void
@@ -157,7 +157,7 @@ class ComponentSpecTest extends TestCase
         ];
         self::expectException(InvalidConfigurationException::class);
         self::expectExceptionMessage('Unrecognized option "unknown" under "component"');
-        (new Processor())->processConfiguration(new ComponentSpec(), ['component' => $config]);
+        (new Processor())->processConfiguration(new ComponentSpecificationDefinition(), ['component' => $config]);
     }
 
     public function testWrongNetworkType(): void
@@ -174,7 +174,7 @@ class ComponentSpecTest extends TestCase
         self::expectExceptionMessage(
             'Invalid configuration for path "component.network": Invalid network type "whatever".'
         );
-        (new Processor())->processConfiguration(new ComponentSpec(), ['component' => $config]);
+        (new Processor())->processConfiguration(new ComponentSpecificationDefinition(), ['component' => $config]);
     }
 
     public function testWrongStagingInputStorageType(): void
@@ -195,7 +195,7 @@ class ComponentSpecTest extends TestCase
                 'input' => 'whatever',
             ],
         ];
-        (new Processor())->processConfiguration(new ComponentSpec(), ['component' => $config]);
+        (new Processor())->processConfiguration(new ComponentSpecificationDefinition(), ['component' => $config]);
     }
 
     public function testWrongStagingOutputStorageType(): void
@@ -216,6 +216,6 @@ class ComponentSpecTest extends TestCase
                 'output' => 'whatever',
             ],
         ];
-        (new Processor())->processConfiguration(new ComponentSpec(), ['component' => $config]);
+        (new Processor())->processConfiguration(new ComponentSpecificationDefinition(), ['component' => $config]);
     }
 }

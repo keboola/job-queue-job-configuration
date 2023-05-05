@@ -20,7 +20,7 @@ readonly class State
     public static function fromArray(array $data): self
     {
         try {
-            $data = (new Processor())->processConfiguration(new StateSpec(), ['state' => $data]);
+            $data = (new Processor())->processConfiguration(new StateDefinition(), ['state' => $data]);
         } catch (InvalidConfigurationException $e) {
             throw new ApplicationException(sprintf('Job state is not valid: %s', $e->getMessage()), $data, $e);
         }
