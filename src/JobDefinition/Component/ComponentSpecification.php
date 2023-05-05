@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\JobDefinition\Component;
 
 use Keboola\InputMapping\Staging\AbstractStrategyFactory;
-use Keboola\JobQueue\JobConfiguration\Exception\ApplicationException;
-use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration;
+use Keboola\JobQueue\JobConfiguration\Exception\ComponentInvalidException;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\Logging\GelfLoggingConfiguration;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\Logging\LoggingConfigurationInterface;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\Logging\StandardLoggingConfiguration;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\UnitConverter;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 
@@ -31,9 +34,12 @@ class ComponentSpecification
         }
 
         try {
-            $this->data = (new Processor())->processConfiguration(new ComponentSpecificationDefinition(), ['component' => $data]);
+            $this->data = (new Processor())->processConfiguration(
+                new ComponentSpecificationDefinition(),
+                ['component' => $data],
+            );
         } catch (InvalidConfigurationException $e) {
-            throw new ApplicationException(
+            throw new ComponentInvalidException(
                 'Component definition is invalid. Verify the deployment setup and the repository settings ' .
                 'in the Developer Portal. Detail: ' . $e->getMessage(),
                 $data,
@@ -80,12 +86,12 @@ class ComponentSpecification
         return $this->data['default_bucket_stage'] . '.c-' . $this->getSanitizedComponentId() . '-' . $configId;
     }
 
-    public function forwardToken(): bool
+    public function hasForwardToken(): bool
     {
         return (bool) $this->data['forward_token'];
     }
 
-    public function forwardTokenDetails(): bool
+    public function hasForwardTokenDetails(): bool
     {
         return (bool) $this->data['forward_token_details'];
     }
@@ -151,14 +157,33 @@ class ComponentSpecification
         return [];
     }
 
+    public function getLoggingConfiguration(): LoggingConfigurationInterface
+    {
+        $logging = $this->definition['data']['logging'] ?? [];
+
+        return match ($logging['type'] ?? 'standard') {
+            'standard' => StandardLoggingConfiguration::fromArray($logging),
+            'gelf' => GelfLoggingConfiguration::fromArray($logging),
+            default => throw new ComponentInvalidException(sprintf(
+                'Invalid logging type "%s". Valid values are "standard" or "gelf"',
+                $logging['type']
+            )),
+        };
+    }
+
     public function getNetworkType(): string
     {
         return $this->networkType;
     }
 
-    public function getMemory(): string
+    public function getMemoryLimit(): string
     {
         return $this->data['memory'];
+    }
+
+    public function getMemoryLimitBytes(): int
+    {
+        return UnitConverter::connectionMemoryLimitToBytes($this->getMemoryLimit());
     }
 
     public function getProcessTimeout(): int
@@ -184,6 +209,21 @@ class ComponentSpecification
     public function getImageTag(): string
     {
         return $this->data['definition']['tag'];
+    }
+
+    public function getImageUriWithTag(?string $customTag): string
+    {
+        return sprintf('%s:%s', $this->getImageUri(), $customTag ?? $this->getImageTag());
+    }
+
+    public function getSynchronousActions(): array
+    {
+        return $this->data['synchronous_actions'] ?? [];
+    }
+
+    public function hasSynchronousAction(string $action): bool
+    {
+        return in_array($action, $this->getSynchronousActions(), true);
     }
 
     public function getStagingStorage(): array

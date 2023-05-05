@@ -6,6 +6,7 @@ namespace Keboola\JobQueue\JobConfiguration\Tests\JobDefinition\Component;
 
 use Keboola\CommonExceptions\ApplicationExceptionInterface;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\UnitConverter;
 use PHPUnit\Framework\TestCase;
 
 class ComponentSpecificationTest extends TestCase
@@ -28,10 +29,11 @@ class ComponentSpecificationTest extends TestCase
         ];
 
         $component = new ComponentSpecification($configuration);
-        self::assertEquals('128m', $component->getMemory());
-        self::assertEquals(7200, $component->getProcessTimeout());
-        self::assertEquals('standard', $component->getLoggerType());
-        self::assertEquals(
+        self::assertSame('128m', $component->getMemoryLimit());
+        self::assertSame(UnitConverter::connectionMemoryLimitToBytes('128m'), $component->getMemoryLimitBytes());
+        self::assertSame(7200, $component->getProcessTimeout());
+        self::assertSame('standard', $component->getLoggerType());
+        self::assertSame(
             [
                 100 => 'none',
                 200 => 'normal',
@@ -44,9 +46,9 @@ class ComponentSpecificationTest extends TestCase
             ],
             $component->getLoggerVerbosity()
         );
-        self::assertEquals(true, $component->forwardToken());
-        self::assertEquals(true, $component->forwardTokenDetails());
-        self::assertEquals(true, $component->hasDefaultBucket());
+        self::assertTrue($component->hasForwardToken());
+        self::assertTrue($component->hasForwardTokenDetails());
+        self::assertTrue($component->hasDefaultBucket());
         self::assertSame('keboola/docker-demo', $component->getImageUri());
         self::assertSame('master', $component->getImageTag());
     }
@@ -64,10 +66,11 @@ class ComponentSpecificationTest extends TestCase
         ];
 
         $component = new ComponentSpecification($configuration);
-        self::assertEquals('256m', $component->getMemory());
-        self::assertEquals(3600, $component->getProcessTimeout());
-        self::assertEquals('standard', $component->getLoggerType());
-        self::assertEquals(
+        self::assertSame('256m', $component->getMemoryLimit());
+        self::assertSame(UnitConverter::connectionMemoryLimitToBytes('256m'), $component->getMemoryLimitBytes());
+        self::assertSame(3600, $component->getProcessTimeout());
+        self::assertSame('standard', $component->getLoggerType());
+        self::assertSame(
             [
                 100 => 'none',
                 200 => 'normal',
@@ -80,9 +83,9 @@ class ComponentSpecificationTest extends TestCase
             ],
             $component->getLoggerVerbosity()
         );
-        self::assertEquals(false, $component->forwardToken());
-        self::assertEquals(false, $component->forwardTokenDetails());
-        self::assertEquals(false, $component->hasDefaultBucket());
+        self::assertFalse($component->hasForwardToken());
+        self::assertFalse($component->hasForwardTokenDetails());
+        self::assertFalse($component->hasDefaultBucket());
     }
 
     public function testInvalidComponentNoDefinition(): void
@@ -264,5 +267,152 @@ class ComponentSpecificationTest extends TestCase
         $component = new ComponentSpecification($componentData);
         $component->setImageTag('1.2.3');
         self::assertSame('1.2.3', $component->getImageTag());
+    }
+
+    /** @dataProvider provideGetImageUriWithTagTestData */
+    public function testGetImageUriWithTag(
+        array $componentDefinition,
+        ?string $customTag,
+        string $expectedImageUri,
+    ): void {
+        $componentSpec = new ComponentSpecification([
+            'id' => 'keboola.test-component',
+            'data' => [
+                'definition' => $componentDefinition,
+            ],
+        ]);
+        $imageUri = $componentSpec->getImageUriWithTag($customTag);
+
+        self::assertSame($expectedImageUri, $imageUri);
+    }
+
+    public static function provideGetImageUriWithTagTestData(): iterable
+    {
+        yield 'default tag' => [
+            'componentDefinition' => [
+                'type' => 'aws-ecr',
+                'uri' => 'keboola/test-component',
+                'tag' => '0.2.2',
+            ],
+            'customTag' => null,
+            'expectedImageUri' => 'keboola/test-component:0.2.2',
+        ];
+
+        yield 'custom tag' => [
+            'componentDefinition' => [
+                'type' => 'aws-ecr',
+                'uri' => 'keboola/test-component',
+                'tag' => '0.2.2',
+            ],
+            'customTag' => '0.3.3',
+            'expectedImageUri' => 'keboola/test-component:0.3.3',
+        ];
+    }
+
+    /** @dataProvider provideGetSynchronousActionTestData */
+    public function testGetSynchronousAction(
+        array $componentData,
+        array $expectedResult,
+    ): void {
+        $componentSpec = new ComponentSpecification([
+            'id' => 'keboola.test-component',
+            'data' => array_merge([
+                'definition' => [
+                    'type' => 'aws-ecr',
+                    'uri' => 'keboola/test-component',
+                    'tag' => '0.2.2',
+                ],
+            ], $componentData),
+        ]);
+        $result = $componentSpec->getSynchronousActions();
+
+        self::assertSame($expectedResult, $result);
+    }
+
+    public static function provideGetSynchronousActionTestData(): iterable
+    {
+        yield 'no actions configured' => [
+            'componentData' => [],
+            'result' => [],
+        ];
+
+        yield 'empty actions configured' => [
+            'componentData' => [
+                'synchronous_actions' => [],
+            ],
+            'result' => [],
+        ];
+
+        yield 'existing action' => [
+            'componentData' => [
+                'synchronous_actions' => [
+                    'my-action',
+                    'other-action',
+                ],
+            ],
+            'result' => [
+                'my-action',
+                'other-action',
+            ],
+        ];
+    }
+
+    /** @dataProvider provideHasSynchronousActionTestData */
+    public function testHasSynchronousAction(
+        array $componentData,
+        string $action,
+        bool $expectedResult,
+    ): void {
+        $componentSpec = new ComponentSpecification([
+            'id' => 'keboola.test-component',
+            'data' => array_merge([
+                'definition' => [
+                    'type' => 'aws-ecr',
+                    'uri' => 'keboola/test-component',
+                    'tag' => '0.2.2',
+                ],
+            ], $componentData),
+        ]);
+        $result = $componentSpec->hasSynchronousAction($action);
+
+        self::assertSame($expectedResult, $result);
+    }
+
+    public static function provideHasSynchronousActionTestData(): iterable
+    {
+        yield 'no actions configured' => [
+            'componentData' => [],
+            'action' => 'my-action',
+            'result' => false,
+        ];
+
+        yield 'empty actions configured' => [
+            'componentData' => [
+                'synchronous_actions' => [],
+            ],
+            'action' => 'my-action',
+            'result' => false,
+        ];
+
+        yield 'non-existing action' => [
+            'componentData' => [
+                'synchronous_actions' => [
+                    'other-action',
+                ],
+            ],
+            'action' => 'my-action',
+            'result' => false,
+        ];
+
+        yield 'existing action' => [
+            'componentData' => [
+                'synchronous_actions' => [
+                    'other-action',
+                    'my-action',
+                ],
+            ],
+            'action' => 'my-action',
+            'result' => true,
+        ];
     }
 }
