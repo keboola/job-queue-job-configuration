@@ -38,6 +38,7 @@ class RuntimeTest extends TestCase
     {
         $backend = new Backend(
             type: 'testType',
+            containerType: 'testContainerType',
             context: 'testContext',
         );
 
@@ -55,6 +56,7 @@ class RuntimeTest extends TestCase
             'use_file_storage_only' => true,
             'backend' => [
                 'type' => 'testType',
+                'container_type' => 'testContainerType',
                 'context' => 'testContext',
             ],
             'foo' => 'bar',

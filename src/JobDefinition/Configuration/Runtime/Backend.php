@@ -8,6 +8,7 @@ readonly class Backend
 {
     public function __construct(
         public ?string $type,
+        public ?string $containerType,
         public ?string $context,
     ) {
     }
@@ -16,6 +17,7 @@ readonly class Backend
     {
         return new self(
             type: $data['type'] ?? null,
+            containerType: $data['container_type'] ?? null,
             context: $data['context'] ?? null,
         );
     }
@@ -24,6 +26,7 @@ readonly class Backend
     {
         return [
             'type' => $this->type,
+            'container_type' => $this->containerType,
             'context' => $this->context,
         ];
     }
