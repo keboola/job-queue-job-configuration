@@ -36,17 +36,12 @@ readonly class Configuration
 
     public function toArray(): array
     {
-        $data = [
+        return [
             'parameters' => $this->parameters,
             'storage' => $this->storage->toArray(),
             'processors' => $this->processors,
+            'runtime' => $this->runtime?->toArray(),
         ];
-
-        if ($this->runtime) {
-            $data['runtime'] = $this->runtime->toArray();
-        }
-
-        return $data;
     }
 
     public function mergeArray(array $data): self

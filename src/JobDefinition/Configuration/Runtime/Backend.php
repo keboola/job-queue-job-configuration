@@ -22,16 +22,9 @@ readonly class Backend
 
     public function toArray(): array
     {
-        $data = [];
-
-        if ($this->type !== null) {
-            $data['type'] = $this->type;
-        }
-
-        if ($this->context !== null) {
-            $data['context'] = $this->context;
-        }
-
-        return $data;
+        return [
+            'type' => $this->type,
+            'context' => $this->context,
+        ];
     }
 }

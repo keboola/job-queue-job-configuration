@@ -25,16 +25,11 @@ readonly class Input
 
     public function toArray(): array
     {
-        $data = [
+        return [
             'tables' => $this->tables->toArray(),
             'files' => $this->files->toArray(),
+            'read_only_storage_access' => $this->readOnlyStorageAccess,
         ];
-
-        if ($this->readOnlyStorageAccess !== null) {
-            $data['read_only_storage_access'] = $this->readOnlyStorageAccess;
-        }
-
-        return $data;
     }
 
     public function isEmpty(): bool

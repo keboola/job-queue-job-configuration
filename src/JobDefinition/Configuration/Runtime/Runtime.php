@@ -33,24 +33,11 @@ readonly class Runtime
 
     public function toArray(): array
     {
-        $data = [];
-
-        if ($this->safe !== null) {
-            $data['safe'] = $this->safe;
-        }
-
-        if ($this->imageTag !== null) {
-            $data['image_tag'] = $this->imageTag;
-        }
-
-        if ($this->useFileStorageOnly !== null) {
-            $data['use_file_storage_only'] = $this->useFileStorageOnly;
-        }
-
-        if ($this->backend !== null) {
-            $data['backend'] = $this->backend->toArray();
-        }
-
-        return array_merge($data, $this->extraProps);
+        return array_merge([
+            'safe' => $this->safe,
+            'image_tag' => $this->imageTag,
+            'use_file_storage_only' => $this->useFileStorageOnly,
+            'backend' => $this->backend?->toArray(),
+        ], $this->extraProps);
     }
 }
