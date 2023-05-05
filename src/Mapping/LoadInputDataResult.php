@@ -14,16 +14,4 @@ readonly class LoadInputDataResult
         public InputFileStateList $inputFileStateList,
     ) {
     }
-
-    public function toArray(): array
-    {
-        return [
-            'tables' => [
-                'tables' => $this->inputTableResult->getTables(),
-                'metrics' => $this->inputTableResult->getMetrics(),
-                'inputTableStateList' => $this->inputTableResult->getInputTableStateList(),
-            ],
-            'inputFileStateList' => $this->inputFileStateList->jsonSerialize(),
-        ];
-    }
 }
