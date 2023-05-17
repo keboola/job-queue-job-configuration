@@ -56,7 +56,12 @@ class ConfigurationDefinition implements ConfigurationInterface
 
         $inputTable = $input
             ->children()
-                ->booleanNode('read_only_storage_access')->end()
+                ->scalarNode('read_only_storage_access')
+                    ->validate()
+                        ->ifTrue(fn ($v) => $v !== null && !is_bool($v))
+                        ->thenInvalid('must be boolean or null')
+                    ->end()
+                ->end()
                 ->arrayNode('tables')
                     ->prototype('array')
         ;
