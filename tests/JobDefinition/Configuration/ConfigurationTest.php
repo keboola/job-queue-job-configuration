@@ -23,6 +23,14 @@ class ConfigurationTest extends TestCase
         self::assertEquals(new Storage(), $configuration->storage);
         self::assertSame([], $configuration->processors);
         self::assertNull($configuration->runtime);
+        self::assertNull($configuration->variablesId);
+        self::assertNull($configuration->variablesValuesId);
+        self::assertNull($configuration->sharedCodeId);
+        self::assertSame([], $configuration->sharedCodeRowIds);
+        self::assertNull($configuration->imageParameters);
+        self::assertNull($configuration->authorization);
+        self::assertNull($configuration->action);
+        self::assertNull($configuration->artifacts);
     }
 
     public function testFromEmptyArray(): void
@@ -33,6 +41,14 @@ class ConfigurationTest extends TestCase
         self::assertEquals(new Storage(), $configuration->storage);
         self::assertSame([], $configuration->processors);
         self::assertNull($configuration->runtime);
+        self::assertNull($configuration->variablesId);
+        self::assertNull($configuration->variablesValuesId);
+        self::assertNull($configuration->sharedCodeId);
+        self::assertSame([], $configuration->sharedCodeRowIds);
+        self::assertNull($configuration->imageParameters);
+        self::assertNull($configuration->authorization);
+        self::assertNull($configuration->action);
+        self::assertNull($configuration->artifacts);
     }
 
     public function testFromArray(): void
@@ -87,12 +103,63 @@ class ConfigurationTest extends TestCase
             'storage' => $storage,
             'processors' => $processors,
             'runtime' => $runtime,
+            'variables_id' => '123',
+            'variables_values_id' => '456',
+            'shared_code_id' => '789',
+            'shared_code_row_ids' => ['foo', 'bar'],
+            'image_parameters' => [
+                'foo' => 'bar',
+            ],
+            'authorization' => [
+                'oauth_api' => [
+                    'credentials' => [
+                        'id' => '123',
+                    ],
+                ],
+            ],
+            'action' => 'run',
+            'artifacts' => [
+                'runs' => [
+                    'enabled' => true,
+                    'filter' => [
+                        'limit' => 10,
+                    ],
+                ],
+            ],
         ]);
 
         self::assertSame($parameters, $configuration->parameters);
         self::assertEquals(Storage::fromArray($storage), $configuration->storage);
         self::assertSame($processors, $configuration->processors);
         self::assertEquals(Runtime::fromArray($runtime), $configuration->runtime);
+        self::assertSame('123', $configuration->variablesId);
+        self::assertSame('456', $configuration->variablesValuesId);
+        self::assertSame('789', $configuration->sharedCodeId);
+        self::assertSame(['foo', 'bar'], $configuration->sharedCodeRowIds);
+        self::assertSame(['foo' => 'bar'], $configuration->imageParameters);
+        self::assertSame(
+            [
+                'oauth_api' => [
+                    'credentials' => [
+                        'id' => '123',
+                    ],
+                    'version' => 2,
+                ],
+            ],
+            $configuration->authorization
+        );
+        self::assertSame('run', $configuration->action);
+        self::assertSame(
+            [
+                'runs' => [
+                    'enabled' => true,
+                    'filter' => [
+                        'limit' => 10,
+                    ],
+                ],
+            ],
+            $configuration->artifacts
+        );
     }
 
     public function testFromArrayWithInvalidData(): void
@@ -144,6 +211,29 @@ class ConfigurationTest extends TestCase
                     type: 'small',
                 ),
             ),
+            variablesId: '123',
+            variablesValuesId: '456',
+            sharedCodeId: '789',
+            sharedCodeRowIds: ['foo', 'bar'],
+            imageParameters: [
+                'foo' => 'bar',
+            ],
+            authorization: [
+                'oauth_api' => [
+                    'credentials' => [
+                        'id' => '123',
+                    ],
+                ],
+            ],
+            action: 'run',
+            artifacts: [
+                'runs' => [
+                    'enabled' => true,
+                    'filter' => [
+                        'limit' => 10,
+                    ],
+                ],
+            ],
         );
 
         self::assertSame([
@@ -195,6 +285,29 @@ class ConfigurationTest extends TestCase
                     'type' => 'small',
                     'container_type' => null,
                     'context' => null,
+                ],
+            ],
+            'variables_id' => '123',
+            'variables_values_id' => '456',
+            'shared_code_id' => '789',
+            'shared_code_row_ids' => ['foo', 'bar'],
+            'image_parameters' => [
+                'foo' => 'bar',
+            ],
+            'authorization' => [
+                'oauth_api' => [
+                    'credentials' => [
+                        'id' => '123',
+                    ],
+                ],
+            ],
+            'action' => 'run',
+            'artifacts' => [
+                'runs' => [
+                    'enabled' => true,
+                    'filter' => [
+                        'limit' => 10,
+                    ],
                 ],
             ],
         ], $configuration->toArray());
