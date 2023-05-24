@@ -9,6 +9,14 @@ use PHPUnit\Framework\TestCase;
 
 class FileTagTest extends TestCase
 {
+    public function testEmptyConstructor(): void
+    {
+        $tag = new FileTag();
+
+        self::assertNull($tag->name);
+        self::assertNull($tag->match);
+    }
+
     public function testConstructor(): void
     {
         $name = 'tag1';

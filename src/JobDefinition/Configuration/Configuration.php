@@ -11,8 +11,8 @@ use Symfony\Component\Config\Definition\Processor;
 readonly class Configuration
 {
     public function __construct(
-        public array $parameters,
-        public Storage\Storage $storage,
+        public array $parameters = [],
+        public Storage\Storage $storage = new Storage\Storage(),
         public array $processors = [],
         public ?Runtime\Runtime $runtime = null,
     ) {

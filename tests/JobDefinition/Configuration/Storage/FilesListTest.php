@@ -9,6 +9,14 @@ use PHPUnit\Framework\TestCase;
 
 class FilesListTest extends TestCase
 {
+    public function testEmptyConstructor(): void
+    {
+        $filesList = new FilesList();
+
+        self::assertCount(0, $filesList);
+        self::assertSame([], $filesList->toArray());
+    }
+
     public function testFromArray(): void
     {
         $data = [

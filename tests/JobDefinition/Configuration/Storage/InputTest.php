@@ -11,6 +11,15 @@ use PHPUnit\Framework\TestCase;
 
 class InputTest extends TestCase
 {
+    public function testEmptyConstructor(): void
+    {
+        $input = new Input();
+
+        self::assertEquals(new TablesList(), $input->tables);
+        self::assertEquals(new FilesList(), $input->files);
+        self::assertNull($input->readOnlyStorageAccess);
+    }
+
     public function testFromArray(): void
     {
         $data = [

@@ -12,6 +12,16 @@ use PHPUnit\Framework\TestCase;
 
 class OutputTest extends TestCase
 {
+    public function testEmptyConstructor(): void
+    {
+        $output = new Output();
+
+        self::assertEquals(new TablesList(), $output->tables);
+        self::assertEquals(new FilesList(), $output->files);
+        self::assertEquals(new TableFiles(), $output->tableFiles);
+        self::assertNull($output->defaultBucket);
+    }
+
     public function testFromArray(): void
     {
         $data = [

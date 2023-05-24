@@ -10,6 +10,17 @@ use PHPUnit\Framework\TestCase;
 
 class RuntimeTest extends TestCase
 {
+    public function testEmptyConstructor(): void
+    {
+        $runtime = new Runtime();
+
+        self::assertNull($runtime->safe);
+        self::assertNull($runtime->imageTag);
+        self::assertNull($runtime->useFileStorageOnly);
+        self::assertNull($runtime->backend);
+        self::assertSame([], $runtime->extraProps);
+    }
+
     public function testFromArray(): void
     {
         $data = [

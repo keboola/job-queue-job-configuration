@@ -7,7 +7,7 @@ namespace Keboola\JobQueue\JobConfiguration\JobDefinition\State\Storage;
 readonly class Storage
 {
     public function __construct(
-        public Input $input,
+        public Input $input = new Input(),
     ) {
     }
 

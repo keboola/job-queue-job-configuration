@@ -8,7 +8,7 @@ readonly class FilesList
 {
     public function __construct(
         /** @var $items File[] */
-        private array $items,
+        private array $items = [],
     ) {
     }
 

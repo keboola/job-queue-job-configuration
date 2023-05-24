@@ -9,6 +9,14 @@ use PHPUnit\Framework\TestCase;
 
 class TablesListTest extends TestCase
 {
+    public function testEmptyConstructor(): void
+    {
+        $tablesList = new TablesList();
+
+        self::assertCount(0, $tablesList);
+        self::assertTrue($tablesList->isEmpty());
+    }
+
     public function testFromArray(): void
     {
         $tablesList = TablesList::fromArray([

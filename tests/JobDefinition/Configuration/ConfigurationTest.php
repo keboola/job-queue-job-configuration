@@ -6,70 +6,33 @@ namespace Keboola\JobQueue\JobConfiguration\Tests\JobDefinition\Configuration;
 
 use Keboola\CommonExceptions\ApplicationExceptionInterface;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\Backend;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\Runtime;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Input;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Storage;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TablesList;
 use PHPUnit\Framework\TestCase;
 
 class ConfigurationTest extends TestCase
 {
-    public function testConstructor(): void
+    public function testEmptyConstructor(): void
     {
-        $parameters = [
-            'foo' => 'bar',
-        ];
+        $configuration = new Configuration();
 
-        $storage = Storage::fromArray([
-            'input' => [
-                'tables' => [
-                    [
-                        'source' => 'in.c-main.test',
-                        'destination' => 'test.csv',
-                        'columns' => [],
-                        'column_types' => [],
-                        'where_values' => [],
-                        'where_operator' => 'eq',
-                        'overwrite' => false,
-                        'use_view' => false,
-                        'keep_internal_timestamp_column' => true,
-                    ],
-                ],
-            ],
-        ]);
+        self::assertSame([], $configuration->parameters);
+        self::assertEquals(new Storage(), $configuration->storage);
+        self::assertSame([], $configuration->processors);
+        self::assertNull($configuration->runtime);
+    }
 
-        $processors = [
-            'after' => [
-                [
-                    'definition' => [
-                        'component' => 'foo',
-                    ],
-                ],
-            ],
-            'before' => [
-                [
-                    'definition' => [
-                        'component' => 'bar',
-                    ],
-                ],
-            ],
-        ];
+    public function testFromEmptyArray(): void
+    {
+        $configuration = Configuration::fromArray([]);
 
-        $runtime = Runtime::fromArray([
-            'backend' => [
-                'type' => 'snowflake',
-            ],
-        ]);
-
-        $configuration = new Configuration(
-            parameters: $parameters,
-            storage: $storage,
-            processors: $processors,
-            runtime: $runtime,
-        );
-
-        self::assertSame($parameters, $configuration->parameters);
-        self::assertEquals($storage, $configuration->storage);
-        self::assertSame($processors, $configuration->processors);
-        self::assertEquals($runtime, $configuration->runtime);
+        self::assertSame([], $configuration->parameters);
+        self::assertEquals(new Storage(), $configuration->storage);
+        self::assertSame([], $configuration->processors);
+        self::assertNull($configuration->runtime);
     }
 
     public function testFromArray(): void
@@ -146,62 +109,95 @@ class ConfigurationTest extends TestCase
 
     public function testToArray(): void
     {
-        $parametersData = [
-            'foo' => 'bar',
-        ];
-
-        $storageData = [
-            'input' => [
-                'tables' => [
+        $configuration = new Configuration(
+            parameters: [
+                'foo' => 'bar',
+            ],
+            storage: new Storage(
+                input: new Input(
+                    tables: new TablesList([
+                        [
+                            'source' => 'in.c-main.test',
+                            'destination' => 'test.csv',
+                        ],
+                    ]),
+                ),
+            ),
+            processors: [
+                'before' => [
                     [
-                        'source' => 'in.c-main.test',
-                        'destination' => 'test.csv',
-                        'columns' => [],
-                        'column_types' => [],
-                        'where_values' => [],
-                        'where_operator' => 'eq',
-                        'overwrite' => false,
-                        'use_view' => false,
-                        'keep_internal_timestamp_column' => true,
+                        'definition' => [
+                            'component' => 'bar',
+                        ],
+                    ],
+                ],
+                'after' => [
+                    [
+                        'definition' => [
+                            'component' => 'foo',
+                        ],
                     ],
                 ],
             ],
-        ];
+            runtime: new Runtime(
+                backend: new Backend(
+                    type: 'small',
+                ),
+            ),
+        );
 
-        $processorsData = [
-            'after' => [
-                [
-                    'definition' => [
-                        'component' => 'foo',
+        self::assertSame([
+            'parameters' => [
+                'foo' => 'bar',
+            ],
+            'storage' => [
+                'input' => [
+                    'tables' => [
+                        [
+                            'source' => 'in.c-main.test',
+                            'destination' => 'test.csv',
+                        ],
+                    ],
+                    'files' => [],
+                    'read_only_storage_access' => null,
+                ],
+                'output' => [
+                    'tables' => [],
+                    'files' => [],
+                    'table_files' => [
+                        'tags' => [],
+                        'is_permanent' => true,
+                    ],
+                    'default_bucket' => null,
+                ],
+            ],
+            'processors' => [
+                'before' => [
+                    [
+                        'definition' => [
+                            'component' => 'bar',
+                        ],
+                    ],
+                ],
+                'after' => [
+                    [
+                        'definition' => [
+                            'component' => 'foo',
+                        ],
                     ],
                 ],
             ],
-            'before' => [
-                [
-                    'definition' => [
-                        'component' => 'bar',
-                    ],
+            'runtime' => [
+                'safe' => null,
+                'image_tag' => null,
+                'use_file_storage_only' => null,
+                'backend' => [
+                    'type' => 'small',
+                    'container_type' => null,
+                    'context' => null,
                 ],
             ],
-        ];
-
-        $runtimeData = [
-            'backend' => [
-                'type' => 'snowflake',
-            ],
-        ];
-
-        $configuration = Configuration::fromArray([
-            'parameters' => $parametersData,
-            'storage' => $storageData,
-            'processors' => $processorsData,
-            'runtime' => $runtimeData,
-        ]);
-
-        self::assertSame($parametersData, $configuration->parameters);
-        self::assertEquals(Storage::fromArray($storageData), $configuration->storage);
-        self::assertSame($processorsData, $configuration->processors);
-        self::assertEquals(Runtime::fromArray($runtimeData), $configuration->runtime);
+        ], $configuration->toArray());
     }
 
     public function testMergeArray(): void

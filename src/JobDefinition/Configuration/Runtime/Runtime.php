@@ -7,10 +7,10 @@ namespace Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime;
 readonly class Runtime
 {
     public function __construct(
-        public ?bool $safe,
-        public ?bool $imageTag,
-        public ?bool $useFileStorageOnly,
-        public ?Backend $backend,
+        public ?bool $safe = null,
+        public ?bool $imageTag = null,
+        public ?bool $useFileStorageOnly = null,
+        public ?Backend $backend = null,
         public array $extraProps = [],
     ) {
     }

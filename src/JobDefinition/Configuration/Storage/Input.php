@@ -7,9 +7,9 @@ namespace Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage;
 readonly class Input
 {
     public function __construct(
-        public TablesList $tables,
-        public FilesList $files,
-        public ?bool $readOnlyStorageAccess,
+        public TablesList $tables = new TablesList(),
+        public FilesList $files = new FilesList(),
+        public ?bool $readOnlyStorageAccess = null,
     ) {
     }
 

@@ -10,12 +10,19 @@ use PHPUnit\Framework\TestCase;
 
 class FilesListTest extends TestCase
 {
+    public function testEmptyConstructor(): void
+    {
+        $filesList = new FilesList();
+
+        self::assertSame([], $filesList->toArray());
+    }
+
     public function testFromToArray(): void
     {
         $file1 = File::fromArray([
             'tags' => [
-                ['name' => ['foo', 'bar'], 'match' => 'extact'],
-                ['name' => ['baz']],
+                ['name' => 'bar', 'match' => 'extact'],
+                ['name' => 'baz'],
             ],
             'lastImportId' => '123',
         ]);

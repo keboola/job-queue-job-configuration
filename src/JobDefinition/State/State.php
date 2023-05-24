@@ -12,8 +12,8 @@ use Symfony\Component\Config\Definition\Processor;
 readonly class State
 {
     public function __construct(
-        public Storage $storage,
-        public array $component,
+        public Storage $storage = new Storage(),
+        public array $component = [],
     ) {
     }
 
