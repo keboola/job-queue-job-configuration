@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.0/phpunit.xsd"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.1/phpunit.xsd"
          backupGlobals="false"
          colors="true"
          processIsolation="false"
@@ -8,17 +8,18 @@
          bootstrap="tests/bootstrap.php"
          cacheDirectory="/tmp/.phpunit.cache"
          backupStaticProperties="false">
-  <coverage>
-    <include>
-      <directory suffix=".php">src</directory>
-    </include>
-  </coverage>
+  <coverage/>
   <php>
     <!-- the value is the FQCN of the application kernel -->
     <env name="KERNEL_CLASS" value="App\Kernel"/>
     <env name="APP_ENV" value="test" force="true"/>
   </php>
-  <testsuite name="Job Queue Internal Api Tests">
+  <testsuite name="Tests">
     <directory>tests</directory>
   </testsuite>
+  <source>
+    <include>
+      <directory suffix=".php">src</directory>
+    </include>
+  </source>
 </phpunit>
