@@ -8,7 +8,7 @@ readonly class Runtime
 {
     public function __construct(
         public ?bool $safe = null,
-        public ?bool $imageTag = null,
+        public ?string $imageTag = null,
         public ?bool $useFileStorageOnly = null,
         public ?Backend $backend = null,
         public array $extraProps = [],
