@@ -9,6 +9,14 @@ use PHPUnit\Framework\TestCase;
 
 class TableFilesTest extends TestCase
 {
+    public function testEmptyConstructor(): void
+    {
+        $tableFilesList = new TableFiles();
+
+        self::assertSame([], $tableFilesList->tags);
+        self::assertTrue($tableFilesList->isPermanent);
+    }
+
     public function testConstructor(): void
     {
         $tags = ['tag1', 'tag2'];

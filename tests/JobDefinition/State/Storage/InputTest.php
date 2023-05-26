@@ -14,6 +14,14 @@ use PHPUnit\Framework\TestCase;
 
 class InputTest extends TestCase
 {
+    public function testEmptyConstructor(): void
+    {
+        $input = new Input();
+
+        $this->assertEquals(new FilesList(), $input->files);
+        $this->assertEquals(new TablesList(), $input->tables);
+    }
+
     public function testInputConstructor(): void
     {
         $files = new FilesList([

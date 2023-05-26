@@ -10,6 +10,13 @@ use PHPUnit\Framework\TestCase;
 
 class TablesListTest extends TestCase
 {
+    public function testEmptyConstructor(): void
+    {
+        $tablesList = new TablesList();
+
+        self::assertSame([], $tablesList->toArray());
+    }
+
     public function testFromToArray(): void
     {
         $table1 = Table::fromArray([

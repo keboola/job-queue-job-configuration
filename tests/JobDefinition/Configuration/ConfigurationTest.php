@@ -6,70 +6,49 @@ namespace Keboola\JobQueue\JobConfiguration\Tests\JobDefinition\Configuration;
 
 use Keboola\CommonExceptions\ApplicationExceptionInterface;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\Backend;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\Runtime;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Input;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Storage;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TablesList;
 use PHPUnit\Framework\TestCase;
 
 class ConfigurationTest extends TestCase
 {
-    public function testConstructor(): void
+    public function testEmptyConstructor(): void
     {
-        $parameters = [
-            'foo' => 'bar',
-        ];
+        $configuration = new Configuration();
 
-        $storage = Storage::fromArray([
-            'input' => [
-                'tables' => [
-                    [
-                        'source' => 'in.c-main.test',
-                        'destination' => 'test.csv',
-                        'columns' => [],
-                        'column_types' => [],
-                        'where_values' => [],
-                        'where_operator' => 'eq',
-                        'overwrite' => false,
-                        'use_view' => false,
-                        'keep_internal_timestamp_column' => true,
-                    ],
-                ],
-            ],
-        ]);
+        self::assertSame([], $configuration->parameters);
+        self::assertEquals(new Storage(), $configuration->storage);
+        self::assertSame([], $configuration->processors);
+        self::assertNull($configuration->runtime);
+        self::assertNull($configuration->variablesId);
+        self::assertNull($configuration->variablesValuesId);
+        self::assertNull($configuration->sharedCodeId);
+        self::assertSame([], $configuration->sharedCodeRowIds);
+        self::assertNull($configuration->imageParameters);
+        self::assertNull($configuration->authorization);
+        self::assertNull($configuration->action);
+        self::assertNull($configuration->artifacts);
+    }
 
-        $processors = [
-            'after' => [
-                [
-                    'definition' => [
-                        'component' => 'foo',
-                    ],
-                ],
-            ],
-            'before' => [
-                [
-                    'definition' => [
-                        'component' => 'bar',
-                    ],
-                ],
-            ],
-        ];
+    public function testFromEmptyArray(): void
+    {
+        $configuration = Configuration::fromArray([]);
 
-        $runtime = Runtime::fromArray([
-            'backend' => [
-                'type' => 'snowflake',
-            ],
-        ]);
-
-        $configuration = new Configuration(
-            parameters: $parameters,
-            storage: $storage,
-            processors: $processors,
-            runtime: $runtime,
-        );
-
-        self::assertSame($parameters, $configuration->parameters);
-        self::assertEquals($storage, $configuration->storage);
-        self::assertSame($processors, $configuration->processors);
-        self::assertEquals($runtime, $configuration->runtime);
+        self::assertSame([], $configuration->parameters);
+        self::assertEquals(new Storage(), $configuration->storage);
+        self::assertSame([], $configuration->processors);
+        self::assertNull($configuration->runtime);
+        self::assertNull($configuration->variablesId);
+        self::assertNull($configuration->variablesValuesId);
+        self::assertNull($configuration->sharedCodeId);
+        self::assertSame([], $configuration->sharedCodeRowIds);
+        self::assertNull($configuration->imageParameters);
+        self::assertNull($configuration->authorization);
+        self::assertNull($configuration->action);
+        self::assertNull($configuration->artifacts);
     }
 
     public function testFromArray(): void
@@ -124,12 +103,63 @@ class ConfigurationTest extends TestCase
             'storage' => $storage,
             'processors' => $processors,
             'runtime' => $runtime,
+            'variables_id' => '123',
+            'variables_values_id' => '456',
+            'shared_code_id' => '789',
+            'shared_code_row_ids' => ['foo', 'bar'],
+            'image_parameters' => [
+                'foo' => 'bar',
+            ],
+            'authorization' => [
+                'oauth_api' => [
+                    'credentials' => [
+                        'id' => '123',
+                    ],
+                ],
+            ],
+            'action' => 'run',
+            'artifacts' => [
+                'runs' => [
+                    'enabled' => true,
+                    'filter' => [
+                        'limit' => 10,
+                    ],
+                ],
+            ],
         ]);
 
         self::assertSame($parameters, $configuration->parameters);
         self::assertEquals(Storage::fromArray($storage), $configuration->storage);
         self::assertSame($processors, $configuration->processors);
         self::assertEquals(Runtime::fromArray($runtime), $configuration->runtime);
+        self::assertSame('123', $configuration->variablesId);
+        self::assertSame('456', $configuration->variablesValuesId);
+        self::assertSame('789', $configuration->sharedCodeId);
+        self::assertSame(['foo', 'bar'], $configuration->sharedCodeRowIds);
+        self::assertSame(['foo' => 'bar'], $configuration->imageParameters);
+        self::assertSame(
+            [
+                'oauth_api' => [
+                    'credentials' => [
+                        'id' => '123',
+                    ],
+                    'version' => 2,
+                ],
+            ],
+            $configuration->authorization
+        );
+        self::assertSame('run', $configuration->action);
+        self::assertSame(
+            [
+                'runs' => [
+                    'enabled' => true,
+                    'filter' => [
+                        'limit' => 10,
+                    ],
+                ],
+            ],
+            $configuration->artifacts
+        );
     }
 
     public function testFromArrayWithInvalidData(): void
@@ -146,62 +176,141 @@ class ConfigurationTest extends TestCase
 
     public function testToArray(): void
     {
-        $parametersData = [
-            'foo' => 'bar',
-        ];
-
-        $storageData = [
-            'input' => [
-                'tables' => [
+        $configuration = new Configuration(
+            parameters: [
+                'foo' => 'bar',
+            ],
+            storage: new Storage(
+                input: new Input(
+                    tables: new TablesList([
+                        [
+                            'source' => 'in.c-main.test',
+                            'destination' => 'test.csv',
+                        ],
+                    ]),
+                ),
+            ),
+            processors: [
+                'before' => [
                     [
-                        'source' => 'in.c-main.test',
-                        'destination' => 'test.csv',
-                        'columns' => [],
-                        'column_types' => [],
-                        'where_values' => [],
-                        'where_operator' => 'eq',
-                        'overwrite' => false,
-                        'use_view' => false,
-                        'keep_internal_timestamp_column' => true,
+                        'definition' => [
+                            'component' => 'bar',
+                        ],
+                    ],
+                ],
+                'after' => [
+                    [
+                        'definition' => [
+                            'component' => 'foo',
+                        ],
                     ],
                 ],
             ],
-        ];
-
-        $processorsData = [
-            'after' => [
-                [
-                    'definition' => [
-                        'component' => 'foo',
+            runtime: new Runtime(
+                backend: new Backend(
+                    type: 'small',
+                ),
+            ),
+            variablesId: '123',
+            variablesValuesId: '456',
+            sharedCodeId: '789',
+            sharedCodeRowIds: ['foo', 'bar'],
+            imageParameters: [
+                'foo' => 'bar',
+            ],
+            authorization: [
+                'oauth_api' => [
+                    'credentials' => [
+                        'id' => '123',
                     ],
                 ],
             ],
-            'before' => [
-                [
-                    'definition' => [
-                        'component' => 'bar',
+            action: 'run',
+            artifacts: [
+                'runs' => [
+                    'enabled' => true,
+                    'filter' => [
+                        'limit' => 10,
                     ],
                 ],
             ],
-        ];
+        );
 
-        $runtimeData = [
-            'backend' => [
-                'type' => 'snowflake',
+        self::assertSame([
+            'parameters' => [
+                'foo' => 'bar',
             ],
-        ];
-
-        $configuration = Configuration::fromArray([
-            'parameters' => $parametersData,
-            'storage' => $storageData,
-            'processors' => $processorsData,
-            'runtime' => $runtimeData,
-        ]);
-
-        self::assertSame($parametersData, $configuration->parameters);
-        self::assertEquals(Storage::fromArray($storageData), $configuration->storage);
-        self::assertSame($processorsData, $configuration->processors);
-        self::assertEquals(Runtime::fromArray($runtimeData), $configuration->runtime);
+            'storage' => [
+                'input' => [
+                    'tables' => [
+                        [
+                            'source' => 'in.c-main.test',
+                            'destination' => 'test.csv',
+                        ],
+                    ],
+                    'files' => [],
+                    'read_only_storage_access' => null,
+                ],
+                'output' => [
+                    'tables' => [],
+                    'files' => [],
+                    'table_files' => [
+                        'tags' => [],
+                        'is_permanent' => true,
+                    ],
+                    'default_bucket' => null,
+                ],
+            ],
+            'processors' => [
+                'before' => [
+                    [
+                        'definition' => [
+                            'component' => 'bar',
+                        ],
+                    ],
+                ],
+                'after' => [
+                    [
+                        'definition' => [
+                            'component' => 'foo',
+                        ],
+                    ],
+                ],
+            ],
+            'runtime' => [
+                'safe' => null,
+                'image_tag' => null,
+                'use_file_storage_only' => null,
+                'backend' => [
+                    'type' => 'small',
+                    'container_type' => null,
+                    'context' => null,
+                ],
+            ],
+            'variables_id' => '123',
+            'variables_values_id' => '456',
+            'shared_code_id' => '789',
+            'shared_code_row_ids' => ['foo', 'bar'],
+            'image_parameters' => [
+                'foo' => 'bar',
+            ],
+            'authorization' => [
+                'oauth_api' => [
+                    'credentials' => [
+                        'id' => '123',
+                    ],
+                ],
+            ],
+            'action' => 'run',
+            'artifacts' => [
+                'runs' => [
+                    'enabled' => true,
+                    'filter' => [
+                        'limit' => 10,
+                    ],
+                ],
+            ],
+        ], $configuration->toArray());
     }
 
     public function testMergeArray(): void

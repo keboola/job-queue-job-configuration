@@ -15,6 +15,13 @@ use PHPUnit\Framework\TestCase;
 
 class StorageTest extends TestCase
 {
+    public function testEmptyConstructor(): void
+    {
+        $storage = new Storage();
+
+        self::assertEquals(new Input(), $storage->input);
+    }
+
     public function testConstructor(): void
     {
         $input = new Input(

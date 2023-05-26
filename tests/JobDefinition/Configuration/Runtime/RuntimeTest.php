@@ -10,11 +10,22 @@ use PHPUnit\Framework\TestCase;
 
 class RuntimeTest extends TestCase
 {
+    public function testEmptyConstructor(): void
+    {
+        $runtime = new Runtime();
+
+        self::assertNull($runtime->safe);
+        self::assertNull($runtime->imageTag);
+        self::assertNull($runtime->useFileStorageOnly);
+        self::assertNull($runtime->backend);
+        self::assertSame([], $runtime->extraProps);
+    }
+
     public function testFromArray(): void
     {
         $data = [
             'safe' => true,
-            'image_tag' => false,
+            'image_tag' => 'latest',
             'use_file_storage_only' => true,
             'backend' => [
                 'type' => 'testType',
@@ -26,7 +37,7 @@ class RuntimeTest extends TestCase
         $runtime = Runtime::fromArray($data);
 
         self::assertTrue($runtime->safe);
-        self::assertFalse($runtime->imageTag);
+        self::assertSame('latest', $runtime->imageTag);
         self::assertTrue($runtime->useFileStorageOnly);
         self::assertInstanceOf(Backend::class, $runtime->backend);
         self::assertSame('testType', $runtime->backend->type);
@@ -44,7 +55,7 @@ class RuntimeTest extends TestCase
 
         $runtime = new Runtime(
             safe: true,
-            imageTag: false,
+            imageTag: 'latest',
             useFileStorageOnly: true,
             backend: $backend,
             extraProps: ['foo' => 'bar'],
@@ -52,7 +63,7 @@ class RuntimeTest extends TestCase
 
         self::assertSame([
             'safe' => true,
-            'image_tag' => false,
+            'image_tag' => 'latest',
             'use_file_storage_only' => true,
             'backend' => [
                 'type' => 'testType',

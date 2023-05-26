@@ -8,7 +8,7 @@ readonly class TablesList
 {
     public function __construct(
         /** @var $items Table[] */
-        private array $items,
+        private array $items = [],
     ) {
     }
 

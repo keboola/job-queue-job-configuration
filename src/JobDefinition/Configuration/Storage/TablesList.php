@@ -10,7 +10,7 @@ readonly class TablesList implements Countable
 {
     public function __construct(
         /** @var $items array[] */
-        private array $items,
+        private array $items = [],
     ) {
     }
 

@@ -7,10 +7,10 @@ namespace Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage;
 readonly class Output
 {
     public function __construct(
-        public TablesList $tables,
-        public FilesList $files,
-        public TableFiles $tableFiles,
-        public ?string $defaultBucket,
+        public TablesList $tables = new TablesList(),
+        public FilesList $files = new FilesList(),
+        public TableFiles $tableFiles = new TableFiles(),
+        public ?string $defaultBucket = null,
     ) {
     }
 

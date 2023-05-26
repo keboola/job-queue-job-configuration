@@ -9,6 +9,15 @@ use PHPUnit\Framework\TestCase;
 
 class BackendTest extends TestCase
 {
+    public function testEmptyConstructor(): void
+    {
+        $backend = new Backend();
+
+        self::assertNull($backend->type);
+        self::assertNull($backend->containerType);
+        self::assertNull($backend->context);
+    }
+
     public function testFromArray(): void
     {
         $data = [

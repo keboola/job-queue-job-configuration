@@ -17,6 +17,14 @@ use PHPUnit\Framework\TestCase;
 
 class StateTest extends TestCase
 {
+    public function testEmptyConstructor(): void
+    {
+        $state = new State();
+
+        self::assertEquals(new Storage(), $state->storage);
+        self::assertSame([], $state->component);
+    }
+
     public function testConstructor(): void
     {
         $storage = new Storage(

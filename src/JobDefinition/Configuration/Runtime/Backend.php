@@ -7,9 +7,9 @@ namespace Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime;
 readonly class Backend
 {
     public function __construct(
-        public ?string $type,
-        public ?string $containerType,
-        public ?string $context,
+        public ?string $type = null,
+        public ?string $containerType = null,
+        public ?string $context = null,
     ) {
     }
 

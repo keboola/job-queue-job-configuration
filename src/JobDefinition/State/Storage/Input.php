@@ -10,8 +10,8 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\State\Storage\Tables\TablesL
 readonly class Input
 {
     public function __construct(
-        public TablesList $tables,
-        public FilesList $files,
+        public TablesList $tables = new TablesList(),
+        public FilesList $files = new FilesList(),
     ) {
     }
 

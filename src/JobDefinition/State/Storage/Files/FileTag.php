@@ -7,7 +7,7 @@ namespace Keboola\JobQueue\JobConfiguration\JobDefinition\State\Storage\Files;
 readonly class FileTag
 {
     public function __construct(
-        public ?string $name,
+        public ?string $name = null,
         public ?string $match = null,
     ) {
     }
@@ -15,7 +15,7 @@ readonly class FileTag
     public static function fromArray(array $data): self
     {
         return new self(
-            name: (string) $data['name'],
+            name: $data['name'] ?? null,
             match: $data['match'] ?? null,
         );
     }
