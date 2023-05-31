@@ -28,9 +28,9 @@ class ConfigurationTest extends TestCase
         self::assertNull($configuration->sharedCodeId);
         self::assertSame([], $configuration->sharedCodeRowIds);
         self::assertNull($configuration->imageParameters);
-        self::assertNull($configuration->authorization);
+        self::assertSame([], $configuration->authorization);
         self::assertNull($configuration->action);
-        self::assertNull($configuration->artifacts);
+        self::assertSame([], $configuration->artifacts);
     }
 
     public function testFromEmptyArray(): void
@@ -46,9 +46,9 @@ class ConfigurationTest extends TestCase
         self::assertNull($configuration->sharedCodeId);
         self::assertSame([], $configuration->sharedCodeRowIds);
         self::assertNull($configuration->imageParameters);
-        self::assertNull($configuration->authorization);
+        self::assertSame([], $configuration->authorization);
         self::assertNull($configuration->action);
-        self::assertNull($configuration->artifacts);
+        self::assertSame([], $configuration->artifacts);
     }
 
     public function testFromArray(): void

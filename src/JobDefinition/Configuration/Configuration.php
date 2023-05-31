@@ -21,9 +21,9 @@ readonly class Configuration
         /** @var string[] */
         public array $sharedCodeRowIds = [],
         public ?array $imageParameters = null,
-        public ?array $authorization = null,
+        public array $authorization = [],
         public ?string $action = null,
-        public ?array $artifacts = null,
+        public array $artifacts = [],
     ) {
     }
 
@@ -45,9 +45,9 @@ readonly class Configuration
             sharedCodeId: isset($data['shared_code_id']) ? (string) $data['shared_code_id'] : null,
             sharedCodeRowIds: array_map(strval(...), $data['shared_code_row_ids'] ?? []),
             imageParameters: $data['image_parameters'] ?? null,
-            authorization: $data['authorization'] ?? null,
+            authorization: $data['authorization'] ?? [],
             action: $data['action'] ?? null,
-            artifacts: $data['artifacts'] ?? null,
+            artifacts: $data['artifacts'] ?? [],
         );
     }
 
