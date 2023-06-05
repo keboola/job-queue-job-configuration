@@ -14,7 +14,6 @@ class BackendTest extends TestCase
         $backend = new Backend();
 
         self::assertNull($backend->type);
-        self::assertNull($backend->containerType);
         self::assertNull($backend->context);
     }
 
@@ -22,14 +21,12 @@ class BackendTest extends TestCase
     {
         $data = [
             'type' => 'testType',
-            'container_type' => 'testContainerType',
             'context' => 'testContext',
         ];
 
         $backend = Backend::fromArray($data);
 
         self::assertSame('testType', $backend->type);
-        self::assertSame('testContainerType', $backend->containerType);
         self::assertSame('testContext', $backend->context);
     }
 
@@ -37,13 +34,11 @@ class BackendTest extends TestCase
     {
         $backend = new Backend(
             type: 'testType',
-            containerType: 'testContainerType',
             context: 'testContext',
         );
 
         self::assertSame([
             'type' => 'testType',
-            'container_type' => 'testContainerType',
             'context' => 'testContext',
         ], $backend->toArray());
     }
