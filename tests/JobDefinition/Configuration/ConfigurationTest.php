@@ -283,7 +283,6 @@ class ConfigurationTest extends TestCase
                 'use_file_storage_only' => null,
                 'backend' => [
                     'type' => 'small',
-                    'container_type' => null,
                     'context' => null,
                 ],
             ],
