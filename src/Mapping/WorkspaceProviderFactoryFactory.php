@@ -89,7 +89,7 @@ class WorkspaceProviderFactoryFactory
             $this->logger->info(sprintf('Created a new persistent workspace "%s".', $workspaceId));
         } elseif (count($workspaces) === 1) {
             $workspaceId = (string) $workspaces[0]['id'];
-            $password = $this->workspacesApiClient->resetWorkspacePassword($workspaceId)['password'];
+            $password = $this->workspacesApiClient->resetWorkspacePassword((int) $workspaceId)['password'];
             $this->logger->info(sprintf('Reusing persistent workspace "%s".', $workspaceId));
         } else {
             $ids = array_column($workspaces, 'id');
@@ -103,7 +103,7 @@ class WorkspaceProviderFactoryFactory
                 $component->getId(),
                 $workspaceId
             ));
-            $password = $this->workspacesApiClient->resetWorkspacePassword($workspaceId)['password'];
+            $password = $this->workspacesApiClient->resetWorkspacePassword((int) $workspaceId)['password'];
         }
         return new ExistingDatabaseWorkspaceProviderFactory(
             $this->workspacesApiClient,
@@ -137,7 +137,8 @@ class WorkspaceProviderFactoryFactory
             $this->logger->info(sprintf('Created a new persistent workspace "%s".', $workspaceId));
         } elseif (count($workspaces) === 1) {
             $workspaceId = (string) $workspaces[0]['id'];
-            $connectionString = $this->workspacesApiClient->resetWorkspacePassword($workspaceId)['connectionString'];
+            $connectionString =
+                $this->workspacesApiClient->resetWorkspacePassword((int) $workspaceId)['connectionString'];
             $this->logger->info(sprintf('Reusing persistent workspace "%s".', $workspaceId));
         } else {
             throw new ApplicationException(sprintf(
