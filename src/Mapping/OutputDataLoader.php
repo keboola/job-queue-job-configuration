@@ -18,7 +18,6 @@ use Psr\Log\LoggerInterface;
 
 class OutputDataLoader
 {
-    private const TYPED_TABLES_FEATURE = 'tables-definition';
     private const NATIVE_TYPES_FEATURE = 'native-types';
 
     public function __construct(
@@ -73,8 +72,7 @@ class OutputDataLoader
         }
 
         // Check whether we are creating typed tables
-        $createTypedTables = in_array(self::TYPED_TABLES_FEATURE, $projectFeatures, true)
-            && in_array(self::NATIVE_TYPES_FEATURE, $projectFeatures, true);
+        $createTypedTables = in_array(self::NATIVE_TYPES_FEATURE, $projectFeatures, true);
 
         try {
             $fileWriter = new FileWriter($this->outputStrategyFactory);
