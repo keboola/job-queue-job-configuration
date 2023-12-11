@@ -223,7 +223,7 @@ class ConfigurationDefinitionTest extends TestCase
                 'type' => 'foo',
                 'context' => 'wml',
             ],
-            $config['runtime']['backend']
+            $config['runtime']['backend'],
         );
     }
 
@@ -324,7 +324,7 @@ class ConfigurationDefinitionTest extends TestCase
      */
     public function testArtifactsRunsConfiguration(
         array $runsConfiguration,
-        array $expectedRunsConfiguration
+        array $expectedRunsConfiguration,
     ): void {
         $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
             'configuration' => [
@@ -385,7 +385,7 @@ class ConfigurationDefinitionTest extends TestCase
      */
     public function testArtifactsRunsConfigurationThrowsErrorOnInvalidConfig(
         array $runsConfiguration,
-        string $expecterErrorMessage
+        string $expecterErrorMessage,
     ): void {
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage($expecterErrorMessage);
@@ -422,7 +422,7 @@ class ConfigurationDefinitionTest extends TestCase
      */
     public function testArtifactsSharedConfiguration(
         array $sharedConfiguration,
-        array $expectedSharedConfiguration
+        array $expectedSharedConfiguration,
     ): void {
         $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
             'configuration' => [
@@ -456,7 +456,7 @@ class ConfigurationDefinitionTest extends TestCase
      */
     public function testArtifactsSharedConfigurationThrowsErrorOnInvalidConfig(
         array $sharedConfiguration,
-        string $expecterErrorMessage
+        string $expecterErrorMessage,
     ): void {
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage($expecterErrorMessage);
@@ -585,7 +585,7 @@ class ConfigurationDefinitionTest extends TestCase
      */
     public function testArtifactsCustomConfiguration(
         array $customConfiguration,
-        array $expectedCustomConfiguration
+        array $expectedCustomConfiguration,
     ): void {
         $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
             'configuration' => [
@@ -646,7 +646,7 @@ class ConfigurationDefinitionTest extends TestCase
      */
     public function testArtifactsCustomConfigurationThrowsErrorOnInvalidConfig(
         array $customConfiguration,
-        string $expecterErrorMessage
+        string $expecterErrorMessage,
     ): void {
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage($expecterErrorMessage);

@@ -64,7 +64,7 @@ class InputDataLoader
                     new InputTableStateList($inputState->tables->toArray()),
                     $this->dataInDir . '/tables/',
                     $component->getInputStagingStorage(),
-                    $readerOptions
+                    $readerOptions,
                 );
             }
 

@@ -166,7 +166,7 @@ class ComponentSpecification
             'gelf' => GelfLoggingConfiguration::fromArray($logging),
             default => throw new ComponentInvalidException(sprintf(
                 'Invalid logging type "%s". Valid values are "standard" or "gelf"',
-                $logging['type']
+                $logging['type'],
             )),
         };
     }

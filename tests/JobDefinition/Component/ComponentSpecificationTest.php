@@ -44,7 +44,7 @@ class ComponentSpecificationTest extends TestCase
                 550 => 'camouflage',
                 600 => 'camouflage',
             ],
-            $component->getLoggerVerbosity()
+            $component->getLoggerVerbosity(),
         );
         self::assertTrue($component->hasForwardToken());
         self::assertTrue($component->hasForwardTokenDetails());
@@ -81,7 +81,7 @@ class ComponentSpecificationTest extends TestCase
                 550 => 'camouflage',
                 600 => 'camouflage',
             ],
-            $component->getLoggerVerbosity()
+            $component->getLoggerVerbosity(),
         );
         self::assertFalse($component->hasForwardToken());
         self::assertFalse($component->hasForwardTokenDetails());
@@ -93,7 +93,7 @@ class ComponentSpecificationTest extends TestCase
         self::expectException(ApplicationExceptionInterface::class);
         self::expectExceptionMessage(
             'Component definition is invalid. Verify the deployment setup and the repository settings in ' .
-            'the Developer Portal. Detail: The child config "definition" under "component" must be configured.'
+            'the Developer Portal. Detail: The child config "definition" under "component" must be configured.',
         );
         new ComponentSpecification([]);
     }
@@ -103,7 +103,7 @@ class ComponentSpecificationTest extends TestCase
         self::expectException(ApplicationExceptionInterface::class);
         self::expectExceptionMessage(
             'Component definition is invalid. Verify the deployment setup and the repository settings in the ' .
-            'Developer Portal. Detail: The child config "definition" under "component" must be configured'
+            'Developer Portal. Detail: The child config "definition" under "component" must be configured',
         );
         new ComponentSpecification([
             'data' => [
@@ -116,7 +116,7 @@ class ComponentSpecificationTest extends TestCase
         self::expectException(ApplicationExceptionInterface::class);
         self::expectExceptionMessage(
             'Component definition is invalid. Verify the deployment setup and the repository settings in the ' .
-            'Developer Portal. Detail: The path "component.definition.uri" cannot contain an empty value, but got "".'
+            'Developer Portal. Detail: The path "component.definition.uri" cannot contain an empty value, but got "".',
         );
         new ComponentSpecification([
             'data' => [
