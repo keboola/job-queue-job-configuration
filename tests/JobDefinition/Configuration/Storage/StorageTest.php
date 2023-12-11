@@ -74,14 +74,14 @@ class StorageTest extends TestCase
         $input = new Input(
             tables: TablesList::fromArray(['table1', 'table2']),
             files: FilesList::fromArray(['file1.csv', 'file2.csv']),
-            readOnlyStorageAccess: true
+            readOnlyStorageAccess: true,
         );
 
         $output = new Output(
             tables: TablesList::fromArray(['table3', 'table4']),
             files: FilesList::fromArray(['file3.csv', 'file4.csv']),
             tableFiles: TableFiles::fromArray(['file1.csv' => ['table1'], 'file2.csv' => ['table2']]),
-            defaultBucket: 'output-bucket'
+            defaultBucket: 'output-bucket',
         );
 
         $storage = new Storage($input, $output);

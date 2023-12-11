@@ -146,7 +146,7 @@ class ConfigurationTest extends TestCase
                     'version' => 2,
                 ],
             ],
-            $configuration->authorization
+            $configuration->authorization,
         );
         self::assertSame('run', $configuration->action);
         self::assertSame(
@@ -158,7 +158,7 @@ class ConfigurationTest extends TestCase
                     ],
                 ],
             ],
-            $configuration->artifacts
+            $configuration->artifacts,
         );
     }
 
@@ -166,7 +166,7 @@ class ConfigurationTest extends TestCase
     {
         $this->expectException(ApplicationExceptionInterface::class);
         $this->expectExceptionMessage(
-            'Job configuration is not valid: Unrecognized option "foo" under "configuration". Available options are'
+            'Job configuration is not valid: Unrecognized option "foo" under "configuration". Available options are',
         );
 
         Configuration::fromArray([

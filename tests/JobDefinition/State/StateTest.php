@@ -91,7 +91,7 @@ class StateTest extends TestCase
     {
         $this->expectException(ApplicationExceptionInterface::class);
         $this->expectExceptionMessage(
-            'Job state is not valid: Unrecognized option "foo" under "state". Available options are'
+            'Job state is not valid: Unrecognized option "foo" under "state". Available options are',
         );
 
         State::fromArray([

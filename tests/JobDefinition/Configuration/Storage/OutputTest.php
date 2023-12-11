@@ -109,7 +109,7 @@ class OutputTest extends TestCase
             tables: $tablesList,
             files: $filesList,
             tableFiles: $tableFilesList,
-            defaultBucket: 'out.c-my-bucket'
+            defaultBucket: 'out.c-my-bucket',
         );
 
         $data = $output->toArray();
@@ -128,7 +128,7 @@ class OutputTest extends TestCase
             tables: new TablesList([]),
             files: new FilesList([]),
             tableFiles: new TableFiles(),
-            defaultBucket: 'out.c-my-bucket'
+            defaultBucket: 'out.c-my-bucket',
         );
 
         self::assertTrue($output->isEmpty());
@@ -145,7 +145,7 @@ class OutputTest extends TestCase
             ]),
             files: new FilesList([]),
             tableFiles: new TableFiles(),
-            defaultBucket: 'out.c-my-bucket'
+            defaultBucket: 'out.c-my-bucket',
         );
 
         self::assertFalse($output->isEmpty());
@@ -159,7 +159,7 @@ class OutputTest extends TestCase
                 ],
             ]),
             tableFiles: new TableFiles(),
-            defaultBucket: 'out.c-my-bucket'
+            defaultBucket: 'out.c-my-bucket',
         );
 
         self::assertFalse($output->isEmpty());
@@ -168,7 +168,7 @@ class OutputTest extends TestCase
             tables: new TablesList([]),
             files: new FilesList([]),
             tableFiles: new TableFiles(['tag1', 'tag2']),
-            defaultBucket: 'out.c-my-bucket'
+            defaultBucket: 'out.c-my-bucket',
         );
 
         self::assertTrue($output->isEmpty());

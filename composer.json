@@ -31,7 +31,7 @@
         "symfony/config": "^6.2"
     },
     "require-dev": {
-        "keboola/coding-standard": "^14.0",
+        "keboola/coding-standard": ">=15.0",
         "keboola/php-temp": "^2.0",
         "phpstan/phpstan": "^1.10",
         "phpstan/phpstan-phpunit": "^1.3",

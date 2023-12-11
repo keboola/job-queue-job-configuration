@@ -25,7 +25,7 @@ class WorkspaceProviderFactoryFactory
     public function __construct(
         private readonly Components $componentsApiClient,
         private readonly Workspaces $workspacesApiClient,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -38,7 +38,7 @@ class WorkspaceProviderFactoryFactory
         ComponentSpecification $component,
         ?string $configId,
         ?Backend $backendConfig,
-        ?bool $useReadonlyRole
+        ?bool $useReadonlyRole,
     ): AbstractCachedWorkspaceProviderFactory {
         /* There can only be one workspace type (ensured in validateStagingSetting()) - so we're checking
             just input staging here (because if it is workspace, it must be the same as output mapping). */
@@ -55,11 +55,11 @@ class WorkspaceProviderFactoryFactory
                 $component->getId(),
                 $configId,
                 new WorkspaceBackendConfig($backendConfig?->type),
-                $useReadonlyRole
+                $useReadonlyRole,
             );
             $this->logger->notice(sprintf(
                 'Created a new %s workspace.',
-                $useReadonlyRole ? 'readonly ephemeral' : 'ephemeral'
+                $useReadonlyRole ? 'readonly ephemeral' : 'ephemeral',
             ));
         }
         return $workspaceProviderFactory;
@@ -70,7 +70,7 @@ class WorkspaceProviderFactoryFactory
      */
     private function getWorkspaceFactoryForPersistentRedshiftWorkspace(
         ComponentSpecification $component,
-        string $configId
+        string $configId,
     ): ExistingDatabaseWorkspaceProviderFactory {
         $listOptions = (new ListConfigurationWorkspacesOptions())
             ->setComponentId($component->getId())
@@ -82,7 +82,7 @@ class WorkspaceProviderFactoryFactory
                 $component->getId(),
                 $configId,
                 ['backend' => RedshiftWorkspaceStaging::getType()],
-                true
+                true,
             );
             $workspaceId = (string) $workspace['id'];
             $password = $workspace['connection']['password'];
@@ -101,14 +101,14 @@ class WorkspaceProviderFactoryFactory
                 implode(',', $ids),
                 $configId,
                 $component->getId(),
-                $workspaceId
+                $workspaceId,
             ));
             $password = $this->workspacesApiClient->resetWorkspacePassword((int) $workspaceId)['password'];
         }
         return new ExistingDatabaseWorkspaceProviderFactory(
             $this->workspacesApiClient,
             $workspaceId,
-            $password
+            $password,
         );
     }
 
@@ -130,7 +130,7 @@ class WorkspaceProviderFactoryFactory
                 $component->getId(),
                 $configId,
                 ['backend' => AbsWorkspaceStaging::getType()],
-                true
+                true,
             );
             $workspaceId = (string) $workspace['id'];
             $connectionString = $workspace['connection']['connectionString'];
@@ -147,13 +147,13 @@ class WorkspaceProviderFactoryFactory
                 $workspaces[0]['id'],
                 $workspaces[1]['id'],
                 $configId,
-                $component->getId()
+                $component->getId(),
             ));
         }
         return new ExistingFilesystemWorkspaceProviderFactory(
             $this->workspacesApiClient,
             $workspaceId,
-            $connectionString
+            $connectionString,
         );
     }
 }
