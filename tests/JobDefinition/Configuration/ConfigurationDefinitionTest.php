@@ -134,6 +134,7 @@ class ConfigurationDefinitionTest extends TestCase
                         'container' => 'my-container',
                         'connectionString' => 'aVeryLongString',
                         'account' => 'test',
+                        'region' => 'mordor',
                         'credentials' => [
                             'client_id' => 'client123',
                             'private_key' => 'very-secret-private-key',
