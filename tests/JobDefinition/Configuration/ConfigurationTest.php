@@ -143,7 +143,6 @@ class ConfigurationTest extends TestCase
                     'credentials' => [
                         'id' => '123',
                     ],
-                    'version' => 2,
                 ],
             ],
             $configuration->authorization,

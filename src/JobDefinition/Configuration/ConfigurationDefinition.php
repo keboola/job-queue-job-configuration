@@ -6,6 +6,7 @@ namespace Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration;
 
 use Keboola\InputMapping\Configuration\File as InputFile;
 use Keboola\InputMapping\Configuration\Table as InputTable;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Authorization\AuthorizationDefinition;
 use Keboola\OutputMapping\Configuration\File as OutputFile;
 use Keboola\OutputMapping\Configuration\Table as OutputTable;
 use Keboola\OutputMapping\Configuration\TableFile as OutputTableFile;
@@ -100,35 +101,7 @@ class ConfigurationDefinition implements ConfigurationInterface
         OutputTableFile::configureNode($outputTableFile);
 
         // authorization
-        $root->children()
-            ->arrayNode('authorization')
-            ->children()
-                ->arrayNode('oauth_api')
-                    ->children()
-                        ->scalarNode('id')->end()
-                        ->scalarNode('version')->defaultValue(2)->end()
-                        ->variableNode('credentials')->end()
-                    ->end()
-                ->end()
-                ->arrayNode('workspace')
-                    ->children()
-                        ->scalarNode('host')->end()
-                        ->scalarNode('account')->end()
-                        ->scalarNode('warehouse')->end()
-                        ->scalarNode('database')->end()
-                        ->scalarNode('schema')->end()
-                        ->scalarNode('region')->end()
-                        ->scalarNode('user')->end()
-                        ->scalarNode('password')->end()
-                        ->scalarNode('container')->end()
-                        ->scalarNode('connectionString')->end()
-                        ->scalarNode('account')->end()
-                        ->variableNode('credentials')->end()
-                    ->end()
-                ->end()
-                ->scalarNode('context')->end()
-            ->end()
-        ->end();
+        $root->children()->append((new AuthorizationDefinition())->getConfigTreeBuilder()->getRootNode());
 
         // action
         $root->children()->scalarNode('action')->end();
