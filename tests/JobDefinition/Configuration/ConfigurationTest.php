@@ -173,142 +173,175 @@ class ConfigurationTest extends TestCase
         ]);
     }
 
-    public function testToArray(): void
+    public static function provideToArrayData(): iterable
     {
-        $configuration = new Configuration(
-            parameters: [
-                'foo' => 'bar',
-            ],
-            storage: new Storage(
-                input: new Input(
-                    tables: new TablesList([
-                        [
-                            'source' => 'in.c-main.test',
-                            'destination' => 'test.csv',
+        yield 'minimal config' => [
+            'config' => new Configuration(),
+            'output' => [
+                'action' => null,
+                'parameters' => [],
+                'storage' => [
+                    'input' => [
+                        'tables' => [],
+                        'files' => [],
+                        'read_only_storage_access' => null,
+                    ],
+                    'output' => [
+                        'tables' => [],
+                        'files' => [],
+                        'table_files' => [
+                            'tags' => [],
+                            'is_permanent' => true,
                         ],
-                    ]),
-                ),
-            ),
-            processors: [
-                'before' => [
-                    [
-                        'definition' => [
-                            'component' => 'bar',
-                        ],
+                        'default_bucket' => null,
                     ],
                 ],
-                'after' => [
-                    [
-                        'definition' => [
-                            'component' => 'foo',
-                        ],
-                    ],
-                ],
+                'processors' => [],
+                'artifacts' => [],
             ],
-            runtime: new Runtime(
-                backend: new Backend(
-                    type: 'small',
-                ),
-            ),
-            variablesId: '123',
-            variablesValuesId: '456',
-            sharedCodeId: '789',
-            sharedCodeRowIds: ['foo', 'bar'],
-            imageParameters: [
-                'foo' => 'bar',
-            ],
-            authorization: [
-                'oauth_api' => [
-                    'credentials' => [
-                        'id' => '123',
-                    ],
-                ],
-            ],
-            action: 'run',
-            artifacts: [
-                'runs' => [
-                    'enabled' => true,
-                    'filter' => [
-                        'limit' => 10,
-                    ],
-                ],
-            ],
-        );
+        ];
 
-        self::assertSame([
-            'parameters' => [
-                'foo' => 'bar',
-            ],
-            'storage' => [
-                'input' => [
-                    'tables' => [
+        yield 'full config' => [
+            'config' => new Configuration(
+                parameters: [
+                    'foo' => 'bar',
+                ],
+                storage: new Storage(
+                    input: new Input(
+                        tables: new TablesList([
+                            [
+                                'source' => 'in.c-main.test',
+                                'destination' => 'test.csv',
+                            ],
+                        ]),
+                    ),
+                ),
+                processors: [
+                    'before' => [
                         [
-                            'source' => 'in.c-main.test',
-                            'destination' => 'test.csv',
+                            'definition' => [
+                                'component' => 'bar',
+                            ],
                         ],
                     ],
-                    'files' => [],
-                    'read_only_storage_access' => null,
-                ],
-                'output' => [
-                    'tables' => [],
-                    'files' => [],
-                    'table_files' => [
-                        'tags' => [],
-                        'is_permanent' => true,
-                    ],
-                    'default_bucket' => null,
-                ],
-            ],
-            'processors' => [
-                'before' => [
-                    [
-                        'definition' => [
-                            'component' => 'bar',
+                    'after' => [
+                        [
+                            'definition' => [
+                                'component' => 'foo',
+                            ],
                         ],
                     ],
                 ],
-                'after' => [
-                    [
-                        'definition' => [
-                            'component' => 'foo',
+                runtime: new Runtime(
+                    backend: new Backend(
+                        type: 'small',
+                    ),
+                ),
+                variablesId: '123',
+                variablesValuesId: '456',
+                sharedCodeId: '789',
+                sharedCodeRowIds: ['foo', 'bar'],
+                imageParameters: [
+                    'foo' => 'bar',
+                ],
+                authorization: [
+                    'oauth_api' => [
+                        'credentials' => [
+                            'id' => '123',
+                        ],
+                    ],
+                ],
+                action: 'run',
+                artifacts: [
+                    'runs' => [
+                        'enabled' => true,
+                        'filter' => [
+                            'limit' => 10,
+                        ],
+                    ],
+                ],
+            ),
+            'output' => [
+                'action' => 'run',
+                'parameters' => [
+                    'foo' => 'bar',
+                ],
+                'storage' => [
+                    'input' => [
+                        'tables' => [
+                            [
+                                'source' => 'in.c-main.test',
+                                'destination' => 'test.csv',
+                            ],
+                        ],
+                        'files' => [],
+                        'read_only_storage_access' => null,
+                    ],
+                    'output' => [
+                        'tables' => [],
+                        'files' => [],
+                        'table_files' => [
+                            'tags' => [],
+                            'is_permanent' => true,
+                        ],
+                        'default_bucket' => null,
+                    ],
+                ],
+                'processors' => [
+                    'before' => [
+                        [
+                            'definition' => [
+                                'component' => 'bar',
+                            ],
+                        ],
+                    ],
+                    'after' => [
+                        [
+                            'definition' => [
+                                'component' => 'foo',
+                            ],
+                        ],
+                    ],
+                ],
+                'artifacts' => [
+                    'runs' => [
+                        'enabled' => true,
+                        'filter' => [
+                            'limit' => 10,
+                        ],
+                    ],
+                ],
+                'runtime' => [
+                    'safe' => null,
+                    'image_tag' => null,
+                    'use_file_storage_only' => null,
+                    'backend' => [
+                        'type' => 'small',
+                        'context' => null,
+                    ],
+                ],
+                'variables_id' => '123',
+                'variables_values_id' => '456',
+                'shared_code_id' => '789',
+                'shared_code_row_ids' => ['foo', 'bar'],
+                'image_parameters' => [
+                    'foo' => 'bar',
+                ],
+                'authorization' => [
+                    'oauth_api' => [
+                        'credentials' => [
+                            'id' => '123',
                         ],
                     ],
                 ],
             ],
-            'runtime' => [
-                'safe' => null,
-                'image_tag' => null,
-                'use_file_storage_only' => null,
-                'backend' => [
-                    'type' => 'small',
-                    'context' => null,
-                ],
-            ],
-            'variables_id' => '123',
-            'variables_values_id' => '456',
-            'shared_code_id' => '789',
-            'shared_code_row_ids' => ['foo', 'bar'],
-            'image_parameters' => [
-                'foo' => 'bar',
-            ],
-            'authorization' => [
-                'oauth_api' => [
-                    'credentials' => [
-                        'id' => '123',
-                    ],
-                ],
-            ],
-            'action' => 'run',
-            'artifacts' => [
-                'runs' => [
-                    'enabled' => true,
-                    'filter' => [
-                        'limit' => 10,
-                    ],
-                ],
-            ],
-        ], $configuration->toArray());
+        ];
+    }
+
+    /** @dataProvider provideToArrayData */
+    public function testToArray(Configuration $configuration, array $output): void
+    {
+        self::assertSame($output, $configuration->toArray());
     }
 
     public function testMergeArray(): void

@@ -53,20 +53,40 @@ readonly class Configuration
 
     public function toArray(): array
     {
-        return [
+        $data = [
+            'action' => $this->action,
             'parameters' => $this->parameters,
             'storage' => $this->storage->toArray(),
             'processors' => $this->processors,
-            'runtime' => $this->runtime?->toArray(),
-            'variables_id' => $this->variablesId,
-            'variables_values_id' => $this->variablesValuesId,
-            'shared_code_id' => $this->sharedCodeId,
-            'shared_code_row_ids' => $this->sharedCodeRowIds,
-            'image_parameters' => $this->imageParameters,
-            'authorization' => $this->authorization,
-            'action' => $this->action,
             'artifacts' => $this->artifacts,
         ];
+
+        if ($this->runtime !== null) {
+            $data['runtime'] = $this->runtime->toArray();
+        }
+
+        if ($this->variablesId !== null) {
+            $data['variables_id'] = $this->variablesId;
+        }
+
+        if ($this->variablesValuesId !== null) {
+            $data['variables_values_id'] = $this->variablesValuesId;
+        }
+
+        if ($this->sharedCodeId !== null) {
+            $data['shared_code_id'] = $this->sharedCodeId;
+            $data['shared_code_row_ids'] = $this->sharedCodeRowIds;
+        }
+
+        if ($this->imageParameters !== null && $this->imageParameters !== []) {
+            $data['image_parameters'] = $this->imageParameters;
+        }
+
+        if ($this->authorization !== null && $this->authorization !== []) {
+            $data['authorization'] = $this->authorization;
+        }
+
+        return $data;
     }
 
     public function mergeArray(array $data): self
