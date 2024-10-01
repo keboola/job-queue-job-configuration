@@ -41,5 +41,6 @@ class JobDefinitionTest extends TestCase
         self::assertTrue($jobDefinition->isDisabled);
         self::assertSame($configuration, $jobDefinition->configuration);
         self::assertSame($state, $jobDefinition->state);
+        self::assertSame('default', $jobDefinition->branchType);
     }
 }
