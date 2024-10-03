@@ -92,6 +92,10 @@ class ConfigurationDefinition implements ConfigurationInterface
         $outputTable = $output
             ->children()
                 ->scalarNode('default_bucket')->end()
+                ->enumNode('data_type_support')
+                    ->values(['authoritative', 'hints', 'none'])
+                    ->defaultValue('none')
+                ->end()
                 ->arrayNode('tables')
                     ->prototype('array')
         ;

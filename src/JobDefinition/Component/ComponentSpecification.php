@@ -19,6 +19,8 @@ class ComponentSpecification
     private array $data;
     private string $networkType;
     private array $features;
+    private array $dataTypesConfiguration;
+    private array $processorConfiguration;
 
     /**
      * @param array $componentData Component data as returned by Storage API
@@ -26,26 +28,26 @@ class ComponentSpecification
     public function __construct(array $componentData)
     {
         $this->id = empty($componentData['id']) ? '' : $componentData['id'];
-        $data = empty($componentData['data']) ? [] : $componentData['data'];
-        if (isset($componentData['features'])) {
-            $this->features = $componentData['features'];
-        } else {
-            $this->features = [];
-        }
+        $componentData['data'] = empty($componentData['data']) ? [] : $componentData['data'];
 
         try {
-            $this->data = (new Processor())->processConfiguration(
+            $processedComponentData = (new Processor())->processConfiguration(
                 new ComponentSpecificationDefinition(),
-                ['component' => $data],
+                ['config' => $componentData],
             );
         } catch (InvalidConfigurationException $e) {
             throw new ComponentInvalidException(
                 'Component definition is invalid. Verify the deployment setup and the repository settings ' .
                 'in the Developer Portal. Detail: ' . $e->getMessage(),
-                $data,
+                $componentData['data'],
                 $e,
             );
         }
+
+        $this->data = $processedComponentData['data'];
+        $this->dataTypesConfiguration = $processedComponentData['dataTypesConfiguration'] ?? [];
+        $this->processorConfiguration = $processedComponentData['processorConfiguration'] ?? [];
+        $this->features = $processedComponentData['features'] ?? [];
 
         $this->networkType = $this->data['network'];
     }
@@ -250,5 +252,15 @@ class ComponentSpecification
     public function isApplicationErrorDisabled(): bool
     {
         return (bool) $this->data['logging']['no_application_errors'];
+    }
+
+    public function getDataTypesSupport(): string
+    {
+        return $this->dataTypesConfiguration['dataTypesSupport'] ?? 'none';
+    }
+
+    public function getAllowedProcessorPosition(): string
+    {
+        return $this->processorConfiguration['allowedProcessorPosition'] ?? 'any';
     }
 }

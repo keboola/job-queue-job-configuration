@@ -18,8 +18,6 @@ use Psr\Log\LoggerInterface;
 
 class OutputDataLoader
 {
-    private const NATIVE_TYPES_FEATURE = 'native-types';
-
     public function __construct(
         private readonly OutputStrategyFactory $outputStrategyFactory,
         private readonly LoggerInterface $logger,
@@ -71,9 +69,6 @@ class OutputDataLoader
             $this->logger->debug('Default bucket ' . $uploadTablesOptions['bucket']);
         }
 
-        // Check whether we are creating typed tables
-        $createTypedTables = in_array(self::NATIVE_TYPES_FEATURE, $projectFeatures, true);
-
         try {
             $fileWriter = new FileWriter($this->outputStrategyFactory);
             $fileWriter->setFormat($component->getConfigurationFormat());
@@ -109,8 +104,8 @@ class OutputDataLoader
                 $uploadTablesOptions,
                 $tableSystemMetadata,
                 $component->getOutputStagingStorage(),
-                $createTypedTables,
                 $isFailedJob,
+                $this->getDataTypeSupport($component, $outputStorageConfig->dataTypeSupport),
             );
 
             if (!$inputStorageConfig->files->isEmpty()) {
@@ -139,5 +134,13 @@ class OutputDataLoader
     private function useFileStorageOnly(ComponentSpecification $component, ?Runtime $runtimeConfig): bool
     {
         return $component->allowUseFileStorageOnly() && $runtimeConfig?->useFileStorageOnly;
+    }
+
+    private function getDataTypeSupport(ComponentSpecification $component, ?string $dataTypeSupport): string
+    {
+        if (!$this->outputStrategyFactory->getClientWrapper()->getToken()->hasFeature('new-native-types')) {
+            return 'none';
+        }
+        return $dataTypeSupport ?? $component->getDataTypesSupport();
     }
 }
