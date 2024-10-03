@@ -11,6 +11,7 @@ readonly class Output
         public FilesList $files = new FilesList(),
         public TableFiles $tableFiles = new TableFiles(),
         public ?string $defaultBucket = null,
+        public ?string $dataTypeSupport = null,
     ) {
     }
 
@@ -21,6 +22,8 @@ readonly class Output
             files: FilesList::fromArray($data['files'] ?? []),
             tableFiles: TableFiles::fromArray($data['table_files'] ?? []),
             defaultBucket: isset($data['default_bucket']) ? (string) $data['default_bucket'] : null,
+            dataTypeSupport: isset($data['data_type_support']) ? (string) $data['data_type_support'] : null,
+            // todo: add tests for dataTypeSupport
         );
     }
 
@@ -31,6 +34,7 @@ readonly class Output
             'files' => $this->files->toArray(),
             'table_files' => $this->tableFiles->toArray(),
             'default_bucket' => $this->defaultBucket,
+            'data_type_support' => $this->dataTypeSupport,
         ];
     }
 

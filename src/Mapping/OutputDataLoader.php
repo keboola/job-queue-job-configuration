@@ -110,7 +110,7 @@ class OutputDataLoader
                 $tableSystemMetadata,
                 $component->getOutputStagingStorage(),
                 $isFailedJob,
-                $this->getDataTypeSupport(),
+                $this->getDataTypeSupport($component, $outputStorageConfig->dataTypeSupport),
             );
 
             if (!$inputStorageConfig->files->isEmpty()) {
@@ -141,11 +141,11 @@ class OutputDataLoader
         return $component->allowUseFileStorageOnly() && $runtimeConfig?->useFileStorageOnly;
     }
 
-    private function getDataTypeSupport(ComponentSpecification $component): string
+    private function getDataTypeSupport(ComponentSpecification $component, ?string $dataTypeSupport): string
     {
         if (!$this->outputStrategyFactory->getClientWrapper()->getToken()->hasFeature('new-native-types')) {
             return 'none';
         }
-        return $this->storageConfig['output']['data_type_support'] ?? $component->getDataTypesSupport();
+        return $dataTypeSupport ?? $component->getDataTypesSupport();
     }
 }
