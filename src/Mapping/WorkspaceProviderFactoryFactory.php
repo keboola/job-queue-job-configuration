@@ -13,6 +13,7 @@ use Keboola\StagingProvider\Staging\Workspace\RedshiftWorkspaceStaging;
 use Keboola\StagingProvider\WorkspaceProviderFactory\AbstractCachedWorkspaceProviderFactory;
 use Keboola\StagingProvider\WorkspaceProviderFactory\ComponentWorkspaceProviderFactory;
 use Keboola\StagingProvider\WorkspaceProviderFactory\Configuration\WorkspaceBackendConfig;
+use Keboola\StagingProvider\WorkspaceProviderFactory\Credentials\ABSWorkspaceCredentials;
 use Keboola\StagingProvider\WorkspaceProviderFactory\ExistingDatabaseWorkspaceProviderFactory;
 use Keboola\StagingProvider\WorkspaceProviderFactory\ExistingFilesystemWorkspaceProviderFactory;
 use Keboola\StorageApi\Components;
@@ -133,12 +134,13 @@ class WorkspaceProviderFactoryFactory
                 true,
             );
             $workspaceId = (string) $workspace['id'];
-            $connectionString = $workspace['connection']['connectionString'];
+            $workspaceCredentials = ABSWorkspaceCredentials::fromPasswordResetArray($workspace['connection']);
             $this->logger->info(sprintf('Created a new persistent workspace "%s".', $workspaceId));
         } elseif (count($workspaces) === 1) {
             $workspaceId = (string) $workspaces[0]['id'];
-            $connectionString =
-                $this->workspacesApiClient->resetWorkspacePassword((int) $workspaceId)['connectionString'];
+            $workspaceCredentials = ABSWorkspaceCredentials::fromPasswordResetArray(
+                $this->workspacesApiClient->resetWorkspacePassword((int) $workspaceId),
+            );
             $this->logger->info(sprintf('Reusing persistent workspace "%s".', $workspaceId));
         } else {
             throw new ApplicationException(sprintf(
@@ -153,7 +155,7 @@ class WorkspaceProviderFactoryFactory
         return new ExistingFilesystemWorkspaceProviderFactory(
             $this->workspacesApiClient,
             $workspaceId,
-            $connectionString,
+            $workspaceCredentials,
         );
     }
 }
