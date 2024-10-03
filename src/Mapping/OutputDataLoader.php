@@ -109,8 +109,8 @@ class OutputDataLoader
                 $uploadTablesOptions,
                 $tableSystemMetadata,
                 $component->getOutputStagingStorage(),
-                $createTypedTables,
                 $isFailedJob,
+                $this->getDataTypeSupport(),
             );
 
             if (!$inputStorageConfig->files->isEmpty()) {
@@ -139,5 +139,13 @@ class OutputDataLoader
     private function useFileStorageOnly(ComponentSpecification $component, ?Runtime $runtimeConfig): bool
     {
         return $component->allowUseFileStorageOnly() && $runtimeConfig?->useFileStorageOnly;
+    }
+
+    private function getDataTypeSupport(ComponentSpecification $component): string
+    {
+        if (!$this->outputStrategyFactory->getClientWrapper()->getToken()->hasFeature('new-native-types')) {
+            return 'none';
+        }
+        return $this->storageConfig['output']['data_type_support'] ?? $component->getDataTypesSupport();
     }
 }
