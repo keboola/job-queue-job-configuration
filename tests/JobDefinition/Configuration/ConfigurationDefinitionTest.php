@@ -183,6 +183,11 @@ class ConfigurationDefinitionTest extends TestCase
                     'backend' => [
                         'type' => 'foo',
                         'context' => 'wml',
+                        'workspace_credentials' => [
+                            'id' => '1234',
+                            'type' => 'snowflake',
+                            '#password' => 'test',
+                        ],
                     ],
                 ],
             ],
@@ -191,6 +196,11 @@ class ConfigurationDefinitionTest extends TestCase
         self::assertSame([
             'type' => 'foo',
             'context' => 'wml',
+            'workspace_credentials' => [
+                'id' => '1234',
+                'type' => 'snowflake',
+                '#password' => 'test',
+            ],
         ], $config['runtime']['backend']);
     }
 
