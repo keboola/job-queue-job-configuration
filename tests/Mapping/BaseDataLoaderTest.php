@@ -47,6 +47,11 @@ abstract class BaseDataLoaderTest extends TestCase
         return $this->workingDirPath . '/data';
     }
 
+    protected function getTmpDirPath(): string
+    {
+        return $this->workingDirPath . '/tmp';
+    }
+
     private function prepareWorkingDir(): void
     {
         $temp = new Temp();
