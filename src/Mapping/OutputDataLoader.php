@@ -71,9 +71,6 @@ class OutputDataLoader
             $this->logger->debug('Default bucket ' . $uploadTablesOptions['bucket']);
         }
 
-        // Check whether we are creating typed tables
-        $createTypedTables = in_array(self::NATIVE_TYPES_FEATURE, $projectFeatures, true);
-
         try {
             $fileWriter = new FileWriter($this->outputStrategyFactory);
             $fileWriter->setFormat($component->getConfigurationFormat());
