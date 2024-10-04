@@ -2,25 +2,28 @@
 
 declare(strict_types=1);
 
-namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\OutputDataLoader;
+namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\InputDataLoader;
 
-use Keboola\JobQueue\JobConfiguration\Mapping\OutputDataLoader;
+use Keboola\InputMapping\Staging\StrategyFactory;
+use Keboola\JobQueue\JobConfiguration\Mapping\InputDataLoader;
 use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceProviderFactoryFactory;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\BaseDataLoaderTest;
-use Keboola\OutputMapping\Staging\StrategyFactory as OutputStrategyFactory;
-use Keboola\StagingProvider\OutputProviderInitializer;
+use Keboola\StagingProvider\InputProviderInitializer;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Workspaces;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
-abstract class BaseOutputDataLoaderTest extends BaseDataLoaderTest
+abstract class BaseInputDataLoaderTest extends BaseDataLoaderTest
 {
-    protected function getOutputDataLoader(?ClientWrapper $clientWrapper = null, LoggerInterface $logger = new NullLogger()): OutputDataLoader {
+    protected function getInputDataLoader(
+        ?ClientWrapper $clientWrapper = null,
+        LoggerInterface $logger = new NullLogger(),
+    ): InputDataLoader {
         $clientWrapper = $clientWrapper ?? $this->clientWrapper;
 
-        $outputStrategyFactory = new OutputStrategyFactory(
+        $inputStrategyFactory = new StrategyFactory(
             clientWrapper: $clientWrapper,
             logger: $logger,
             format: 'json',
@@ -45,21 +48,21 @@ abstract class BaseOutputDataLoaderTest extends BaseDataLoaderTest
             useReadonlyRole: null,
         );
 
-        $outputProviderInitializer = new OutputProviderInitializer(
-            stagingFactory: $outputStrategyFactory,
+        $inputProviderInitializer = new InputProviderInitializer(
+            stagingFactory: $inputStrategyFactory,
             workspaceProviderFactory: $workspaceProviderFactory,
             dataDirectory: $this->getWorkingDirPath(),
         );
 
-        $outputProviderInitializer->initializeProviders(
+        $inputProviderInitializer->initializeProviders(
             stagingType: $component->getOutputStagingStorage(),
             tokenInfo: [],
         );
 
-        return new OutputDataLoader(
-            outputStrategyFactory: $outputStrategyFactory,
+        return new InputDataLoader(
+            inputStrategyFactory: $inputStrategyFactory,
             logger: $logger,
-            dataOutDir: '/data/out',
+            dataInDir: '/data/in',
         );
     }
 }
