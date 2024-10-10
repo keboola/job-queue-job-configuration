@@ -16,6 +16,7 @@ class RuntimeTest extends TestCase
 
         self::assertNull($runtime->safe);
         self::assertNull($runtime->imageTag);
+        self::assertNull($runtime->processTimeout);
         self::assertNull($runtime->useFileStorageOnly);
         self::assertNull($runtime->backend);
         self::assertSame([], $runtime->extraProps);
@@ -26,6 +27,7 @@ class RuntimeTest extends TestCase
         $data = [
             'safe' => true,
             'image_tag' => 'latest',
+            'process_timeout' => 10,
             'use_file_storage_only' => true,
             'backend' => [
                 'type' => 'testType',
@@ -38,6 +40,7 @@ class RuntimeTest extends TestCase
 
         self::assertTrue($runtime->safe);
         self::assertSame('latest', $runtime->imageTag);
+        self::assertSame(10, $runtime->processTimeout);
         self::assertTrue($runtime->useFileStorageOnly);
         self::assertInstanceOf(Backend::class, $runtime->backend);
         self::assertSame('testType', $runtime->backend->type);
@@ -52,15 +55,8 @@ class RuntimeTest extends TestCase
             context: 'testContext',
         );
 
-        $runtime = new Runtime(
-            safe: true,
-            imageTag: 'latest',
-            useFileStorageOnly: true,
-            backend: $backend,
-            extraProps: ['foo' => 'bar'],
-        );
-
-        self::assertSame([
+        self::assertSame(
+            [
             'safe' => true,
             'image_tag' => 'latest',
             'use_file_storage_only' => true,
@@ -69,6 +65,27 @@ class RuntimeTest extends TestCase
                 'context' => 'testContext',
             ],
             'foo' => 'bar',
-        ], $runtime->toArray());
+            ],
+            (new Runtime(
+                safe: true,
+                imageTag: 'latest',
+                useFileStorageOnly: true,
+                backend: $backend,
+                extraProps: ['foo' => 'bar'],
+            ))->toArray(),
+        );
+
+        self::assertSame(
+            [
+            'safe' => null,
+            'image_tag' => null,
+            'use_file_storage_only' => null,
+            'backend' => null,
+            'process_timeout' => 10,
+            ],
+            (new Runtime(
+                processTimeout: 10,
+            ))->toArray(),
+        );
     }
 }
