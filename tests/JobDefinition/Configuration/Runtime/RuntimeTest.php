@@ -16,6 +16,7 @@ class RuntimeTest extends TestCase
 
         self::assertNull($runtime->safe);
         self::assertNull($runtime->imageTag);
+        self::assertNull($runtime->processTimeout);
         self::assertNull($runtime->useFileStorageOnly);
         self::assertNull($runtime->backend);
         self::assertSame([], $runtime->extraProps);
@@ -26,6 +27,7 @@ class RuntimeTest extends TestCase
         $data = [
             'safe' => true,
             'image_tag' => 'latest',
+            'process_timeout' => 10,
             'use_file_storage_only' => true,
             'backend' => [
                 'type' => 'testType',
@@ -38,6 +40,7 @@ class RuntimeTest extends TestCase
 
         self::assertTrue($runtime->safe);
         self::assertSame('latest', $runtime->imageTag);
+        self::assertSame(10, $runtime->processTimeout);
         self::assertTrue($runtime->useFileStorageOnly);
         self::assertInstanceOf(Backend::class, $runtime->backend);
         self::assertSame('testType', $runtime->backend->type);
@@ -55,6 +58,7 @@ class RuntimeTest extends TestCase
         $runtime = new Runtime(
             safe: true,
             imageTag: 'latest',
+            processTimeout: 20,
             useFileStorageOnly: true,
             backend: $backend,
             extraProps: ['foo' => 'bar'],
@@ -63,6 +67,7 @@ class RuntimeTest extends TestCase
         self::assertSame([
             'safe' => true,
             'image_tag' => 'latest',
+            'process_timeout' => 20,
             'use_file_storage_only' => true,
             'backend' => [
                 'type' => 'testType',

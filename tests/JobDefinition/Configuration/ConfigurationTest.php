@@ -314,6 +314,7 @@ class ConfigurationTest extends TestCase
                 'runtime' => [
                     'safe' => null,
                     'image_tag' => null,
+                    'process_timeout' => null,
                     'use_file_storage_only' => null,
                     'backend' => [
                         'type' => 'small',
