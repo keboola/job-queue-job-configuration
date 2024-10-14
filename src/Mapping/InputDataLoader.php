@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\Mapping;
 
+use Generator;
 use Keboola\InputMapping\Exception\InvalidInputException;
 use Keboola\InputMapping\Reader;
+use Keboola\InputMapping\Staging\AbstractStagingDefinition;
 use Keboola\InputMapping\Staging\AbstractStrategyFactory;
+use Keboola\InputMapping\Staging\ProviderInterface;
 use Keboola\InputMapping\Staging\StrategyFactory as InputStrategyFactory;
 use Keboola\InputMapping\State\InputFileStateList;
 use Keboola\InputMapping\State\InputTableStateList;
@@ -17,6 +20,7 @@ use Keboola\JobQueue\JobConfiguration\Exception\UserException;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\State\State;
+use Keboola\StagingProvider\Provider\WorkspaceStagingProvider;
 use Keboola\StorageApi\ClientException;
 use Psr\Log\LoggerInterface;
 
@@ -84,5 +88,31 @@ class InputDataLoader
         }
 
         return new LoadInputDataResult($inputTableResult, $inputFileStateList);
+    }
+
+    public function getWorkspaceCredentials(): array
+    {
+        // this returns the first workspace found, which is ok so far because there can only be one
+        // (ensured in validateStagingSetting()) working only with inputStrategyFactory, but
+        // the workspace providers are shared between input and output, so it's "ok"
+        foreach ($this->inputStrategyFactory->getStrategyMap() as $stagingDefinition) {
+            foreach ($this->getStagingProviders($stagingDefinition) as $stagingProvider) {
+                if (!$stagingProvider instanceof WorkspaceStagingProvider) {
+                    continue;
+                }
+
+                return $stagingProvider->getCredentials();
+            }
+        }
+        return [];
+    }
+
+    /** @return Generator<ProviderInterface|null> */
+    private function getStagingProviders(AbstractStagingDefinition $stagingDefinition): Generator
+    {
+        yield $stagingDefinition->getFileDataProvider();
+        yield $stagingDefinition->getFileMetadataProvider();
+        yield $stagingDefinition->getTableDataProvider();
+        yield $stagingDefinition->getTableMetadataProvider();
     }
 }

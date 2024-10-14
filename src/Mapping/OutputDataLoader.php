@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\Mapping;
 
+use Generator;
+use Keboola\InputMapping\Staging\AbstractStagingDefinition;
+use Keboola\InputMapping\Staging\ProviderInterface;
 use Keboola\JobQueue\JobConfiguration\Exception\UserException;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
@@ -14,6 +17,7 @@ use Keboola\OutputMapping\Staging\StrategyFactory as OutputStrategyFactory;
 use Keboola\OutputMapping\Writer\AbstractWriter;
 use Keboola\OutputMapping\Writer\FileWriter;
 use Keboola\OutputMapping\Writer\TableWriter;
+use Keboola\StagingProvider\Provider\WorkspaceStagingProvider;
 use Psr\Log\LoggerInterface;
 
 class OutputDataLoader
@@ -142,5 +146,31 @@ class OutputDataLoader
             return 'none';
         }
         return $dataTypeSupport ?? $component->getDataTypesSupport();
+    }
+
+    public function getWorkspaceCredentials(): array
+    {
+        // this returns the first workspace found, which is ok so far because there can only be one
+        // (ensured in validateStagingSetting()) working only with inputStrategyFactory, but
+        // the workspace providers are shared between input and output, so it's "ok"
+        foreach ($this->outputStrategyFactory->getStrategyMap() as $stagingDefinition) {
+            foreach ($this->getStagingProviders($stagingDefinition) as $stagingProvider) {
+                if (!$stagingProvider instanceof WorkspaceStagingProvider) {
+                    continue;
+                }
+
+                return $stagingProvider->getCredentials();
+            }
+        }
+        return [];
+    }
+
+    /** @return Generator<ProviderInterface|null> */
+    private function getStagingProviders(AbstractStagingDefinition $stagingDefinition): Generator
+    {
+        yield $stagingDefinition->getFileDataProvider();
+        yield $stagingDefinition->getFileMetadataProvider();
+        yield $stagingDefinition->getTableDataProvider();
+        yield $stagingDefinition->getTableMetadataProvider();
     }
 }
