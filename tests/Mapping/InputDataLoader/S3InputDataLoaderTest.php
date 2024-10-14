@@ -1,0 +1,107 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\InputDataLoader;
+
+use Keboola\Csv\CsvFile;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Input;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Storage;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TablesList;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\State\State;
+use Symfony\Component\Filesystem\Filesystem;
+
+class S3InputDataLoaderTest extends BaseInputDataLoaderTest
+{
+    public function setUp(): void
+    {
+        parent::setUp();
+        $this->cleanupBucketAndFiles('-s3');
+    }
+
+    private function getS3StagingComponent(): ComponentSpecification
+    {
+        return new ComponentSpecification([
+            'id' => 'docker-demo',
+            'data' => [
+                'definition' => [
+                    'type' => 'dockerhub',
+                    'uri' => 'keboola/docker-demo',
+                    'tag' => 'master',
+                ],
+                'staging-storage' => [
+                    'input' => 's3',
+                ],
+            ],
+        ]);
+    }
+
+    public function testStoreArchive(): void
+    {
+        $this->markTestSkipped('Will be implemented in separate PR, see Jira issue PST-2182');
+    }
+
+    public function testLoadInputDataS3(): void
+    {
+        $storage = new Storage(
+            input: new Input(
+                tables: new TablesList([
+                    [
+                        'source' => 'in.c-docker-demo-testConfig-s3.test',
+                    ],
+                ]),
+            ),
+        );
+        $fs = new Filesystem();
+        $filePath = $this->getDataDirPath() . '/in/tables/test.csv';
+        $fs->dumpFile(
+            $filePath,
+            "id,text,row_number\n1,test,1\n1,test,2\n1,test,3",
+        );
+        $this->clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig-s3', 'in');
+        $this->clientWrapper->getBasicClient()->createTable(
+            'in.c-docker-demo-testConfig-s3',
+            'test',
+            new CsvFile($filePath),
+        );
+
+        $dataLoader = $this->getInputDataLoader($this->clientWrapper);
+        $dataLoader->loadInputData(
+            component: $this->getS3StagingComponent(),
+            jobConfiguration: new Configuration(
+                storage: $storage,
+            ),
+            jobState: new State(),
+        );
+
+        $manifest = json_decode(
+            // @phpstan-ignore-next-line
+            file_get_contents(
+                $this->getDataDirPath() . '/in/tables/in.c-docker-demo-testConfig-s3.test.manifest',
+            ),
+            true,
+        );
+
+        self::assertIsArray($manifest);
+        $this->assertS3info($manifest);
+    }
+
+    private function assertS3info(array $manifest): void
+    {
+        self::assertArrayHasKey('s3', $manifest);
+        self::assertArrayHasKey('isSliced', $manifest['s3']);
+        self::assertArrayHasKey('region', $manifest['s3']);
+        self::assertArrayHasKey('bucket', $manifest['s3']);
+        self::assertArrayHasKey('key', $manifest['s3']);
+        self::assertArrayHasKey('credentials', $manifest['s3']);
+        self::assertArrayHasKey('access_key_id', $manifest['s3']['credentials']);
+        self::assertArrayHasKey('secret_access_key', $manifest['s3']['credentials']);
+        self::assertArrayHasKey('session_token', $manifest['s3']['credentials']);
+        self::assertStringContainsString('.gz', $manifest['s3']['key']);
+        if ($manifest['s3']['isSliced']) {
+            self::assertStringContainsString('manifest', $manifest['s3']['key']);
+        }
+    }
+}
