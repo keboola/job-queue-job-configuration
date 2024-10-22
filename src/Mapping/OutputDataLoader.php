@@ -8,6 +8,7 @@ use Generator;
 use Keboola\InputMapping\Staging\AbstractStagingDefinition;
 use Keboola\InputMapping\Staging\AbstractStrategyFactory;
 use Keboola\InputMapping\Staging\ProviderInterface;
+use Keboola\JobQueue\JobConfiguration\Exception\ApplicationException;
 use Keboola\JobQueue\JobConfiguration\Exception\UserException;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
@@ -41,6 +42,8 @@ class OutputDataLoader
         array $projectFeatures,
         bool $isFailedJob = false,
     ): ?LoadTableQueue {
+        $this->validateComponent($component);
+
         $this->logger->debug('Storing results.');
 
         $inputStorageConfig = $jobConfiguration->storage->input;
@@ -235,5 +238,23 @@ class OutputDataLoader
     private function isReusableWorkspace(ComponentSpecification $component): bool
     {
         return $component->getOutputStagingStorage() === AbstractStrategyFactory::WORKSPACE_ABS;
+    }
+
+    private function validateComponent(ComponentSpecification $component): void
+    {
+        // Validate component's staging settings
+        $workspaceTypes = [AbstractStrategyFactory::WORKSPACE_ABS, AbstractStrategyFactory::WORKSPACE_REDSHIFT,
+            AbstractStrategyFactory::WORKSPACE_SNOWFLAKE, AbstractStrategyFactory::WORKSPACE_SYNAPSE,
+            AbstractStrategyFactory::WORKSPACE_BIGQUERY];
+        if (in_array($component->getInputStagingStorage(), $workspaceTypes)
+            && in_array($component->getOutputStagingStorage(), $workspaceTypes)
+            && $component->getInputStagingStorage() !== $component->getOutputStagingStorage()
+        ) {
+            throw new ApplicationException(sprintf(
+                'Component staging setting mismatch - input: "%s", output: "%s".',
+                $component->getInputStagingStorage(),
+                $component->getOutputStagingStorage(),
+            ));
+        }
     }
 }
