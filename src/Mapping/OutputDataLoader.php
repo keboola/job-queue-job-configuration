@@ -150,6 +150,24 @@ class OutputDataLoader
         return $dataTypeSupport ?? $component->getDataTypesSupport();
     }
 
+    public function getWorkspaceBackendSize(): ?string
+    {
+        // this returns the first workspace found, which is ok so far because there can only be one
+        // (ensured in validateStagingSetting()) working only with inputStrategyFactory, but
+        // the workspace providers are shared between input and output, so it's "ok"
+        foreach ($this->outputStrategyFactory->getStrategyMap() as $stagingDefinition) {
+            foreach ($this->getStagingProviders($stagingDefinition) as $stagingProvider) {
+                if (!$stagingProvider instanceof WorkspaceStagingProvider) {
+                    continue;
+                }
+
+                return $stagingProvider->getBackendSize();
+            }
+        }
+
+        return null;
+    }
+
     public function getWorkspaceCredentials(): array
     {
         // this returns the first workspace found, which is ok so far because there can only be one
