@@ -1,5 +1,64 @@
 jobs:
   - template: ../../azure-pipelines/jobs/run-tests.yml
     parameters:
+      displayName: Job Definition
       serviceName: ci-job-configuration
-      testCommand: composer ci
+      testCommand: vendor/bin/phpunit --testsuite job-definition
+  - template: ../../azure-pipelines/jobs/run-tests.yml
+    parameters:
+      displayName: Mapping general
+      serviceName: ci-job-configuration
+      testCommand: vendor/bin/phpunit --testsuite mapping-general
+      variables:
+        STORAGE_API_URL: $(STORAGE_API_URL__AWS)
+      secrets:
+        TEST_STORAGE_API_TOKEN: $(JOB_CONFIGURATION__STORAGE_API_TOKEN__AWS)
+        TEST_STORAGE_API_TOKEN_MASTER: $(JOB_CONFIGURATION__STORAGE_API_TOKEN_MASTER__AWS)
+        TEST_STORAGE_API_TOKEN_FEATURE_NATIVE_TYPES: $(JOB_CONFIGURATION__STORAGE_API_TOKEN_FEATURE_NATIVE_TYPES__AWS)
+        TEST_STORAGE_API_TOKEN_FEATURE_NEW_NATIVE_TYPES: $(JOB_CONFIGURATION__STORAGE_API_TOKEN_FEATURE_NEW_NATIVE_TYPES__AWS)
+  - template: ../../azure-pipelines/jobs/run-tests.yml
+    parameters:
+      displayName: Mapping ABS
+      serviceName: ci-job-configuration
+      testCommand: vendor/bin/phpunit --testsuite mapping-abs
+      variables:
+        STORAGE_API_URL_AZURE: $(STORAGE_API_URL__AZURE)
+      secrets:
+        TEST_STORAGE_API_TOKEN_AZURE: $(JOB_CONFIGURATION__STORAGE_API_TOKEN__AZURE)
+        TEST_STORAGE_API_TOKEN_MASTER_AZURE: $(JOB_CONFIGURATION__STORAGE_API_TOKEN_MASTER__AZURE)
+      backend: abs
+  - template: ../../azure-pipelines/jobs/run-tests.yml
+    parameters:
+      displayName: Mapping BigQuery
+      serviceName: ci-job-configuration
+      testCommand: vendor/bin/phpunit --testsuite mapping-bigquery
+      variables:
+        STORAGE_API_URL_GCP: $(STORAGE_API_URL__GCP)
+      secrets:
+        TEST_STORAGE_API_TOKEN_GCP: $(JOB_CONFIGURATION__STORAGE_API_TOKEN__GCP)
+        TEST_STORAGE_API_TOKEN_MASTER_GCP: $(JOB_CONFIGURATION__STORAGE_API_TOKEN_MASTER__GCP)
+      backend: bigquery
+  - template: ../../azure-pipelines/jobs/run-tests.yml
+    parameters:
+      displayName: Mapping GCS
+      serviceName: ci-job-configuration
+      testCommand: vendor/bin/phpunit --testsuite mapping-gcs
+      variables:
+        STORAGE_API_URL_GCP: $(STORAGE_API_URL__GCP)
+      secrets:
+        TEST_STORAGE_API_TOKEN_GCP: $(JOB_CONFIGURATION__STORAGE_API_TOKEN__GCP)
+        TEST_STORAGE_API_TOKEN_MASTER_GCP: $(JOB_CONFIGURATION__STORAGE_API_TOKEN_MASTER__GCP)
+      backend: gcs
+  - template: ../../azure-pipelines/jobs/run-tests.yml
+    parameters:
+      displayName: Mapping S3
+      serviceName: ci-job-configuration
+      testCommand: vendor/bin/phpunit --testsuite mapping-s3
+      variables:
+        STORAGE_API_URL: $(STORAGE_API_URL__AWS)
+      secrets:
+        TEST_STORAGE_API_TOKEN: $(JOB_CONFIGURATION__STORAGE_API_TOKEN__AWS)
+        TEST_STORAGE_API_TOKEN_MASTER: $(JOB_CONFIGURATION__STORAGE_API_TOKEN_MASTER__AWS)
+        TEST_STORAGE_API_TOKEN_FEATURE_NATIVE_TYPES: $(JOB_CONFIGURATION__STORAGE_API_TOKEN_FEATURE_NATIVE_TYPES__AWS)
+        TEST_STORAGE_API_TOKEN_FEATURE_NEW_NATIVE_TYPES: $(JOB_CONFIGURATION__STORAGE_API_TOKEN_FEATURE_NEW_NATIVE_TYPES__AWS)
+      backend: s3

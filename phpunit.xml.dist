@@ -14,9 +14,33 @@
     <env name="KERNEL_CLASS" value="App\Kernel"/>
     <env name="APP_ENV" value="test" force="true"/>
   </php>
-  <testsuite name="Tests">
-    <directory>tests</directory>
-  </testsuite>
+  <testsuites>
+    <testsuite name="all">
+      <directory>tests</directory>
+    </testsuite>
+    <testsuite name="job-definition">
+      <directory>tests</directory>
+      <exclude>tests/Mapping</exclude>
+    </testsuite>
+    <testsuite name="mapping-general">
+      <file>tests/Mapping/InputDataLoader/InputDataLoaderTest.php</file>
+      <file>tests/Mapping/OutputDataLoader/OutputDataLoaderTest.php</file>
+      <file>tests/Mapping/OutputDataLoader/OutputDataLoaderMetadataTest.php</file>
+    </testsuite>
+    <testsuite name="mapping-abs">
+      <file>tests/Mapping/InputDataLoader/ABSInputDataLoaderTest.php</file>
+      <file>tests/Mapping/OutputDataLoader/ABSPersistentOutputDataLoaderTest.php</file>
+    </testsuite>
+    <testsuite name="mapping-bigquery">
+      <file>tests/Mapping/InputDataLoader/BigQueryInputDataLoaderTest.php</file>
+    </testsuite>
+    <testsuite name="mapping-gcs">
+      <file>tests/Mapping/InputDataLoader/GCSInputDataLoaderTest.php</file>
+    </testsuite>
+    <testsuite name="mapping-s3">
+      <file>tests/Mapping/InputDataLoader/S3InputDataLoaderTest.php</file>
+    </testsuite>
+  </testsuites>
   <source>
     <include>
       <directory suffix=".php">src</directory>
