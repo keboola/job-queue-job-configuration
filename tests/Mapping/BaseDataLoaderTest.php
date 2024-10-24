@@ -4,13 +4,19 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping;
 
+use InvalidArgumentException;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
+use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseAzureProject;
+use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseGCPProject;
+use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseSnowflakeProject;
 use Keboola\StorageApi\ClientException;
 use Keboola\StorageApi\Options\ListFilesOptions;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\Temp\Temp;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
+use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
 
 abstract class BaseDataLoaderTest extends TestCase
@@ -25,13 +31,7 @@ abstract class BaseDataLoaderTest extends TestCase
     {
         parent::setUp();
 
-        $this->clientWrapper = new ClientWrapper(
-            new ClientOptions(
-                (string) getenv('STORAGE_API_URL'),
-                (string) getenv('TEST_STORAGE_API_TOKEN'),
-            ),
-        );
-
+        $this->initClientWrapper();
         $this->prepareWorkingDir();
     }
 
@@ -137,7 +137,7 @@ abstract class BaseDataLoaderTest extends TestCase
     protected static function getBucketIdByDisplayName(
         ClientWrapper $clientWrapper,
         string $bucketDisplayName,
-        string $stage
+        string $stage,
     ): ?string {
         $buckets = $clientWrapper->getBasicClient()->listBuckets();
         foreach ($buckets as $bucket) {
@@ -146,5 +146,88 @@ abstract class BaseDataLoaderTest extends TestCase
             }
         }
         return null;
+    }
+
+    private function getClientWrapperForGCPProject(bool $useMasterToken = false): ClientWrapper
+    {
+        $token = $useMasterToken
+            ? getenv('TEST_STORAGE_API_TOKEN_MASTER_GCP')
+            : getenv('TEST_STORAGE_API_TOKEN_GCP');
+
+        return new ClientWrapper(
+            new ClientOptions(
+                (string) getenv('STORAGE_API_URL_GCP'),
+                (string) $token,
+            ),
+        );
+    }
+
+    private function getClientWrapperForAzureProject(bool $useMasterToken = false): ClientWrapper
+    {
+        $token = $useMasterToken
+            ? getenv('TEST_STORAGE_API_TOKEN_MASTER_AZURE')
+            : getenv('TEST_STORAGE_API_TOKEN_AZURE');
+
+        return new ClientWrapper(
+            new ClientOptions(
+                (string) getenv('STORAGE_API_URL_AZURE'),
+                (string) $token,
+            ),
+        );
+    }
+
+    private function getClientWrapperForSnowflakeProject(
+        bool $useMasterToken = false,
+        ?string $nativeTypes = null,
+    ): ClientWrapper {
+        if ($useMasterToken && $nativeTypes) {
+            throw new RuntimeException('Native types are not supported with master token!');
+        }
+
+        $token = match ($nativeTypes) {
+            'new-native-types' => getenv('TEST_STORAGE_API_TOKEN_FEATURE_NEW_NATIVE_TYPES'),
+            'native-types' => getenv('TEST_STORAGE_API_TOKEN_FEATURE_NATIVE_TYPES'),
+            default => $useMasterToken
+                ? getenv('TEST_STORAGE_API_TOKEN_MASTER')
+                : getenv('TEST_STORAGE_API_TOKEN'),
+        };
+
+        return new ClientWrapper(
+            new ClientOptions(
+                (string) getenv('STORAGE_API_URL'),
+                (string) $token,
+            ),
+        );
+    }
+
+    private function initClientWrapper(): void
+    {
+        $reflection = new ReflectionClass($this);
+        $method = $reflection->getMethod($this->name());
+        $attributes = $method->getAttributes();
+
+        $this->clientWrapper = match (static::DEFAULT_PROJECT) {
+            'gcp' => $this->getClientWrapperForGCPProject(),
+            'azure' => $this->getClientWrapperForAzureProject(),
+            default => $this->getClientWrapperForSnowflakeProject(),
+        };
+
+        foreach ($attributes as $attribute) {
+            $attributeInstance = $attribute->newInstance();
+
+            $this->clientWrapper = match ($attributeInstance::class) {
+                UseAzureProject::class => $this->getClientWrapperForAzureProject(
+                    $attributeInstance->useMasterToken,
+                ),
+                UseGCPProject::class => $this->getClientWrapperForGCPProject(
+                    $attributeInstance->useMasterToken,
+                ),
+                UseSnowflakeProject::class => $this->getClientWrapperForSnowflakeProject(
+                    $attributeInstance->useMasterToken,
+                    $attributeInstance->nativeTypes,
+                ),
+                default => throw new InvalidArgumentException('You have passed a not-implemented attribute.'),
+            };
+        }
     }
 }
