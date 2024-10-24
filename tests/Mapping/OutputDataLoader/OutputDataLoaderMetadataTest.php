@@ -11,17 +11,20 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Storag
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TablesList;
 use Keboola\StorageApi\Client;
 use Keboola\StorageApi\DevBranches;
+use Keboola\StorageApi\Metadata;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
-use Psr\Log\NullLogger;
 use Symfony\Component\Filesystem\Filesystem;
 
 class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
 {
+    private Metadata $metadata;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->cleanupBucketAndFiles();
+        $this->metadata = new Metadata($this->clientWrapper->getBasicClient());
     }
 
     /**
@@ -63,7 +66,10 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
-        $bucketMetadata = $this->metadata->listBucketMetadata('in.c-docker-demo-testConfig');
+        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig', 'in');
+        self::assertNotNull($bucketId);
+
+        $bucketMetadata = $this->metadata->listBucketMetadata($bucketId);
         $expectedBucketMetadata = [
             'system' => [
                 'KBC.createdBy.component.id' => 'docker-demo',
@@ -72,7 +78,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
         ];
         self::assertEquals($expectedBucketMetadata, $this->getMetadataValues($bucketMetadata));
 
-        $tableMetadata = $this->metadata->listTableMetadata('in.c-docker-demo-testConfig.sliced');
+        $tableMetadata = $this->metadata->listTableMetadata($bucketId . '.sliced');
         $expectedTableMetadata = [
             'system' => [
                 'KBC.createdBy.component.id' => 'docker-demo',
@@ -100,7 +106,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
 
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
-        $tableMetadata = $this->metadata->listTableMetadata('in.c-docker-demo-testConfig.sliced');
+        $tableMetadata = $this->metadata->listTableMetadata($bucketId . '.sliced');
         $expectedTableMetadata['system']['KBC.lastUpdatedBy.component.id'] = 'docker-demo';
         $expectedTableMetadata['system']['KBC.lastUpdatedBy.configuration.id'] = 'testConfig';
         self::assertEquals($expectedTableMetadata, $this->getMetadataValues($tableMetadata));
@@ -125,11 +131,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
                 (string) getenv('TEST_STORAGE_API_TOKEN_MASTER'),
             ),
         );
-        foreach ($clientWrapper->getBasicClient()->listBuckets() as $bucket) {
-            if (preg_match('/^in\.c\-[0-9]+\-docker\-demo\-testConfig$/', $bucket['id'])) {
-                $clientWrapper->getBasicClient()->dropBucket($bucket['id'], ['force' => true, 'async' => true]);
-            }
-        }
 
         $fs = new Filesystem();
         $fs->dumpFile(
@@ -165,8 +166,10 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
-        $branchBucketId = sprintf('in.c-%s-docker-demo-testConfig', $branchId);
-        $bucketMetadata = $this->metadata->listBucketMetadata($branchBucketId);
+        $branchBucketName = sprintf('%s-%s', $branchId, $this->getResourceName());
+        $bucketId = self::getBucketIdByDisplayName($clientWrapper, $branchBucketName, 'in');
+        self::assertNotNull($bucketId);
+        $bucketMetadata = $this->metadata->listBucketMetadata($bucketId);
         $expectedBucketMetadata = [
             'system' => [
                 'KBC.createdBy.component.id' => 'docker-demo',
@@ -176,7 +179,10 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
         ];
         self::assertEquals($expectedBucketMetadata, $this->getMetadataValues($bucketMetadata));
 
-        $tableMetadata = $this->metadata->listTableMetadata(sprintf('%s.sliced', $branchBucketId));
+        $tableMetadata = $this->metadata->listTableMetadata(sprintf(
+            '%s.sliced',
+            self::getBucketIdByDisplayName($clientWrapper, $branchBucketName, 'in'),
+        ));
         $expectedTableMetadata = [
             'system' => [
                 'KBC.createdBy.component.id' => 'docker-demo',
@@ -217,7 +223,9 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
-        $bucketMetadata = $this->metadata->listBucketMetadata('in.c-docker-demo-testConfig');
+        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig', 'in');
+        self::assertNotNull($bucketId);
+        $bucketMetadata = $this->metadata->listBucketMetadata($bucketId);
         $expectedBucketMetadata = [
             'system' => [
                 'KBC.createdBy.component.id' => 'docker-demo',
@@ -227,7 +235,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
         ];
         self::assertEquals($expectedBucketMetadata, $this->getMetadataValues($bucketMetadata));
 
-        $tableMetadata = $this->metadata->listTableMetadata('in.c-docker-demo-testConfig.sliced');
+        $tableMetadata = $this->metadata->listTableMetadata($bucketId . '.sliced');
         $expectedTableMetadata = [
             'system' => [
                 'KBC.createdBy.component.id' => 'docker-demo',
@@ -257,7 +265,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
-        $tableMetadata = $this->metadata->listTableMetadata('in.c-docker-demo-testConfig.sliced');
+        $tableMetadata = $this->metadata->listTableMetadata($bucketId . '.sliced');
         $expectedTableMetadata['system']['KBC.lastUpdatedBy.component.id'] = 'docker-demo';
         $expectedTableMetadata['system']['KBC.lastUpdatedBy.configuration.id'] = 'testConfig';
         $expectedTableMetadata['system']['KBC.lastUpdatedBy.configurationRow.id'] = 'testRow';
@@ -266,6 +274,9 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
 
     public function testExecutorConfigMetadata(): void
     {
+        $this->clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig', 'in');
+        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig', 'in');
+
         $fs = new Filesystem();
         $fs->dumpFile(
             $this->getDataDirPath() . '/out/tables/sliced.csv',
@@ -276,7 +287,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
             input: new Input(
                 tables: new TablesList([
                     [
-                        'source' => 'in.c-runner-test.test',
+                        'source' => $bucketId . '.test',
                     ],
                 ]),
             ),
@@ -284,7 +295,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
                 tables: new TablesList([
                     [
                         'source' => 'sliced.csv',
-                        'destination' => 'in.c-runner-test.out',
+                        'destination' => $bucketId . '.out',
                         'metadata' => [
                             [
                                 'key' => 'table.key.one',
@@ -336,7 +347,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
         );
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
-        $tableMetadata = $this->metadata->listTableMetadata('in.c-runner-test.out');
+        $tableMetadata = $this->metadata->listTableMetadata($bucketId . '.out');
         $expectedTableMetadata = [
             'system' => [
                 'KBC.createdBy.configuration.id' => 'testConfig',
@@ -351,7 +362,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
         ];
         self::assertEquals($expectedTableMetadata, $this->getMetadataValues($tableMetadata));
 
-        $idColMetadata = $this->metadata->listColumnMetadata('in.c-runner-test.out.id');
+        $idColMetadata = $this->metadata->listColumnMetadata($bucketId . '.out.id');
         $expectedColumnMetadata = [
             'docker-demo' => [
                 'column.key.one' => 'column value one id',
@@ -363,45 +374,48 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
 
     public function testExecutorManifestMetadata(): void
     {
+        $this->clientWrapper->getBasicClient()->createBucket('docker-demo', 'in');
+        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo', 'in');
+
         $fs = new Filesystem();
         $fs->dumpFile(
             $this->getDataDirPath() . '/out/tables/sliced.csv',
             "id,text,row_number\n1,test,1\n1,test,2\n1,test,3",
         );
-        $manifest = '
-            {
-                "destination": "in.c-docker-demo-testConfig.sliced",
-                "metadata": [{
-                        "key": "table.key.one",
-                        "value": "table value one"
+        $manifest = <<<JSON
+        {
+            "destination": "$bucketId.sliced",
+            "metadata": [{
+                    "key": "table.key.one",
+                    "value": "table value one"
+                },
+                {
+                    "key": "table.key.two",
+                    "value": "table value two"
+                }
+            ],
+            "column_metadata": {
+                "id": [{
+                        "key": "column.key.one",
+                        "value": "column value one id"
                     },
                     {
-                        "key": "table.key.two",
-                        "value": "table value two"
+                        "key": "column.key.two",
+                        "value": "column value two id"
                     }
                 ],
-                "column_metadata": {
-                    "id": [{
-                            "key": "column.key.one",
-                            "value": "column value one id"
-                        },
-                        {
-                            "key": "column.key.two",
-                            "value": "column value two id"
-                        }
-                    ],
-                    "text": [{
-                            "key": "column.key.one",
-                            "value": "column value one text"
-                        },
-                        {
-                            "key": "column.key.two",
-                            "value": "column value two text"
-                        }
-                    ]
-                }
-            }        
-        ';
+                "text": [{
+                        "key": "column.key.one",
+                        "value": "column value one text"
+                    },
+                    {
+                        "key": "column.key.two",
+                        "value": "column value two text"
+                    }
+                ]
+            }
+        }
+        JSON;
         $fs->dumpFile($this->getDataDirPath() . '/out/tables/sliced.csv.manifest', $manifest);
         $dataLoader = $this->getOutputDataLoader();
         $tableQueue = $dataLoader->storeOutput(
@@ -419,7 +433,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
-        $tableMetadata = $this->metadata->listTableMetadata('in.c-docker-demo-testConfig.sliced');
+        $tableMetadata = $this->metadata->listTableMetadata($bucketId . '.sliced');
         $expectedTableMetadata = [
             'system' => [
                 'KBC.createdBy.configuration.id' => 'testConfig',
@@ -434,7 +448,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
         ];
         self::assertEquals($expectedTableMetadata, $this->getMetadataValues($tableMetadata));
 
-        $idColMetadata = $this->metadata->listColumnMetadata('in.c-docker-demo-testConfig.sliced.id');
+        $idColMetadata = $this->metadata->listColumnMetadata($bucketId . '.sliced.id');
         $expectedColumnMetadata = [
             'docker-demo' => [
                 'column.key.one' => 'column value one id',
@@ -446,6 +460,9 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
 
     public function testExecutorManifestMetadataCombined(): void
     {
+        $this->clientWrapper->getBasicClient()->createBucket('docker-demo', 'in');
+        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo', 'in');
+
         $fs = new Filesystem();
         $fs->dumpFile(
             $this->getDataDirPath() . '/out/tables/sliced.csv',
@@ -473,7 +490,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
                 tables: new TablesList([
                     [
                         'source' => 'sliced.csv',
-                        'destination' => 'in.c-docker-demo-testConfig.sliced',
+                        'destination' => $bucketId . '.sliced',
                         'metadata' => [
                             [
                                 'key' => 'table.key.one',
@@ -512,7 +529,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
         );
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
-        $tableMetadata = $this->metadata->listTableMetadata('in.c-docker-demo-testConfig.sliced');
+        $tableMetadata = $this->metadata->listTableMetadata($bucketId . '.sliced');
         $expectedTableMetadata = [
             'system' => [
                 'KBC.createdBy.configuration.id' => 'testConfig',
@@ -527,7 +544,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
         ];
         self::assertEquals($expectedTableMetadata, $this->getMetadataValues($tableMetadata));
 
-        $idColMetadata = $this->metadata->listColumnMetadata('in.c-docker-demo-testConfig.sliced.id');
+        $idColMetadata = $this->metadata->listColumnMetadata($bucketId . '.sliced.id');
         $expectedColumnMetadata = [
             'docker-demo' => [
                 'column.key.one' => 'column value one id',

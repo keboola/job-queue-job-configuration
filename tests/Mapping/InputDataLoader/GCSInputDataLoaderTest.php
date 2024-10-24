@@ -26,11 +26,14 @@ class GCSInputDataLoaderTest extends BaseInputDataLoaderTest
 
     public function testLoadInputData(): void
     {
+        $this->clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig-gcs', 'in');
+        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig-gcs', 'in');
+
         $storage = new Storage(
             input: new Input(
                 tables: new TablesList([
                     [
-                        'source' => 'in.c-docker-demo-testConfig-gcs.test',
+                        'source' => "$bucketId.test",
                     ],
                 ]),
                 files: new FilesList([
@@ -45,9 +48,8 @@ class GCSInputDataLoaderTest extends BaseInputDataLoaderTest
             "id,text,row_number\n1,test,1\n1,test,2\n1,test,3",
         );
 
-        $this->clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig-gcs', 'in');
         $this->clientWrapper->getBasicClient()->createTable(
-            'in.c-docker-demo-testConfig-gcs',
+            $bucketId,
             'test',
             new CsvFile($filePath),
         );
@@ -69,7 +71,7 @@ class GCSInputDataLoaderTest extends BaseInputDataLoaderTest
         $manifest = json_decode(
             // @phpstan-ignore-next-line
             file_get_contents(
-                $this->getDataDirPath() . '/in/tables/in.c-docker-demo-testConfig-gcs.test.manifest',
+                $this->getDataDirPath() . "/in/tables/$bucketId.test.manifest",
             ),
             true,
         );
@@ -110,7 +112,7 @@ class GCSInputDataLoaderTest extends BaseInputDataLoaderTest
         $this->assertArrayHasKey('created', $manifest);
         $this->assertArrayHasKey('uri', $manifest);
         $this->assertArrayHasKey('primary_key', $manifest);
-        $this->assertEquals('in.c-docker-demo-testConfig-gcs.test', $manifest['id']);
+        $this->assertEquals("$bucketId.test", $manifest['id']);
         $this->assertEquals('test', $manifest['name']);
     }
 }

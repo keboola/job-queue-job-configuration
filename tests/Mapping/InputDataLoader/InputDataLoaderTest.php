@@ -28,9 +28,11 @@ class InputDataLoaderTest extends BaseInputDataLoaderTest
     public function testBranchMappingDisabled(): void
     {
         $this->clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig', 'in');
+        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig', 'in');
+
         $metadata = new Metadata($this->clientWrapper->getBasicClient());
         $metadata->postBucketMetadata(
-            'in.c-docker-demo-testConfig',
+            $bucketId,
             'system',
             [
                 [
@@ -57,7 +59,7 @@ class InputDataLoaderTest extends BaseInputDataLoaderTest
             input: new Input(
                 tables: new TablesList([
                     [
-                        'source' => 'in.c-docker-demo-testConfig.test',
+                        'source' => "$bucketId.test",
                         'destination' => 'test.csv',
                     ],
                 ]),
@@ -66,7 +68,7 @@ class InputDataLoaderTest extends BaseInputDataLoaderTest
         $dataLoader = $this->getInputDataLoader();
         $this->expectException(UserException::class);
         $this->expectExceptionMessage(
-            'The buckets "in.c-docker-demo-testConfig" come from a development ' .
+            "The buckets \"$bucketId\" come from a development " .
             'branch and must not be used directly in input mapping.',
         );
         $dataLoader->loadInputData(
@@ -81,16 +83,18 @@ class InputDataLoaderTest extends BaseInputDataLoaderTest
     public function testBranchMappingEnabled(): void
     {
         $this->clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig', 'in');
+        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig', 'in');
+
         $fs = new Filesystem();
         $fs->dumpFile(
             $this->getTmpDirPath() . '/data.csv',
             "id,text,row_number\n1,test,1\n1,test,2\n1,test,3",
         );
         $csv = new CsvFile($this->getTmpDirPath() . '/data.csv');
-        $this->clientWrapper->getBasicClient()->createTable('in.c-docker-demo-testConfig', 'test', $csv);
+        $this->clientWrapper->getBasicClient()->createTable($bucketId, 'test', $csv);
         $metadata = new Metadata($this->clientWrapper->getBasicClient());
         $metadata->postBucketMetadata(
-            'in.c-docker-demo-testConfig',
+            $bucketId,
             'system',
             [
                 [
@@ -118,7 +122,7 @@ class InputDataLoaderTest extends BaseInputDataLoaderTest
             input: new Input(
                 tables: new TablesList([
                     [
-                        'source' => 'in.c-docker-demo-testConfig.test',
+                        'source' => "$bucketId.test",
                         'destination' => 'test.csv',
                     ],
                 ]),

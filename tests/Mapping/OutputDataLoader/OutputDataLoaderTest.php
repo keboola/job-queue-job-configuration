@@ -66,8 +66,13 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
         self::assertNotNull($tableQueue);
 
         $tableQueue->waitForAll();
+        $bucketId = self::getBucketIdByDisplayName(
+            clientWrapper: $this->clientWrapper,
+            bucketDisplayName: 'docker-demo-testConfig',
+            stage: 'in',
+        );
         self::assertTrue(
-            $this->clientWrapper->getBasicClient()->tableExists('in.c-docker-demo-testConfig.sliced'),
+            $this->clientWrapper->getBasicClient()->tableExists($bucketId . '.sliced'),
         );
         self::assertEquals([], $dataLoader->getWorkspaceCredentials());
         self::assertNull($dataLoader->getWorkspaceBackendSize());
@@ -75,16 +80,22 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
 
     public function testExecutorDefaultBucketOverride(): void
     {
-        try {
-            $this->clientWrapper->getBasicClient()->dropBucket(
-                'in.c-test-override',
-                ['force' => true, 'async' => true],
-            );
-        } catch (ClientException $e) {
-            if ($e->getCode() !== 404) {
-                throw $e;
+        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'test-override', 'in');
+        if ($bucketId) {
+            try {
+                $this->clientWrapper->getBasicClient()->dropBucket(
+                    $bucketId,
+                    ['force' => true, 'async' => true],
+                );
+            } catch (ClientException $e) {
+                if ($e->getCode() !== 404) {
+                    throw $e;
+                }
             }
         }
+
+        $bucketId = $this->clientWrapper->getBasicClient()->createBucket('test-override', 'in');
+
         $fs = new Filesystem();
         $fs->dumpFile(
             $this->getDataDirPath() . '/out/tables/sliced.csv',
@@ -94,14 +105,15 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
             $this->getDataDirPath() . '/out/tables/sliced.csv.manifest',
             (string) json_encode(['destination' => 'sliced']),
         );
+        $component = $this->getComponentWithDefaultBucket();
         $dataLoader = $this->getOutputDataLoader();
         $tableQueue = $dataLoader->storeOutput(
-            $this->getComponentWithDefaultBucket(),
+            $component,
             new JobConfiguration(
                 parameters: [],
                 storage: new Storage(
                     output: new Output(
-                        defaultBucket: 'in.c-test-override',
+                        defaultBucket: $bucketId,
                     ),
                 ),
             ),
@@ -114,8 +126,13 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
         self::assertNotNull($tableQueue);
 
         $tableQueue->waitForAll();
-        self::assertFalse($this->clientWrapper->getBasicClient()->tableExists('in.c-test-demo-testConfig.sliced'));
-        self::assertTrue($this->clientWrapper->getBasicClient()->tableExists('in.c-test-override.sliced'));
+        $legacyPrefixDisabled = $this->clientWrapper
+            ->getToken()
+            ->hasFeature('disable-legacy-bucket-prefix');
+        self::assertFalse($this->clientWrapper->getBasicClient()->tableExists(
+            $component->getDefaultBucketName('testConfig', $legacyPrefixDisabled) . '.sliced',
+        ),);
+        self::assertTrue($this->clientWrapper->getBasicClient()->tableExists($bucketId . '.sliced'));
         self::assertEquals([], $dataLoader->getWorkspaceCredentials());
         self::assertNull($dataLoader->getWorkspaceBackendSize());
     }
@@ -421,7 +438,13 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
 
     public function testTypedTableCreateWithAuthoritativeSchemaConfig(): void
     {
-        $tableId = 'in.c-docker-demo-testConfig.authoritative-types-test';
+        $this->clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig', 'in');
+        $bucketId = self::getBucketIdByDisplayName(
+            clientWrapper: $this->clientWrapper,
+            bucketDisplayName: 'docker-demo-testConfig',
+            stage: 'in',
+        );
+        $tableId = $bucketId . '.authoritative-types-test';
         $fs = new Filesystem();
         $fs->dumpFile(
             $this->getDataDirPath() . '/out/tables/typed-data.csv',
@@ -846,9 +869,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
 
     public function testTypedTableModifyTableStructure(): void
     {
-        $tableId = 'in.c-testTypedTableModifyTableStructure.typed-test';
-        $tableInfo = new MappingDestination($tableId);
-
         $clientWrapper = new ClientWrapper(
             new ClientOptions(
                 (string) getenv('STORAGE_API_URL'),
@@ -856,20 +876,24 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
             ),
         );
 
-        if ($clientWrapper->getBasicClient()->bucketExists($tableInfo->getBucketId())) {
+        if ($clientWrapper->getBasicClient()->bucketExists(self::getBucketIdByDisplayName($clientWrapper, 'docker-demo-testConfig', 'in'))) {
             $clientWrapper->getBasicClient()->dropBucket(
-                $tableInfo->getBucketId(),
+                self::getBucketIdByDisplayName($clientWrapper, 'docker-demo-testConfig', 'in'),
                 [
                     'force' => true,
                 ],
             );
-        }
-
-        // prepare storage in project
-        $clientWrapper->getBasicClient()->createBucket(
-            $tableInfo->getBucketName(),
-            $tableInfo->getBucketStage(),
+        } //todo
+        $clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig', 'in');
+        $bucketId = self::getBucketIdByDisplayName(
+            clientWrapper: $clientWrapper,
+            bucketDisplayName: 'docker-demo-testConfig',
+            stage: 'in',
         );
+
+        $tableId = "$bucketId.typed-test";
+        $tableInfo = new MappingDestination($tableId);
+
         $clientWrapper->getBasicClient()->createTableDefinition(
             $tableInfo->getBucketId(),
             [
@@ -1021,7 +1045,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
 
     public function testTypedTableLoadWithDatabaseColumnAliases(): void
     {
-        $tableId = 'in.c-testTypedTableLoadWithDatabaseColumnAliases.typed-test';
+        $tableId = 'in.docker-demo-testConfig.typed-test';
         $tableInfo = new MappingDestination($tableId);
 
         $clientWrapper = new ClientWrapper(
@@ -1031,9 +1055,11 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
             ),
         );
 
-        if ($clientWrapper->getBasicClient()->bucketExists($tableInfo->getBucketId())) {
+        if ($clientWrapper->getBasicClient()->bucketExists(
+            self::getBucketIdByDisplayName($clientWrapper, $tableInfo->getBucketName(), 'in') //todo
+        )) {
             $clientWrapper->getBasicClient()->dropBucket(
-                $tableInfo->getBucketId(),
+                self::getBucketIdByDisplayName($clientWrapper, $tableInfo->getBucketName(), 'in'),
                 [
                     'force' => true,
                 ],

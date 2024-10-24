@@ -45,11 +45,14 @@ class S3InputDataLoaderTest extends BaseInputDataLoaderTest
 
     public function testLoadInputDataS3(): void
     {
+        $this->clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig-s3', 'in');
+        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig-s3', 'in');
+
         $storage = new Storage(
             input: new Input(
                 tables: new TablesList([
                     [
-                        'source' => 'in.c-docker-demo-testConfig-s3.test',
+                        'source' => "$bucketId.test",
                     ],
                 ]),
             ),
@@ -60,9 +63,8 @@ class S3InputDataLoaderTest extends BaseInputDataLoaderTest
             $filePath,
             "id,text,row_number\n1,test,1\n1,test,2\n1,test,3",
         );
-        $this->clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig-s3', 'in');
         $this->clientWrapper->getBasicClient()->createTable(
-            'in.c-docker-demo-testConfig-s3',
+            $bucketId,
             'test',
             new CsvFile($filePath),
         );
@@ -79,7 +81,7 @@ class S3InputDataLoaderTest extends BaseInputDataLoaderTest
         $manifest = json_decode(
             // @phpstan-ignore-next-line
             file_get_contents(
-                $this->getDataDirPath() . '/in/tables/in.c-docker-demo-testConfig-s3.test.manifest',
+                $this->getDataDirPath() . "/in/tables/$bucketId.test.manifest",
             ),
             true,
         );

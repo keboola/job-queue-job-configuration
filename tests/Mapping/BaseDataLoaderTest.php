@@ -6,7 +6,6 @@ namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping;
 
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\StorageApi\ClientException;
-use Keboola\StorageApi\Metadata;
 use Keboola\StorageApi\Options\ListFilesOptions;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
@@ -32,7 +31,6 @@ abstract class BaseDataLoaderTest extends TestCase
                 (string) getenv('TEST_STORAGE_API_TOKEN'),
             ),
         );
-        $this->metadata = new Metadata($this->clientWrapper->getBasicClient());
 
         $this->prepareWorkingDir();
     }
@@ -111,9 +109,22 @@ abstract class BaseDataLoaderTest extends TestCase
 
     protected function cleanupBucketAndFiles($suffix = ''): void
     {
+        $files = $this->clientWrapper->getBasicClient()->listFiles(
+            (new ListFilesOptions())->setTags(['docker-demo-test' . $suffix]),
+        );
+        foreach ($files as $file) {
+            $this->clientWrapper->getBasicClient()->deleteFile($file['id']);
+        }
+
+        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig' . $suffix, 'in');
+
+        if ($bucketId === null) {
+            return;
+        }
+
         try {
             $this->clientWrapper->getBasicClient()->dropBucket(
-                'in.c-docker-demo-testConfig' . $suffix,
+                $bucketId,
                 ['force' => true, 'async' => true],
             );
         } catch (ClientException $e) {
@@ -121,11 +132,19 @@ abstract class BaseDataLoaderTest extends TestCase
                 throw $e;
             }
         }
-        $files = $this->clientWrapper->getBasicClient()->listFiles(
-            (new ListFilesOptions())->setTags(['docker-demo-test' . $suffix]),
-        );
-        foreach ($files as $file) {
-            $this->clientWrapper->getBasicClient()->deleteFile($file['id']);
+    }
+
+    protected static function getBucketIdByDisplayName(
+        ClientWrapper $clientWrapper,
+        string $bucketDisplayName,
+        string $stage
+    ): ?string {
+        $buckets = $clientWrapper->getBasicClient()->listBuckets();
+        foreach ($buckets as $bucket) {
+            if ($bucket['displayName'] === $bucketDisplayName && $bucket['stage'] === $stage) {
+                return $bucket['id'];
+            }
         }
+        return null;
     }
 }

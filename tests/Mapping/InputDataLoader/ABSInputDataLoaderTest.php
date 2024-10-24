@@ -22,11 +22,14 @@ class ABSInputDataLoaderTest extends BaseInputDataLoaderTest
 
     public function testLoadInputData(): void
     {
+        $this->clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig-abs', 'in');
+        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig-abs', 'in');
+
         $storage = new Storage(
             input: new Input(
                 tables: new TablesList([
                     [
-                        'source' => 'in.c-docker-demo-testConfig-abs.test',
+                        'source' => "$bucketId.test",
                     ],
                 ]),
                 files: new FilesList([
@@ -41,9 +44,8 @@ class ABSInputDataLoaderTest extends BaseInputDataLoaderTest
             "id,text,row_number\n1,test,1\n1,test,2\n1,test,3",
         );
 
-        $this->clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig-abs', 'in');
         $this->clientWrapper->getBasicClient()->createTable(
-            'in.c-docker-demo-testConfig-abs',
+            $bucketId,
             'test',
             new CsvFile($filePath),
         );
@@ -65,7 +67,7 @@ class ABSInputDataLoaderTest extends BaseInputDataLoaderTest
         $manifest = json_decode(
             // @phpstan-ignore-next-line
             file_get_contents(
-                $this->getDataDirPath() . '/in/tables/in.c-docker-demo-testConfig-abs.test.manifest',
+                $this->getDataDirPath() . "/in/tables/$bucketId.test.manifest",
             ),
             true,
         );
@@ -106,7 +108,7 @@ class ABSInputDataLoaderTest extends BaseInputDataLoaderTest
         $this->assertArrayHasKey('created', $manifest);
         $this->assertArrayHasKey('uri', $manifest);
         $this->assertArrayHasKey('primary_key', $manifest);
-        $this->assertEquals('in.c-docker-demo-testConfig-abs.test', $manifest['id']);
+        $this->assertEquals("$bucketId.test", $manifest['id']);
         $this->assertEquals('test', $manifest['name']);
     }
 }
