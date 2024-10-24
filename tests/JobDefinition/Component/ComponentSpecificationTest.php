@@ -140,7 +140,13 @@ class ComponentSpecificationTest extends TestCase
             ],
         ];
         $component = new ComponentSpecification($component);
-        self::assertEquals('in.c-keboola-ex-generic-test', $component->getDefaultBucketName('test'));
+        self::assertEquals(
+            'in.c-keboola-ex-generic-test',
+            $component->getDefaultBucketName(
+                configId: 'test',
+                useLegacyPrefix: true,
+            ),
+        );
     }
 
     public function testGetSanitizedBucketNameNoDot(): void
@@ -155,7 +161,13 @@ class ComponentSpecificationTest extends TestCase
             ],
         ];
         $component = new ComponentSpecification($component);
-        self::assertEquals('in.c-ex-generic-test', $component->getDefaultBucketName('test'));
+        self::assertEquals(
+            'in.c-ex-generic-test',
+            $component->getDefaultBucketName(
+                configId: 'test',
+                useLegacyPrefix: true,
+            ),
+        );
     }
 
     public function testGetSanitizedBucketNameTwoDot(): void
@@ -170,7 +182,13 @@ class ComponentSpecificationTest extends TestCase
             ],
         ];
         $component = new ComponentSpecification($component);
-        self::assertEquals('in.c-keboola-ex-generic-test', $component->getDefaultBucketName('test'));
+        self::assertEquals(
+            'in.c-keboola-ex-generic-test',
+            $component->getDefaultBucketName(
+                configId: 'test',
+                useLegacyPrefix: true,
+            ),
+        );
     }
 
     public function testFlagsOff(): void

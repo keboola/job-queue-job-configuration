@@ -126,14 +126,19 @@ class OutputDataLoader
 
     private function getDefaultBucket(ComponentSpecification $component, ?string $configId): string
     {
+        $legacyPrefixDisabled = $this->outputStrategyFactory
+            ->getClientWrapper()
+            ->getToken()
+            ->hasFeature('disable-legacy-bucket-prefix');
+
         if ($component->hasDefaultBucket()) {
             if (!$configId) {
                 throw new UserException('Configuration ID not set, but is required for default_bucket option.');
             }
-            return $component->getDefaultBucketName($configId);
-        } else {
-            return '';
+            return $component->getDefaultBucketName($configId, !$legacyPrefixDisabled);
         }
+
+        return '';
     }
 
     private function useFileStorageOnly(ComponentSpecification $component, ?Runtime $runtimeConfig): bool

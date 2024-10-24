@@ -81,9 +81,15 @@ class ComponentSpecification
         return !empty($this->data['default_bucket']);
     }
 
-    public function getDefaultBucketName(string $configId): string
+    public function getDefaultBucketName(string $configId, bool $useLegacyPrefix): string
     {
-        return $this->data['default_bucket_stage'] . '.c-' . $this->getSanitizedComponentId() . '-' . $configId;
+        return sprintf(
+            '%s.%s%s-%s',
+            $this->data['default_bucket_stage'],
+            $useLegacyPrefix ? 'c-' : '',
+            $this->getSanitizedComponentId(),
+            $configId,
+        );
     }
 
     public function hasForwardToken(): bool
