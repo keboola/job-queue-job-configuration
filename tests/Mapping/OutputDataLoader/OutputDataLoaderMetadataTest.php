@@ -9,6 +9,7 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Input;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Output;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Storage;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TablesList;
+use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseSnowflakeProject;
 use Keboola\StorageApi\Client;
 use Keboola\StorageApi\DevBranches;
 use Keboola\StorageApi\Metadata;
@@ -123,15 +124,9 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
         return $branches->createBranch($branchName)['id'];
     }
 
+    #[UseSnowflakeProject(useMasterToken: true)]
     public function testDefaultSystemMetadataBranch(): void
     {
-        $clientWrapper = new ClientWrapper(
-            new ClientOptions(
-                (string) getenv('STORAGE_API_URL'),
-                (string) getenv('TEST_STORAGE_API_TOKEN_MASTER'),
-            ),
-        );
-
         $fs = new Filesystem();
         $fs->dumpFile(
             $this->getDataDirPath() . '/out/tables/sliced.csv',
@@ -142,7 +137,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
             (string) json_encode(['destination' => 'sliced']),
         );
 
-        $branchId = $this->createBranch($clientWrapper->getBasicClient(), 'test-branch');
+        $branchId = $this->createBranch($this->clientWrapper->getBasicClient(), 'test-branch');
         $clientWrapper = new ClientWrapper(
             new ClientOptions(
                 (string) getenv('STORAGE_API_URL'),

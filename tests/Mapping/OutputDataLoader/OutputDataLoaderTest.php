@@ -18,6 +18,7 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Output
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Storage;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TablesList;
 use Keboola\JobQueue\JobConfiguration\Mapping\OutputDataLoader;
+use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseSnowflakeProject;
 use Keboola\OutputMapping\Staging\StrategyFactory;
 use Keboola\OutputMapping\Writer\Table\MappingDestination;
 use Keboola\StorageApi\BranchAwareClient;
@@ -27,7 +28,6 @@ use Keboola\StorageApi\Options\Components\Configuration;
 use Keboola\StorageApi\Options\Components\ListConfigurationWorkspacesOptions;
 use Keboola\StorageApi\Workspaces;
 use Keboola\StorageApiBranch\ClientWrapper;
-use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\StorageApiToken;
 use Psr\Log\NullLogger;
 use ReflectionClass;
@@ -350,8 +350,10 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
         yield 'readonly off' => [false];
     }
 
+    #[UseSnowflakeProject(nativeTypes: 'native-types')]
     public function testTypedTableCreate(): void
     {
+        $this->clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig', 'in');
         $fs = new Filesystem();
         $fs->dumpFile(
             $this->getDataDirPath() . '/out/tables/typed-data.csv',
@@ -376,7 +378,10 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
                 tables: new TablesList([
                     [
                         'source' => 'typed-data.csv',
-                        'destination' => 'in.c-docker-demo-testConfig.fixed-type-test',
+                        'destination' => sprintf(
+                            '%s.fixed-type-test',
+                            self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig', 'in'),
+                        ),
                         'columns' => ['int', 'string', 'decimal', 'float', 'bool', 'date', 'timestamp'],
                         'primary_key' => ['int'],
                         'column_metadata' => [
@@ -395,13 +400,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
                 ]),
             ),
         );
-        $clientWrapper = new ClientWrapper(
-            new ClientOptions(
-                (string) getenv('STORAGE_API_URL'),
-                (string) getenv('TEST_STORAGE_API_TOKEN_FEATURE_NATIVE_TYPES'),
-            ),
-        );
-        $dataLoader = $this->getOutputDataLoader($clientWrapper);
+        $dataLoader = $this->getOutputDataLoader($this->clientWrapper);
         $tableQueue = $dataLoader->storeOutput(
             $component,
             new JobConfiguration(
@@ -417,7 +416,12 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
-        $tableDetails = $clientWrapper->getBasicClient()->getTable('in.c-docker-demo-testConfig.fixed-type-test');
+        $tableDetails = $this->clientWrapper->getBasicClient()->getTable(
+            sprintf(
+                '%s.fixed-type-test',
+                self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig', 'in'),
+            ),
+        );
         self::assertTrue($tableDetails['isTyped']);
 
         $tableDefinitionColumns = $tableDetails['definition']['columns'];
@@ -436,6 +440,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
         self::assertSame($expectedType, $columnDefinition['definition']['type']);
     }
 
+    #[UseSnowflakeProject(nativeTypes: 'new-native-types')]
     public function testTypedTableCreateWithAuthoritativeSchemaConfig(): void
     {
         $this->clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig', 'in');
@@ -540,13 +545,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
                 ]),
             ),
         );
-        $clientWrapper = new ClientWrapper(
-            new ClientOptions(
-                (string) getenv('STORAGE_API_URL'),
-                (string) getenv('TEST_STORAGE_API_TOKEN_FEATURE_NEW_NATIVE_TYPES'),
-            ),
-        );
-        $dataLoader = $this->getOutputDataLoader($clientWrapper);
+        $dataLoader = $this->getOutputDataLoader($this->clientWrapper);
         $tableQueue = $dataLoader->storeOutput(
             $component,
             new JobConfiguration(
@@ -561,7 +560,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
-        $tableDetails = $clientWrapper->getBasicClient()->getTable($tableId);
+        $tableDetails = $this->clientWrapper->getBasicClient()->getTable($tableId);
         self::assertTrue($tableDetails['isTyped']);
 
         $tableDefinitionColumns = $tableDetails['definition']['columns'];
@@ -576,6 +575,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
         self::assertDataType($tableDefinitionColumns, 'timestamp', Snowflake::TYPE_TIMESTAMP_LTZ);
     }
 
+    #[UseSnowflakeProject(nativeTypes: 'new-native-types')]
     public function testTypedTableCreateWithHintsSchemaConfig(): void
     {
         $tableId = 'in.c-hints-types.hints-types-test';
@@ -640,19 +640,13 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
                 ]),
             ),
         );
-        $clientWrapper = new ClientWrapper(
-            new ClientOptions(
-                (string) getenv('STORAGE_API_URL'),
-                (string) getenv('TEST_STORAGE_API_TOKEN_FEATURE_NEW_NATIVE_TYPES'),
-            ),
-        );
         try {
-            $clientWrapper->getBasicClient()->dropTable($tableId);
+            $this->clientWrapper->getBasicClient()->dropTable($tableId);
         } catch (Throwable) {
             // ignore
         }
 
-        $dataLoader = $this->getOutputDataLoader($clientWrapper);
+        $dataLoader = $this->getOutputDataLoader($this->clientWrapper);
         $tableQueue = $dataLoader->storeOutput(
             $component,
             new JobConfiguration(
@@ -667,7 +661,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
-        $tableDetails = $clientWrapper->getBasicClient()->getTable($tableId);
+        $tableDetails = $this->clientWrapper->getBasicClient()->getTable($tableId);
         self::assertTrue($tableDetails['isTyped']);
 
         $tableDefinitionColumns = $tableDetails['definition']['columns'];
@@ -739,6 +733,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
         }, $decimalColumnMetadata));
     }
 
+    #[UseSnowflakeProject(nativeTypes: 'new-native-types')]
     public function testTypedTableCreateWithSchemaConfigMetadata(): void
     {
         $tableId = 'in.c-docker-demo-testConfigMetadata.fixed-type-test';
@@ -803,13 +798,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
                 ]),
             ),
         );
-        $clientWrapper = new ClientWrapper(
-            new ClientOptions(
-                (string) getenv('STORAGE_API_URL'),
-                (string) getenv('TEST_STORAGE_API_TOKEN_FEATURE_NEW_NATIVE_TYPES'),
-            ),
-        );
-        $dataLoader = $this->getOutputDataLoader($clientWrapper);
+        $dataLoader = $this->getOutputDataLoader($this->clientWrapper);
         $tableQueue = $dataLoader->storeOutput(
             $component,
             new JobConfiguration(
@@ -824,7 +813,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
-        $tableDetails = $clientWrapper->getBasicClient()->getTable($tableId);
+        $tableDetails = $this->clientWrapper->getBasicClient()->getTable($tableId);
         self::assertTrue($tableDetails['isTyped']);
 
         $tableMetadata = array_values(array_filter(
@@ -867,26 +856,12 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
         }, $stringColumnMetadata));
     }
 
+    #[UseSnowflakeProject(nativeTypes: 'new-native-types')]
     public function testTypedTableModifyTableStructure(): void
     {
-        $clientWrapper = new ClientWrapper(
-            new ClientOptions(
-                (string) getenv('STORAGE_API_URL'),
-                (string) getenv('TEST_STORAGE_API_TOKEN_FEATURE_NEW_NATIVE_TYPES'),
-            ),
-        );
-
-        if ($clientWrapper->getBasicClient()->bucketExists(self::getBucketIdByDisplayName($clientWrapper, 'docker-demo-testConfig', 'in'))) {
-            $clientWrapper->getBasicClient()->dropBucket(
-                self::getBucketIdByDisplayName($clientWrapper, 'docker-demo-testConfig', 'in'),
-                [
-                    'force' => true,
-                ],
-            );
-        } //todo
-        $clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig', 'in');
+        $this->clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig', 'in');
         $bucketId = self::getBucketIdByDisplayName(
-            clientWrapper: $clientWrapper,
+            clientWrapper: $this->clientWrapper,
             bucketDisplayName: 'docker-demo-testConfig',
             stage: 'in',
         );
@@ -894,7 +869,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
         $tableId = "$bucketId.typed-test";
         $tableInfo = new MappingDestination($tableId);
 
-        $clientWrapper->getBasicClient()->createTableDefinition(
+        $this->clientWrapper->getBasicClient()->createTableDefinition(
             $tableInfo->getBucketId(),
             [
                 'name' => $tableInfo->getTableName(),
@@ -1006,13 +981,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
                 ]),
             ),
         );
-        $clientWrapper = new ClientWrapper(
-            new ClientOptions(
-                (string) getenv('STORAGE_API_URL'),
-                (string) getenv('TEST_STORAGE_API_TOKEN_FEATURE_NEW_NATIVE_TYPES'),
-            ),
-        );
-        $dataLoader = $this->getOutputDataLoader($clientWrapper);
+        $dataLoader = $this->getOutputDataLoader($this->clientWrapper);
         $tableQueue = $dataLoader->storeOutput(
             $component,
             new JobConfiguration(
@@ -1027,7 +996,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
-        $tableDetails = $clientWrapper->getBasicClient()->getTable($tableId);
+        $tableDetails = $this->clientWrapper->getBasicClient()->getTable($tableId);
         self::assertTrue($tableDetails['isTyped']);
 
         // PKs is changed
@@ -1043,35 +1012,23 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
         self::assertEquals('New_Column', $tableDetails['definition']['columns'][3]['name']);
     }
 
+    #[UseSnowflakeProject(nativeTypes: 'new-native-types')]
     public function testTypedTableLoadWithDatabaseColumnAliases(): void
     {
         $tableId = 'in.docker-demo-testConfig.typed-test';
         $tableInfo = new MappingDestination($tableId);
 
-        $clientWrapper = new ClientWrapper(
-            new ClientOptions(
-                (string) getenv('STORAGE_API_URL'),
-                (string) getenv('TEST_STORAGE_API_TOKEN_FEATURE_NEW_NATIVE_TYPES'),
-            ),
-        );
-
-        if ($clientWrapper->getBasicClient()->bucketExists(
-            self::getBucketIdByDisplayName($clientWrapper, $tableInfo->getBucketName(), 'in') //todo
-        )) {
-            $clientWrapper->getBasicClient()->dropBucket(
-                self::getBucketIdByDisplayName($clientWrapper, $tableInfo->getBucketName(), 'in'),
-                [
-                    'force' => true,
-                ],
-            );
+        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, $tableInfo->getBucketName(), 'in');
+        if ($bucketId) {
+            $this->clientWrapper->getBasicClient()->dropBucket($bucketId, ['force' => true]);
         }
 
         // prepare storage in project
-        $clientWrapper->getBasicClient()->createBucket(
+        $this->clientWrapper->getBasicClient()->createBucket(
             $tableInfo->getBucketName(),
             $tableInfo->getBucketStage(),
         );
-        $clientWrapper->getBasicClient()->createTableDefinition(
+        $this->clientWrapper->getBasicClient()->createTableDefinition(
             $tableInfo->getBucketId(),
             [
                 'name' => $tableInfo->getTableName(),
@@ -1169,13 +1126,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
                 ]),
             ),
         );
-        $clientWrapper = new ClientWrapper(
-            new ClientOptions(
-                (string) getenv('STORAGE_API_URL'),
-                (string) getenv('TEST_STORAGE_API_TOKEN_FEATURE_NEW_NATIVE_TYPES'),
-            ),
-        );
-        $dataLoader = $this->getOutputDataLoader($clientWrapper);
+        $dataLoader = $this->getOutputDataLoader($this->clientWrapper);
         $tableQueue = $dataLoader->storeOutput(
             $component,
             new JobConfiguration(
@@ -1190,7 +1141,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
-        $tableDetails = $clientWrapper->getBasicClient()->getTable($tableId);
+        $tableDetails = $this->clientWrapper->getBasicClient()->getTable($tableId);
         self::assertTrue($tableDetails['isTyped']);
     }
 

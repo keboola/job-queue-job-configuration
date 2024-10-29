@@ -17,23 +17,16 @@ use Keboola\StorageApi\Options\Components\Configuration;
 use Keboola\StorageApi\Options\Components\ListConfigurationWorkspacesOptions;
 use Keboola\StorageApi\Workspaces;
 use Keboola\StorageApiBranch\ClientWrapper;
-use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\StorageApiBranch\StorageApiToken;
 
 class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTest
 {
     protected const COMPONENT_ID = 'keboola.runner-config-test';
+    protected const DEFAULT_PROJECT = 'abs';
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        $this->clientWrapper = new ClientWrapper(
-            new ClientOptions(
-                (string) getenv('STORAGE_API_URL_ABS'),
-                (string) getenv('TEST_STORAGE_API_TOKEN_MASTER_ABS'),
-            ),
-        );
     }
 
     public function testAbsWorkspaceNoConfig(): void

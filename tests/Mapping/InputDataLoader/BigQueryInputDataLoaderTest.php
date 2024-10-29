@@ -12,13 +12,12 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Input;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Storage;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TablesList;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\State\State;
+use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseBigQueryProject;
 use Keboola\StorageApi\ClientException;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Options\Components\Configuration;
 use Keboola\StorageApi\Options\Components\ListConfigurationWorkspacesOptions;
 use Keboola\StorageApi\Workspaces;
-use Keboola\StorageApiBranch\ClientWrapper;
-use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Symfony\Component\Filesystem\Filesystem;
 
 class BigQueryInputDataLoaderTest extends BaseInputDataLoaderTest
@@ -31,15 +30,9 @@ class BigQueryInputDataLoaderTest extends BaseInputDataLoaderTest
         $this->cleanupBucketAndFiles();
     }
 
+    #[UseBigQueryProject]
     public function testWorkspaceBigQueryNoPreserve(): void
     {
-        $this->clientWrapper = new ClientWrapper(
-            new ClientOptions(
-                (string) getenv('STORAGE_API_URL_BIGQUERY'),
-                (string) getenv('TEST_STORAGE_API_TOKEN_BIGQUERY'),
-            ),
-        );
-
         $bucketName = 'testWorkspaceBigQueryNoPreserve';
         try {
             $buckets = $this->clientWrapper->getBasicClient()->listBuckets();
