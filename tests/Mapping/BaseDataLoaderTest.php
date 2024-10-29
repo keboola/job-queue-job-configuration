@@ -23,6 +23,7 @@ abstract class BaseDataLoaderTest extends TestCase
 {
     private const DEFAULT_COMPONENT_STAGING_STORAGE_TYPE = 'local';
     protected const COMPONENT_ID = 'docker-demo';
+    protected const DEFAULT_PROJECT = 'snowflake';
 
     private string $workingDirPath;
     protected ClientWrapper $clientWrapper;
