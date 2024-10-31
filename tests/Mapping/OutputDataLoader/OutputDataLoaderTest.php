@@ -32,16 +32,9 @@ use Keboola\StorageApiBranch\StorageApiToken;
 use Psr\Log\NullLogger;
 use ReflectionClass;
 use Symfony\Component\Filesystem\Filesystem;
-use Throwable;
 
 class OutputDataLoaderTest extends BaseOutputDataLoaderTest
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->cleanupBucketAndFiles();
-    }
-
     public function testExecutorDefaultBucket(): void
     {
         $fs = new Filesystem();
@@ -68,7 +61,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
         $tableQueue->waitForAll();
         $bucketId = self::getBucketIdByDisplayName(
             clientWrapper: $this->clientWrapper,
-            bucketDisplayName: 'docker-demo-testConfig',
+            bucketDisplayName: $this->getResourceName(),
             stage: 'in',
         );
         self::assertTrue(
@@ -135,6 +128,11 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
         self::assertTrue($this->clientWrapper->getBasicClient()->tableExists($bucketId . '.sliced'));
         self::assertEquals([], $dataLoader->getWorkspaceCredentials());
         self::assertNull($dataLoader->getWorkspaceBackendSize());
+
+        $this->clientWrapper->getBasicClient()->dropBucket(
+            $bucketId,
+            ['force' => true, 'async' => true],
+        );
     }
 
     public function testNoConfigDefaultBucketException(): void
@@ -353,7 +351,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
     #[UseSnowflakeProject(nativeTypes: 'native-types')]
     public function testTypedTableCreate(): void
     {
-        $this->clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig', 'in');
+        $bucketId = $this->clientWrapper->getBasicClient()->createBucket($this->getResourceName(), 'in');
         $fs = new Filesystem();
         $fs->dumpFile(
             $this->getDataDirPath() . '/out/tables/typed-data.csv',
@@ -380,7 +378,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
                         'source' => 'typed-data.csv',
                         'destination' => sprintf(
                             '%s.fixed-type-test',
-                            self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig', 'in'),
+                            $bucketId,
                         ),
                         'columns' => ['int', 'string', 'decimal', 'float', 'bool', 'date', 'timestamp'],
                         'primary_key' => ['int'],
@@ -419,7 +417,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
         $tableDetails = $this->clientWrapper->getBasicClient()->getTable(
             sprintf(
                 '%s.fixed-type-test',
-                self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig', 'in'),
+                self::getBucketIdByDisplayName($this->clientWrapper, $this->getResourceName(), 'in'),
             ),
         );
         self::assertTrue($tableDetails['isTyped']);
@@ -443,12 +441,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
     #[UseSnowflakeProject(nativeTypes: 'new-native-types')]
     public function testTypedTableCreateWithAuthoritativeSchemaConfig(): void
     {
-        $this->clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig', 'in');
-        $bucketId = self::getBucketIdByDisplayName(
-            clientWrapper: $this->clientWrapper,
-            bucketDisplayName: 'docker-demo-testConfig',
-            stage: 'in',
-        );
+        $bucketId = $this->clientWrapper->getBasicClient()->createBucket($this->getResourceName(), 'in');
         $tableId = $bucketId . '.authoritative-types-test';
         $fs = new Filesystem();
         $fs->dumpFile(
@@ -578,7 +571,8 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
     #[UseSnowflakeProject(nativeTypes: 'new-native-types')]
     public function testTypedTableCreateWithHintsSchemaConfig(): void
     {
-        $tableId = 'in.c-hints-types.hints-types-test';
+        $bucketId = $this->clientWrapper->getBasicClient()->createBucket($this->getResourceName(), 'in');
+        $tableId = $bucketId . '.hints-types-test';
         $fs = new Filesystem();
         $fs->dumpFile(
             $this->getDataDirPath() . '/out/tables/typed-data.csv',
@@ -640,11 +634,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
                 ]),
             ),
         );
-        try {
-            $this->clientWrapper->getBasicClient()->dropTable($tableId);
-        } catch (Throwable) {
-            // ignore
-        }
 
         $dataLoader = $this->getOutputDataLoader($this->clientWrapper);
         $tableQueue = $dataLoader->storeOutput(
@@ -736,7 +725,8 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
     #[UseSnowflakeProject(nativeTypes: 'new-native-types')]
     public function testTypedTableCreateWithSchemaConfigMetadata(): void
     {
-        $tableId = 'in.c-docker-demo-testConfigMetadata.fixed-type-test';
+        $bucketId = $this->clientWrapper->getBasicClient()->createBucket($this->getResourceName(), 'in');
+        $tableId = $bucketId . '.fixed-type-test';
         $fs = new Filesystem();
         $fs->dumpFile(
             $this->getDataDirPath() . '/out/tables/typed-data.csv',
@@ -859,14 +849,8 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
     #[UseSnowflakeProject(nativeTypes: 'new-native-types')]
     public function testTypedTableModifyTableStructure(): void
     {
-        $this->clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig', 'in');
-        $bucketId = self::getBucketIdByDisplayName(
-            clientWrapper: $this->clientWrapper,
-            bucketDisplayName: 'docker-demo-testConfig',
-            stage: 'in',
-        );
-
-        $tableId = "$bucketId.typed-test";
+        $bucketId = $this->clientWrapper->getBasicClient()->createBucket($this->getResourceName(), 'in');
+        $tableId = $bucketId . '.typed-test';
         $tableInfo = new MappingDestination($tableId);
 
         $this->clientWrapper->getBasicClient()->createTableDefinition(
@@ -1015,23 +999,11 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
     #[UseSnowflakeProject(nativeTypes: 'new-native-types')]
     public function testTypedTableLoadWithDatabaseColumnAliases(): void
     {
-        $tableId = 'in.docker-demo-testConfig.typed-test';
-        $tableInfo = new MappingDestination($tableId);
-
-        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, $tableInfo->getBucketName(), 'in');
-        if ($bucketId) {
-            $this->clientWrapper->getBasicClient()->dropBucket($bucketId, ['force' => true]);
-        }
-
-        // prepare storage in project
-        $this->clientWrapper->getBasicClient()->createBucket(
-            $tableInfo->getBucketName(),
-            $tableInfo->getBucketStage(),
-        );
+        $bucketId = $this->clientWrapper->getBasicClient()->createBucket($this->getResourceName(), 'in');
         $this->clientWrapper->getBasicClient()->createTableDefinition(
-            $tableInfo->getBucketId(),
+            $bucketId,
             [
-                'name' => $tableInfo->getTableName(),
+                'name' => 'typed-test',
                 'primaryKeysNames' => [],
                 'columns' => [
                     [
@@ -1081,7 +1053,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
                 tables: new TablesList([
                     [
                         'source' => 'typed-data.csv',
-                        'destination' => $tableId,
+                        'destination' => $bucketId . '.typed-test',
                         'description' => 'table description',
                         'table_metadata' => [
                             'key1' => 'value1',
@@ -1141,7 +1113,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTest
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
-        $tableDetails = $this->clientWrapper->getBasicClient()->getTable($tableId);
+        $tableDetails = $this->clientWrapper->getBasicClient()->getTable($bucketId . '.typed-test');
         self::assertTrue($tableDetails['isTyped']);
     }
 

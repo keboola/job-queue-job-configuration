@@ -19,16 +19,11 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class InputDataLoaderTest extends BaseInputDataLoaderTest
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->cleanupBucketAndFiles();
-    }
+    protected const RESOURCE_SUFFIX = '-input';
 
     public function testBranchMappingDisabled(): void
     {
-        $this->clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig', 'in');
-        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig', 'in');
+        $bucketId = $this->clientWrapper->getBasicClient()->createBucket($this->getResourceName(), 'in');
 
         $metadata = new Metadata($this->clientWrapper->getBasicClient());
         $metadata->postBucketMetadata(
@@ -82,8 +77,7 @@ class InputDataLoaderTest extends BaseInputDataLoaderTest
 
     public function testBranchMappingEnabled(): void
     {
-        $this->clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig', 'in');
-        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig', 'in');
+        $bucketId = $this->clientWrapper->getBasicClient()->createBucket($this->getResourceName(), 'in');
 
         $fs = new Filesystem();
         $fs->dumpFile(

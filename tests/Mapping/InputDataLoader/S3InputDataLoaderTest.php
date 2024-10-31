@@ -15,10 +15,11 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class S3InputDataLoaderTest extends BaseInputDataLoaderTest
 {
+    protected const RESOURCE_SUFFIX = '-s3';
+
     public function setUp(): void
     {
         parent::setUp();
-        $this->cleanupBucketAndFiles('-s3');
     }
 
     private function getS3StagingComponent(): ComponentSpecification
@@ -45,8 +46,7 @@ class S3InputDataLoaderTest extends BaseInputDataLoaderTest
 
     public function testLoadInputDataS3(): void
     {
-        $this->clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig-s3', 'in');
-        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig-s3', 'in');
+        $bucketId = $this->clientWrapper->getBasicClient()->createBucket($this->getResourceName(), 'in');
 
         $storage = new Storage(
             input: new Input(

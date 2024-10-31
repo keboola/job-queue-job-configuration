@@ -22,7 +22,7 @@ use Keboola\StorageApiBranch\StorageApiToken;
 class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTest
 {
     protected const COMPONENT_ID = 'keboola.runner-config-test';
-    protected const DEFAULT_PROJECT = 'abs';
+    protected const DEFAULT_PROJECT = 'azure';
 
     protected function setUp(): void
     {

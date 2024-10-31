@@ -24,7 +24,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
     protected function setUp(): void
     {
         parent::setUp();
-        $this->cleanupBucketAndFiles();
         $this->metadata = new Metadata($this->clientWrapper->getBasicClient());
     }
 
@@ -67,7 +66,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
-        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig', 'in');
+        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, $this->getResourceName(), 'in');
         self::assertNotNull($bucketId);
 
         $bucketMetadata = $this->metadata->listBucketMetadata($bucketId);
@@ -218,7 +217,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
-        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig', 'in');
+        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, $this->getResourceName(), 'in');
         self::assertNotNull($bucketId);
         $bucketMetadata = $this->metadata->listBucketMetadata($bucketId);
         $expectedBucketMetadata = [
@@ -269,8 +268,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
 
     public function testExecutorConfigMetadata(): void
     {
-        $this->clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig', 'in');
-        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig', 'in');
+        $bucketId = $this->clientWrapper->getBasicClient()->createBucket($this->getResourceName(), 'in');
 
         $fs = new Filesystem();
         $fs->dumpFile(
@@ -369,8 +367,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
 
     public function testExecutorManifestMetadata(): void
     {
-        $this->clientWrapper->getBasicClient()->createBucket('docker-demo', 'in');
-        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo', 'in');
+        $bucketId = $this->clientWrapper->getBasicClient()->createBucket($this->getResourceName(), 'in');
 
         $fs = new Filesystem();
         $fs->dumpFile(
@@ -455,8 +452,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
 
     public function testExecutorManifestMetadataCombined(): void
     {
-        $this->clientWrapper->getBasicClient()->createBucket('docker-demo', 'in');
-        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo', 'in');
+        $bucketId = $this->clientWrapper->getBasicClient()->createBucket($this->getResourceName(), 'in');
 
         $fs = new Filesystem();
         $fs->dumpFile(

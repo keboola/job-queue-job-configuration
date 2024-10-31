@@ -22,18 +22,18 @@ class ABSInputDataLoaderTest extends BaseInputDataLoaderTest
 
     public function testLoadInputData(): void
     {
-        $this->clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig-abs', 'in');
-        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig-abs', 'in');
+        $this->clientWrapper->getBasicClient()->createBucket($this->getResourceName(), 'in');
+        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, $this->getResourceName(), 'in');
 
         $storage = new Storage(
             input: new Input(
                 tables: new TablesList([
                     [
-                        'source' => "$bucketId.test",
+                        'source' => $bucketId . '.test',
                     ],
                 ]),
                 files: new FilesList([
-                    ['tags' => ['docker-demo-test-abs'], 'overwrite' => true],
+                    ['tags' => [$this->getResourceName()], 'overwrite' => true],
                 ]),
             ),
         );
@@ -51,7 +51,7 @@ class ABSInputDataLoaderTest extends BaseInputDataLoaderTest
         );
         $this->clientWrapper->getBasicClient()->uploadFile(
             $filePath,
-            (new FileUploadOptions())->setTags(['docker-demo-test-abs']),
+            (new FileUploadOptions())->setTags([$this->getResourceName()]),
         );
         sleep(1);
 

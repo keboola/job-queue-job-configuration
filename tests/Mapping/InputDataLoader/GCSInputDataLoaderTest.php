@@ -18,16 +18,13 @@ use Symfony\Component\Finder\Finder;
 
 class GCSInputDataLoaderTest extends BaseInputDataLoaderTest
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->cleanupBucketAndFiles('-gcs');
-    }
+    protected const RESOURCE_SUFFIX = '-gcp-gcs';
+    protected const DEFAULT_PROJECT = 'gcp';
 
     public function testLoadInputData(): void
     {
-        $this->clientWrapper->getBasicClient()->createBucket('docker-demo-testConfig-gcs', 'in');
-        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig-gcs', 'in');
+        $this->clientWrapper->getBasicClient()->createBucket($this->getResourceName(), 'in');
+        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, $this->getResourceName(), 'in');
 
         $storage = new Storage(
             input: new Input(
@@ -37,7 +34,7 @@ class GCSInputDataLoaderTest extends BaseInputDataLoaderTest
                     ],
                 ]),
                 files: new FilesList([
-                    ['tags' => ['docker-demo-test-gcs'], 'overwrite' => true],
+                    ['tags' => [$this->getResourceName()], 'overwrite' => true],
                 ]),
             ),
         );
@@ -55,7 +52,7 @@ class GCSInputDataLoaderTest extends BaseInputDataLoaderTest
         );
         $this->clientWrapper->getBasicClient()->uploadFile(
             $filePath,
-            (new FileUploadOptions())->setTags(['docker-demo-test-gcs']),
+            (new FileUploadOptions())->setTags([$this->getResourceName()]),
         );
         sleep(1);
 

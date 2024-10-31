@@ -24,6 +24,8 @@ abstract class BaseDataLoaderTest extends TestCase
     private const DEFAULT_COMPONENT_STAGING_STORAGE_TYPE = 'local';
     protected const COMPONENT_ID = 'docker-demo';
     protected const DEFAULT_PROJECT = 'snowflake';
+    private const RESOURCE_PREFIX = 'docker-demo-testConfig';
+    protected const RESOURCE_SUFFIX = '';
 
     private string $workingDirPath;
     protected ClientWrapper $clientWrapper;
@@ -34,6 +36,7 @@ abstract class BaseDataLoaderTest extends TestCase
 
         $this->initClientWrapper();
         $this->prepareWorkingDir();
+        $this->cleanupBucketAndFiles();
     }
 
     protected function getWorkingDirPath(): string
@@ -108,16 +111,25 @@ abstract class BaseDataLoaderTest extends TestCase
         ]);
     }
 
-    protected function cleanupBucketAndFiles($suffix = ''): void
+    protected function cleanupBucketAndFiles(): void
     {
         $files = $this->clientWrapper->getBasicClient()->listFiles(
-            (new ListFilesOptions())->setTags(['docker-demo-test' . $suffix]),
+            (new ListFilesOptions())->setTags([$this->getResourceName()]),
         );
         foreach ($files as $file) {
             $this->clientWrapper->getBasicClient()->deleteFile($file['id']);
         }
 
-        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig' . $suffix, 'in');
+        $this->cleanupBucket();
+    }
+
+    protected function cleanupBucket(): void
+    {
+        $bucketId = self::getBucketIdByDisplayName(
+            clientWrapper: $this->clientWrapper,
+            bucketDisplayName: $this->getResourceName(),
+            stage: 'in',
+        );
 
         if ($bucketId === null) {
             return;
@@ -199,6 +211,11 @@ abstract class BaseDataLoaderTest extends TestCase
                 (string) $token,
             ),
         );
+    }
+
+    protected function getResourceName(): string
+    {
+        return self::RESOURCE_PREFIX . static::RESOURCE_SUFFIX;
     }
 
     private function initClientWrapper(): void

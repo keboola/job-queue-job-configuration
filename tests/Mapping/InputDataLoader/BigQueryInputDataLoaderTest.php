@@ -12,7 +12,6 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Input;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Storage;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TablesList;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\State\State;
-use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseBigQueryProject;
 use Keboola\StorageApi\ClientException;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Options\Components\Configuration;
@@ -23,35 +22,13 @@ use Symfony\Component\Filesystem\Filesystem;
 class BigQueryInputDataLoaderTest extends BaseInputDataLoaderTest
 {
     protected const COMPONENT_ID = 'keboola.runner-workspace-bigquery-test';
+    protected const RESOURCE_SUFFIX = '-gcp-bq';
+    protected const DEFAULT_PROJECT = 'gcp';
 
-    public function setUp(): void
-    {
-        parent::setUp();
-        $this->cleanupBucketAndFiles();
-    }
-
-    #[UseBigQueryProject]
     public function testWorkspaceBigQueryNoPreserve(): void
     {
-        $bucketName = 'testWorkspaceBigQueryNoPreserve';
-        try {
-            $buckets = $this->clientWrapper->getBasicClient()->listBuckets();
-            foreach ($buckets as $bucket) {
-                if ($bucket['stage'] === 'in' && $bucket['displayName'] === $bucketName) {
-                    $this->clientWrapper->getBasicClient()->dropBucket(
-                        $bucket['id'],
-                        ['force' => true, 'async' => true],
-                    );
-                }
-            }
-        } catch (ClientException $e) {
-            if ($e->getCode() !== 404) {
-                throw $e;
-            }
-        }
-
         $bucketId = $this->clientWrapper->getBasicClient()->createBucket(
-            $bucketName,
+            $this->getResourceName(),
             'in',
             'description',
             'bigquery',
