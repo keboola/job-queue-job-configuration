@@ -19,6 +19,17 @@
       <directory>tests</directory>
       <exclude>tests/Mapping</exclude>
     </testsuite>
+    <testsuite name="mapping-uncategorized">
+      <directory>tests/Mapping</directory>
+      <exclude>tests/Mapping/InputDataLoader/ABSInputDataLoaderTest.php</exclude>
+      <exclude>tests/Mapping/InputDataLoader/BigQueryInputDataLoaderTest.php</exclude>
+      <exclude>tests/Mapping/InputDataLoader/GCSInputDataLoaderTest.php</exclude>
+      <exclude>tests/Mapping/InputDataLoader/InputDataLoaderTest.php</exclude>
+      <exclude>tests/Mapping/InputDataLoader/S3InputDataLoaderTest.php</exclude>
+      <exclude>tests/Mapping/OutputDataLoader/ABSPersistentOutputDataLoaderTest.php</exclude>
+      <exclude>tests/Mapping/OutputDataLoader/OutputDataLoaderMetadataTest.php</exclude>
+      <exclude>tests/Mapping/OutputDataLoader/OutputDataLoaderTest.php</exclude>
+    </testsuite>
     <testsuite name="mapping-general">
       <file>tests/Mapping/InputDataLoader/InputDataLoaderTest.php</file>
       <file>tests/Mapping/OutputDataLoader/OutputDataLoaderTest.php</file>
