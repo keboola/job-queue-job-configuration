@@ -6,8 +6,11 @@ namespace Keboola\JobQueue\JobConfiguration\Tests\JobDefinition\Component;
 
 use Keboola\CommonExceptions\ApplicationExceptionInterface;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecificationDefinition;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\UnitConverter;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
+use Symfony\Component\Config\Definition\Processor;
 
 class ComponentSpecificationTest extends TestCase
 {
@@ -25,6 +28,12 @@ class ComponentSpecificationTest extends TestCase
                 'forward_token' => true,
                 'forward_token_details' => true,
                 'default_bucket' => true,
+            ],
+            'dataTypesConfiguration' => [
+                'dataTypesSupport' => 'authoritative',
+            ],
+            'processorConfiguration' => [
+                'allowedProcessorPosition' => 'before',
             ],
         ];
 
@@ -51,6 +60,8 @@ class ComponentSpecificationTest extends TestCase
         self::assertTrue($component->hasDefaultBucket());
         self::assertSame('keboola/docker-demo', $component->getImageUri());
         self::assertSame('master', $component->getImageTag());
+        self::assertSame('authoritative', $component->getDataTypesSupport());
+        self::assertSame('before', $component->getAllowedProcessorPosition());
     }
 
     public function testConfigurationDefaults(): void
@@ -415,5 +426,49 @@ class ComponentSpecificationTest extends TestCase
             'action' => 'my-action',
             'result' => true,
         ];
+    }
+
+    public function testWrongDataTypesSupportValue(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage(
+            'The value "whatever" is not allowed for path "component.dataTypesConfiguration.dataTypesSupport". ' .
+            'Permissible values: "authoritative", "hints", "none"',
+        );
+        $config = [
+            'data' => [
+                'definition' => [
+                    'type' => 'dockerhub',
+                    'uri' => 'keboola/docker-demo',
+                ],
+                'memory' => '64m',
+            ],
+            'dataTypesConfiguration' => [
+                'dataTypesSupport' => 'whatever',
+            ],
+        ];
+        (new Processor())->processConfiguration(new ComponentSpecificationDefinition(), ['config' => $config]);
+    }
+
+    public function testWrongAllowedProcessorPositionValue(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage(
+            'The value "whatever" is not allowed for path "component.processorConfiguration.allowedProcessorPosition".'.
+            ' Permissible values: "any", "before", "after"',
+        );
+        $config = [
+            'data' => [
+                'definition' => [
+                    'type' => 'dockerhub',
+                    'uri' => 'keboola/docker-demo',
+                ],
+                'memory' => '64m',
+            ],
+            'processorConfiguration' => [
+                'allowedProcessorPosition' => 'whatever',
+            ],
+        ];
+        (new Processor())->processConfiguration(new ComponentSpecificationDefinition(), ['config' => $config]);
     }
 }
