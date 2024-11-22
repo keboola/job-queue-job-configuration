@@ -9,6 +9,7 @@ use Keboola\JobQueue\JobConfiguration\Exception\ComponentInvalidException;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\Logging\GelfLoggingConfiguration;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\Logging\LoggingConfigurationInterface;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\Logging\StandardLoggingConfiguration;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\DataTypeSupport;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\UnitConverter;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
@@ -254,9 +255,12 @@ class ComponentSpecification
         return (bool) $this->data['logging']['no_application_errors'];
     }
 
-    public function getDataTypesSupport(): string
+    public function getDataTypesSupport(): DataTypeSupport
     {
-        return $this->dataTypesConfiguration['dataTypesSupport'] ?? 'none';
+        return isset($this->dataTypesConfiguration['dataTypesSupport'])
+            ? DataTypeSupport::from($this->dataTypesConfiguration['dataTypesSupport'])
+            : DataTypeSupport::NONE
+        ;
     }
 
     public function getAllowedProcessorPosition(): string

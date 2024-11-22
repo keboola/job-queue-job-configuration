@@ -7,6 +7,7 @@ namespace Keboola\JobQueue\JobConfiguration\Tests\JobDefinition\Component;
 use Keboola\CommonExceptions\ApplicationExceptionInterface;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecificationDefinition;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\DataTypeSupport;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\UnitConverter;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -60,7 +61,7 @@ class ComponentSpecificationTest extends TestCase
         self::assertTrue($component->hasDefaultBucket());
         self::assertSame('keboola/docker-demo', $component->getImageUri());
         self::assertSame('master', $component->getImageTag());
-        self::assertSame('authoritative', $component->getDataTypesSupport());
+        self::assertSame(DataTypeSupport::AUTHORITATIVE, $component->getDataTypesSupport());
         self::assertSame('before', $component->getAllowedProcessorPosition());
     }
 

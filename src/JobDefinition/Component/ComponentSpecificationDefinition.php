@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\JobDefinition\Component;
 
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\DataTypeSupport;
 use Monolog\Logger;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -20,8 +21,8 @@ class ComponentSpecificationDefinition implements ConfigurationInterface
             ->arrayNode('dataTypesConfiguration')
                 ->children()
                     ->enumNode('dataTypesSupport')
-                        ->values(['authoritative', 'hints', 'none'])
-                        ->defaultValue('none')
+                        ->values(DataTypeSupport::values())
+                        ->defaultValue(DataTypeSupport::NONE->value)
                     ->end()
                 ->end()
             ->end()

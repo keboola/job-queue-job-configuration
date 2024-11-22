@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage;
 
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\DataTypeSupport;
+
 readonly class Output
 {
     public function __construct(
@@ -11,7 +13,7 @@ readonly class Output
         public FilesList $files = new FilesList(),
         public TableFiles $tableFiles = new TableFiles(),
         public ?string $defaultBucket = null,
-        public ?string $dataTypeSupport = null,
+        public ?DataTypeSupport $dataTypeSupport = null,
     ) {
     }
 
@@ -22,7 +24,9 @@ readonly class Output
             files: FilesList::fromArray($data['files'] ?? []),
             tableFiles: TableFiles::fromArray($data['table_files'] ?? []),
             defaultBucket: isset($data['default_bucket']) ? (string) $data['default_bucket'] : null,
-            dataTypeSupport: isset($data['data_type_support']) ? (string) $data['data_type_support'] : null,
+            dataTypeSupport: isset($data['data_type_support'])
+                ? DataTypeSupport::from((string) $data['data_type_support'])
+                : null,
         );
     }
 

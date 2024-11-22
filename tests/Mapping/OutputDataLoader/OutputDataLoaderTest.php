@@ -13,6 +13,7 @@ use Keboola\JobQueue\JobConfiguration\Exception\ApplicationException;
 use Keboola\JobQueue\JobConfiguration\Exception\UserException;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration as JobConfiguration;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\DataTypeSupport;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Input;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Output;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Storage;
@@ -123,7 +124,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             ->getToken()
             ->hasFeature('disable-legacy-bucket-prefix');
         self::assertFalse($this->clientWrapper->getBasicClient()->tableExists(
-            $component->getDefaultBucketName('testConfig', $legacyPrefixDisabled) . '.sliced',
+            $component->getDefaultBucketName('testConfig') . '.sliced',
         ),);
         self::assertTrue($this->clientWrapper->getBasicClient()->tableExists($bucketId . '.sliced'));
         self::assertEquals([], $dataLoader->getWorkspaceCredentials());
@@ -1184,9 +1185,9 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
      */
     public function testDataTypeSupport(
         bool $hasFeature,
-        ?string $componentType,
-        ?string $configType,
-        string $expectedType,
+        ?DataTypeSupport $componentType,
+        ?DataTypeSupport $configType,
+        DataTypeSupport $expectedType,
     ): void {
         $componentConfig = [
             'id' => 'docker-demo',
@@ -1204,7 +1205,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         ];
 
         if ($componentType !== null) {
-            $componentConfig['dataTypesConfiguration']['dataTypesSupport'] = $componentType;
+            $componentConfig['dataTypesConfiguration']['dataTypesSupport'] = $componentType->value;
         }
 
         $component = new ComponentSpecification($componentConfig);
@@ -1224,7 +1225,9 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $reflector = new ReflectionClass(OutputDataLoader::class);
         $method = $reflector->getMethod('getDataTypeSupport');
 
-        $this->assertEquals($expectedType, $method->invoke($outputDataLoader, $component, $configType));
+        $outputStorageConfig = new Output(dataTypeSupport: $configType);
+
+        $this->assertEquals($expectedType, $method->invoke($outputDataLoader, $component, $outputStorageConfig));
     }
 
     public function dataTypeSupportProvider(): iterable
@@ -1234,49 +1237,49 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             true,
             null,
             null,
-            'none',
+            DataTypeSupport::NONE,
         ];
 
         yield 'component-override' => [
             true,
-            'hints',
+            DataTypeSupport::HINTS,
             null,
-            'hints',
+            DataTypeSupport::HINTS,
         ];
 
         yield 'config-override' => [
             true,
             null,
-            'authoritative',
-            'authoritative',
+            DataTypeSupport::AUTHORITATIVE,
+            DataTypeSupport::AUTHORITATIVE,
         ];
 
         yield 'component-config-override' => [
             true,
-            'hints',
-            'authoritative',
-            'authoritative',
+            DataTypeSupport::HINTS,
+            DataTypeSupport::AUTHORITATIVE,
+            DataTypeSupport::AUTHORITATIVE,
         ];
 
         yield 'component-override-without-feature' => [
             false,
-            'hints',
+            DataTypeSupport::HINTS,
             null,
-            'none',
+            DataTypeSupport::NONE,
         ];
 
         yield 'config-override-without-feature' => [
             false,
             null,
-            'authoritative',
-            'none',
+            DataTypeSupport::AUTHORITATIVE,
+            DataTypeSupport::NONE,
         ];
 
         yield 'component-config-override-without-feature' => [
             false,
-            'hints',
-            'authoritative',
-            'none',
+            DataTypeSupport::HINTS,
+            DataTypeSupport::AUTHORITATIVE,
+            DataTypeSupport::NONE,
         ];
     }
 }

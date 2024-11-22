@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\Tests\JobDefinition\Configuration\Storage;
 
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\DataTypeSupport;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\FilesList;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Output;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TableFiles;
@@ -55,7 +56,7 @@ class OutputTest extends TestCase
         $output = Output::fromArray($data);
 
         self::assertSame('out.c-my-bucket', $output->defaultBucket);
-        self::assertSame('hints', $output->dataTypeSupport);
+        self::assertSame(DataTypeSupport::HINTS, $output->dataTypeSupport);
 
         self::assertEquals(TablesList::fromArray([
             [
@@ -113,7 +114,7 @@ class OutputTest extends TestCase
             files: $filesList,
             tableFiles: $tableFilesList,
             defaultBucket: 'out.c-my-bucket',
-            dataTypeSupport: 'hints',
+            dataTypeSupport: DataTypeSupport::HINTS,
         );
 
         $data = $output->toArray();
@@ -123,7 +124,7 @@ class OutputTest extends TestCase
             'files' => $filesList->toArray(),
             'table_files' => $tableFilesList->toArray(),
             'default_bucket' => 'out.c-my-bucket',
-            'data_type_support' => 'hints',
+            'data_type_support' => DataTypeSupport::HINTS,
         ], $data);
     }
 

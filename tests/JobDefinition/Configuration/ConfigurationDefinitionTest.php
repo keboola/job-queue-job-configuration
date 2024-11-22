@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\Tests\JobDefinition\Configuration;
 
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\ConfigurationDefinition;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\DataTypeSupport;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
@@ -760,7 +761,10 @@ class ConfigurationDefinitionTest extends TestCase
                 ],
             ],
         ]);
-        self::assertEquals('authoritative', $config['storage']['output']['data_type_support']);
+        self::assertEquals(
+            DataTypeSupport::AUTHORITATIVE->value,
+            $config['storage']['output']['data_type_support'],
+        );
     }
 
     public function testConfigurationWithInvalidDataTypesValue(): void

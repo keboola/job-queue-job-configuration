@@ -93,7 +93,7 @@ class ConfigurationDefinition implements ConfigurationInterface
             ->children()
                 ->scalarNode('default_bucket')->end()
                 ->enumNode('data_type_support')
-                    ->values(['authoritative', 'hints', 'none'])
+                    ->values(DataTypeSupport::values())
                 ->end()
                 ->arrayNode('tables')
                     ->prototype('array')

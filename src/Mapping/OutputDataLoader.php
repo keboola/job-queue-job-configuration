@@ -12,7 +12,9 @@ use Keboola\JobQueue\JobConfiguration\Exception\ApplicationException;
 use Keboola\JobQueue\JobConfiguration\Exception\UserException;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\DataTypeSupport;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\Runtime;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Output;
 use Keboola\OutputMapping\DeferredTasks\LoadTableQueue;
 use Keboola\OutputMapping\Exception\InvalidOutputException;
 use Keboola\OutputMapping\Staging\StrategyFactory as OutputStrategyFactory;
@@ -114,7 +116,7 @@ class OutputDataLoader
                 $tableSystemMetadata,
                 $component->getOutputStagingStorage(),
                 $isFailedJob,
-                $this->getDataTypeSupport($component, $outputStorageConfig->dataTypeSupport),
+                $this->getDataTypeSupport($component, $outputStorageConfig)->value,
             );
 
             if (!$inputStorageConfig->files->isEmpty()) {
@@ -145,12 +147,12 @@ class OutputDataLoader
         return $component->allowUseFileStorageOnly() && $runtimeConfig?->useFileStorageOnly;
     }
 
-    private function getDataTypeSupport(ComponentSpecification $component, ?string $dataTypeSupport): string
+    private function getDataTypeSupport(ComponentSpecification $component, Output $outputStorageConfig): DataTypeSupport
     {
         if (!$this->outputStrategyFactory->getClientWrapper()->getToken()->hasFeature('new-native-types')) {
-            return 'none';
+            return DataTypeSupport::NONE;
         }
-        return $dataTypeSupport ?? $component->getDataTypesSupport();
+        return $outputStorageConfig->dataTypeSupport ?? $component->getDataTypesSupport();
     }
 
     public function getWorkspaceBackendSize(): ?string
