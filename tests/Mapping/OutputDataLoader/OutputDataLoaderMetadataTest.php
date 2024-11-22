@@ -17,7 +17,7 @@ use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Symfony\Component\Filesystem\Filesystem;
 
-class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTest
+class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
 {
     private Metadata $metadata;
 

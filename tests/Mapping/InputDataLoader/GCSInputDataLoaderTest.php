@@ -16,7 +16,7 @@ use SplFileInfo;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 
-class GCSInputDataLoaderTest extends BaseInputDataLoaderTest
+class GCSInputDataLoaderTest extends BaseInputDataLoaderTestCase
 {
     protected const RESOURCE_SUFFIX = '-gcp-gcs';
     protected const DEFAULT_PROJECT = 'gcp';

@@ -6,7 +6,7 @@ namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\OutputDataLoader;
 
 use Keboola\JobQueue\JobConfiguration\Mapping\OutputDataLoader;
 use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceProviderFactoryFactory;
-use Keboola\JobQueue\JobConfiguration\Tests\Mapping\BaseDataLoaderTest;
+use Keboola\JobQueue\JobConfiguration\Tests\Mapping\BaseDataLoaderTestCase;
 use Keboola\OutputMapping\Staging\StrategyFactory as OutputStrategyFactory;
 use Keboola\StagingProvider\OutputProviderInitializer;
 use Keboola\StorageApi\Components;
@@ -15,7 +15,7 @@ use Keboola\StorageApiBranch\ClientWrapper;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
-abstract class BaseOutputDataLoaderTest extends BaseDataLoaderTest
+abstract class BaseOutputDataLoaderTestCase extends BaseDataLoaderTestCase
 {
     protected function getOutputDataLoader(
         ?ClientWrapper $clientWrapper = null,

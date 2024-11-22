@@ -7,7 +7,7 @@ namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\InputDataLoader;
 use Keboola\InputMapping\Staging\StrategyFactory;
 use Keboola\JobQueue\JobConfiguration\Mapping\InputDataLoader;
 use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceProviderFactoryFactory;
-use Keboola\JobQueue\JobConfiguration\Tests\Mapping\BaseDataLoaderTest;
+use Keboola\JobQueue\JobConfiguration\Tests\Mapping\BaseDataLoaderTestCase;
 use Keboola\StagingProvider\InputProviderInitializer;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Workspaces;
@@ -15,7 +15,7 @@ use Keboola\StorageApiBranch\ClientWrapper;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
-abstract class BaseInputDataLoaderTest extends BaseDataLoaderTest
+abstract class BaseInputDataLoaderTestCase extends BaseDataLoaderTestCase
 {
     protected function getInputDataLoader(
         ?ClientWrapper $clientWrapper = null,

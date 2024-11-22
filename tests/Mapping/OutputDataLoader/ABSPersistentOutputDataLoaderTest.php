@@ -19,7 +19,7 @@ use Keboola\StorageApi\Workspaces;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\StorageApiToken;
 
-class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTest
+class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCase
 {
     protected const COMPONENT_ID = 'keboola.runner-config-test';
     protected const DEFAULT_PROJECT = 'azure';

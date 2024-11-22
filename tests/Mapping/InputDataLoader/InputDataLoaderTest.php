@@ -17,7 +17,7 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\State\State;
 use Keboola\StorageApi\Metadata;
 use Symfony\Component\Filesystem\Filesystem;
 
-class InputDataLoaderTest extends BaseInputDataLoaderTest
+class InputDataLoaderTest extends BaseInputDataLoaderTestCase
 {
     protected const RESOURCE_SUFFIX = '-input';
 

@@ -33,7 +33,7 @@ use Psr\Log\NullLogger;
 use ReflectionClass;
 use Symfony\Component\Filesystem\Filesystem;
 
-class OutputDataLoaderTest extends BaseOutputDataLoaderTest
+class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
 {
     public function testExecutorDefaultBucket(): void
     {

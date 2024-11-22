@@ -19,7 +19,7 @@ use Keboola\StorageApi\Options\Components\ListConfigurationWorkspacesOptions;
 use Keboola\StorageApi\Workspaces;
 use Symfony\Component\Filesystem\Filesystem;
 
-class BigQueryInputDataLoaderTest extends BaseInputDataLoaderTest
+class BigQueryInputDataLoaderTest extends BaseInputDataLoaderTestCase
 {
     protected const COMPONENT_ID = 'keboola.runner-workspace-bigquery-test';
     protected const RESOURCE_SUFFIX = '-gcp-bq';

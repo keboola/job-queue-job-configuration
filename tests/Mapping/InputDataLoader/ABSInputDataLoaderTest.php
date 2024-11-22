@@ -16,7 +16,7 @@ use SplFileInfo;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 
-class ABSInputDataLoaderTest extends BaseInputDataLoaderTest
+class ABSInputDataLoaderTest extends BaseInputDataLoaderTestCase
 {
     protected const DEFAULT_PROJECT = 'azure';
 

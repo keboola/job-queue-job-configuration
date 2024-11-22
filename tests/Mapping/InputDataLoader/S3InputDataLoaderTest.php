@@ -13,7 +13,7 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Tables
 use Keboola\JobQueue\JobConfiguration\JobDefinition\State\State;
 use Symfony\Component\Filesystem\Filesystem;
 
-class S3InputDataLoaderTest extends BaseInputDataLoaderTest
+class S3InputDataLoaderTest extends BaseInputDataLoaderTestCase
 {
     protected const RESOURCE_SUFFIX = '-s3';
 

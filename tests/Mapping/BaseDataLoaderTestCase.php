@@ -19,7 +19,7 @@ use ReflectionClass;
 use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
 
-abstract class BaseDataLoaderTest extends TestCase
+abstract class BaseDataLoaderTestCase extends TestCase
 {
     private const DEFAULT_COMPONENT_STAGING_STORAGE_TYPE = 'local';
     protected const COMPONENT_ID = 'docker-demo';
