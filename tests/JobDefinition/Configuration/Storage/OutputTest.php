@@ -20,6 +20,7 @@ class OutputTest extends TestCase
         self::assertEquals(new FilesList(), $output->files);
         self::assertEquals(new TableFiles(), $output->tableFiles);
         self::assertNull($output->defaultBucket);
+        self::assertNull($output->dataTypeSupport);
     }
 
     public function testFromArray(): void
@@ -48,11 +49,13 @@ class OutputTest extends TestCase
                 ],
             ],
             'default_bucket' => 'out.c-my-bucket',
+            'data_type_support' => 'hints',
         ];
 
         $output = Output::fromArray($data);
 
         self::assertSame('out.c-my-bucket', $output->defaultBucket);
+        self::assertSame('hints', $output->dataTypeSupport);
 
         self::assertEquals(TablesList::fromArray([
             [
@@ -110,6 +113,7 @@ class OutputTest extends TestCase
             files: $filesList,
             tableFiles: $tableFilesList,
             defaultBucket: 'out.c-my-bucket',
+            dataTypeSupport: 'hints',
         );
 
         $data = $output->toArray();
@@ -119,6 +123,7 @@ class OutputTest extends TestCase
             'files' => $filesList->toArray(),
             'table_files' => $tableFilesList->toArray(),
             'default_bucket' => 'out.c-my-bucket',
+            'data_type_support' => 'hints',
         ], $data);
     }
 
