@@ -734,4 +734,51 @@ class ConfigurationDefinitionTest extends TestCase
         ]);
         self::assertTrue(true);
     }
+
+    public function testConfigurationWithDataTypes(): void
+    {
+        // default value
+        $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
+            'configuration' => [
+                'storage' => [
+                    'output' => [
+                        'tables' => [],
+                    ],
+                ],
+            ],
+        ]);
+        self::assertArrayNotHasKey('data_type_support', $config['storage']['output']);
+
+        // custom value
+        $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
+            'configuration' => [
+                'storage' => [
+                    'output' => [
+                        'data_type_support' => 'authoritative',
+                        'tables' => [],
+                    ],
+                ],
+            ],
+        ]);
+        self::assertEquals('authoritative', $config['storage']['output']['data_type_support']);
+    }
+
+    public function testConfigurationWithInvalidDataTypesValue(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage(
+            'The value "invalid" is not allowed for path "configuration.storage.output.data_type_support". ' .
+            'Permissible values: "authoritative", "hints", "none"',
+        );
+        (new Processor())->processConfiguration(new ConfigurationDefinition(), [
+            'configuration' => [
+                'storage' => [
+                    'output' => [
+                        'data_type_support' => 'invalid',
+                        'tables' => [],
+                    ],
+                ],
+            ],
+        ]);
+    }
 }
