@@ -29,8 +29,8 @@ class ComponentSpecificationDefinition implements ConfigurationInterface
             ->arrayNode('processorConfiguration')
                 ->children()
                     ->enumNode('allowedProcessorPosition')
-                        ->values(['any', 'before', 'after'])
-                        ->defaultValue('any')
+                        ->values(AllowedProcessorPosition::values())
+                        ->defaultValue(AllowedProcessorPosition::ANY->value)
                     ->end()
                 ->end()
             ->end();

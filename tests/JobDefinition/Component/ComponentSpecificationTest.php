@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\Tests\JobDefinition\Component;
 
 use Keboola\CommonExceptions\ApplicationExceptionInterface;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\AllowedProcessorPosition;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecificationDefinition;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\DataTypeSupport;
@@ -62,7 +63,7 @@ class ComponentSpecificationTest extends TestCase
         self::assertSame('keboola/docker-demo', $component->getImageUri());
         self::assertSame('master', $component->getImageTag());
         self::assertSame(DataTypeSupport::AUTHORITATIVE, $component->getDataTypesSupport());
-        self::assertSame('before', $component->getAllowedProcessorPosition());
+        self::assertSame(AllowedProcessorPosition::BEFORE, $component->getAllowedProcessorPosition());
     }
 
     public function testConfigurationDefaults(): void

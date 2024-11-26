@@ -263,8 +263,11 @@ class ComponentSpecification
         ;
     }
 
-    public function getAllowedProcessorPosition(): string
+    public function getAllowedProcessorPosition(): AllowedProcessorPosition
     {
-        return $this->processorConfiguration['allowedProcessorPosition'] ?? 'any';
+        return isset($this->processorConfiguration['allowedProcessorPosition'])
+            ? AllowedProcessorPosition::from($this->processorConfiguration['allowedProcessorPosition'])
+            : AllowedProcessorPosition::ANY
+        ;
     }
 }
