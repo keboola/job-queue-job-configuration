@@ -24,7 +24,7 @@ use Keboola\StagingProvider\Provider\WorkspaceStagingProvider;
 use Keboola\StorageApi\ClientException;
 use Psr\Log\LoggerInterface;
 
-class InputDataLoader
+class InputDataLoader extends BaseDataLoader
 {
     public function __construct(
         private readonly InputStrategyFactory $inputStrategyFactory,
@@ -38,6 +38,8 @@ class InputDataLoader
         Configuration $jobConfiguration,
         State $jobState,
     ): LoadInputDataResult {
+        $this->validateComponentStagingSetting($component);
+
         $inputTableResult = new InputTableResult();
         $inputTableResult->setInputTableStateList(new InputTableStateList([]));
 

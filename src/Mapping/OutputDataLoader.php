@@ -25,7 +25,7 @@ use Keboola\StagingProvider\Provider\WorkspaceStagingProvider;
 use Keboola\StorageApi\ClientException;
 use Psr\Log\LoggerInterface;
 
-class OutputDataLoader
+class OutputDataLoader extends BaseDataLoader
 {
     public function __construct(
         private readonly OutputStrategyFactory $outputStrategyFactory,
@@ -44,7 +44,7 @@ class OutputDataLoader
         array $projectFeatures,
         bool $isFailedJob = false,
     ): ?LoadTableQueue {
-        $this->validateComponent($component);
+        $this->validateComponentStagingSetting($component);
 
         $this->logger->debug('Storing results.');
 
@@ -240,23 +240,5 @@ class OutputDataLoader
     private function isReusableWorkspace(ComponentSpecification $component): bool
     {
         return $component->getOutputStagingStorage() === AbstractStrategyFactory::WORKSPACE_ABS;
-    }
-
-    private function validateComponent(ComponentSpecification $component): void
-    {
-        // Validate component's staging settings
-        $workspaceTypes = [AbstractStrategyFactory::WORKSPACE_ABS, AbstractStrategyFactory::WORKSPACE_REDSHIFT,
-            AbstractStrategyFactory::WORKSPACE_SNOWFLAKE, AbstractStrategyFactory::WORKSPACE_SYNAPSE,
-            AbstractStrategyFactory::WORKSPACE_BIGQUERY];
-        if (in_array($component->getInputStagingStorage(), $workspaceTypes)
-            && in_array($component->getOutputStagingStorage(), $workspaceTypes)
-            && $component->getInputStagingStorage() !== $component->getOutputStagingStorage()
-        ) {
-            throw new ApplicationException(sprintf(
-                'Component staging setting mismatch - input: "%s", output: "%s".',
-                $component->getInputStagingStorage(),
-                $component->getOutputStagingStorage(),
-            ));
-        }
     }
 }
