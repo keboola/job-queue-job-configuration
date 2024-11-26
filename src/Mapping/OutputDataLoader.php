@@ -199,7 +199,7 @@ class OutputDataLoader extends BaseDataLoader
         yield $stagingDefinition->getTableMetadataProvider();
     }
 
-    public function cleanWorkspace(ComponentSpecification $component, ?string $configId = null): void
+    public function cleanWorkspace(ComponentSpecification $component, ?string $configId): void
     {
         $cleanedProviders = [];
         $maps = array_merge(

@@ -87,7 +87,7 @@ class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         self::assertEquals(['connectionString', 'container'], array_keys($credentials));
         self::assertStringStartsWith('BlobEndpoint=https://', $credentials['connectionString']);
         self::assertTrue($logger->hasNoticeThatContains('Created a new ephemeral workspace.'));
-        $dataLoader->cleanWorkspace($component);
+        $dataLoader->cleanWorkspace($component, configId: null);
         // checked in mock that the workspace is deleted
     }
 
