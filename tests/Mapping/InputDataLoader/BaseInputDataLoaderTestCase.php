@@ -42,10 +42,11 @@ abstract class BaseInputDataLoaderTestCase extends BaseDataLoaderTestCase
             logger: $logger,
         );
 
+        assert($configId !== '');
         $workspaceProviderFactory = $workspaceProviderFactoryFactory->getWorkspaceProviderFactory(
             stagingStorage: $component->getInputStagingStorage(),
             component: $component,
-            configId: $configId !== '' ? $configId : null,
+            configId: $configId,
             backendConfig: null,
             useReadonlyRole: null,
         );
