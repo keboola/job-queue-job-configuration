@@ -33,8 +33,6 @@ abstract class BaseDataLoaderTestCase extends TestCase
     private const DEFAULT_COMPONENT_STAGING_STORAGE_TYPE = 'local';
     protected const COMPONENT_ID = 'docker-demo';
     protected const DEFAULT_PROJECT = 'snowflake';
-    private const RESOURCE_PREFIX = 'docker-demo-testConfig';
-    protected const RESOURCE_SUFFIX = '';
 
     private string $workingDirPath;
     protected ClientWrapper $clientWrapper;
@@ -224,7 +222,12 @@ abstract class BaseDataLoaderTestCase extends TestCase
 
     protected function getResourceName(): string
     {
-        return self::RESOURCE_PREFIX . static::RESOURCE_SUFFIX;
+        $name = $this->name();
+        if ($this->dataName() !== '') {
+            $dataName = preg_replace('/\s+/', '_', (string) $this->dataName());
+            $name .= '-' . $dataName;
+        }
+        return $name;
     }
 
     private function initClientWrapper(): void

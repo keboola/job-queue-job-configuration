@@ -18,7 +18,6 @@ use Symfony\Component\Finder\Finder;
 
 class GCSInputDataLoaderTest extends BaseInputDataLoaderTestCase
 {
-    protected const RESOURCE_SUFFIX = '-gcp-gcs';
     protected const DEFAULT_PROJECT = 'gcp';
 
     public function testLoadInputData(): void

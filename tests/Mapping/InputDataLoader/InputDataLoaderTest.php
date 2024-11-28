@@ -19,8 +19,6 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class InputDataLoaderTest extends BaseInputDataLoaderTestCase
 {
-    protected const RESOURCE_SUFFIX = '-input';
-
     public function testBranchMappingDisabled(): void
     {
         $bucketId = $this->clientWrapper->getBasicClient()->createBucket($this->getResourceName(), 'in');

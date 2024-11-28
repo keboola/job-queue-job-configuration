@@ -22,7 +22,6 @@ use Symfony\Component\Filesystem\Filesystem;
 class BigQueryInputDataLoaderTest extends BaseInputDataLoaderTestCase
 {
     protected const COMPONENT_ID = 'keboola.runner-workspace-bigquery-test';
-    protected const RESOURCE_SUFFIX = '-gcp-bq';
     protected const DEFAULT_PROJECT = 'gcp';
 
     public function testWorkspaceBigQueryNoPreserve(): void

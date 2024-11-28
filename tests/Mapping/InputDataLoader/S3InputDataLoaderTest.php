@@ -15,8 +15,6 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class S3InputDataLoaderTest extends BaseInputDataLoaderTestCase
 {
-    protected const RESOURCE_SUFFIX = '-s3';
-
     public function setUp(): void
     {
         parent::setUp();
