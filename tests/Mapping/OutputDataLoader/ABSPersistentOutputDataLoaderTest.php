@@ -6,11 +6,16 @@ namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\OutputDataLoader;
 
 use ColinODell\PsrTestLogger\TestLogger;
 use Keboola\InputMapping\Staging\AbstractStrategyFactory;
+use Keboola\InputMapping\Staging\StrategyFactory as InputStrategyFactory;
 use Keboola\JobQueue\JobConfiguration\Exception\ApplicationException;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration as JobConfiguration;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Storage;
+use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceCleaner;
 use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceProviderFactoryFactory;
+use Keboola\OutputMapping\Staging\StrategyFactory as OutputStrategyFactory;
+use Keboola\StagingProvider\InputProviderInitializer;
+use Keboola\StagingProvider\OutputProviderInitializer;
 use Keboola\StorageApi\BranchAwareClient;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Options\Components\Configuration;
@@ -18,6 +23,7 @@ use Keboola\StorageApi\Options\Components\ListConfigurationWorkspacesOptions;
 use Keboola\StorageApi\Workspaces;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\StorageApiToken;
+use Psr\Log\NullLogger;
 
 class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCase
 {
@@ -87,7 +93,13 @@ class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         self::assertEquals(['connectionString', 'container'], array_keys($credentials));
         self::assertStringStartsWith('BlobEndpoint=https://', $credentials['connectionString']);
         self::assertTrue($logger->hasNoticeThatContains('Created a new ephemeral workspace.'));
-        $dataLoader->cleanWorkspace($component, configId: null);
+
+        $this->getWorkspaceCleaner(
+            clientWrapper: $clientWrapper,
+            configId: null,
+            component: $component,
+        )->cleanWorkspace($component, configId: null);
+
         // checked in mock that the workspace is deleted
     }
 
@@ -164,7 +176,13 @@ class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCase
                 ->setConfigurationId($configurationId),
         );
         self::assertCount(1, $workspaces);
-        $dataLoader->cleanWorkspace($component, $configurationId);
+
+        $this->getWorkspaceCleaner(
+            clientWrapper: $clientWrapper,
+            configId: $configurationId,
+            component: $component,
+        )->cleanWorkspace($component, $configurationId);
+
         // double check that workspace still exists
         $workspaces = $componentsApi->listConfigurationWorkspaces(
             (new ListConfigurationWorkspacesOptions())
@@ -255,7 +273,13 @@ class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCase
                 ->setConfigurationId($configurationId),
         );
         self::assertCount(1, $workspaces);
-        $dataLoader->cleanWorkspace($component, $configurationId);
+
+        $this->getWorkspaceCleaner(
+            clientWrapper: $clientWrapper,
+            configId: $configurationId,
+            component: $component,
+        )->cleanWorkspace($component, $configurationId);
+
         // double check that workspace still exists
         $workspaces = $componentsApi->listConfigurationWorkspaces(
             (new ListConfigurationWorkspacesOptions())

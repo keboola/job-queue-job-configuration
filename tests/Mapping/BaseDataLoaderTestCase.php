@@ -5,16 +5,25 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping;
 
 use InvalidArgumentException;
+use Keboola\InputMapping\Staging\StrategyFactory as InputStrategyFactory;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
+use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceCleaner;
+use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceProviderFactoryFactory;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseAzureProject;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseGCPProject;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseSnowflakeProject;
+use Keboola\OutputMapping\Staging\StrategyFactory as OutputStrategyFactory;
+use Keboola\StagingProvider\InputProviderInitializer;
+use Keboola\StagingProvider\OutputProviderInitializer;
 use Keboola\StorageApi\ClientException;
+use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Options\ListFilesOptions;
+use Keboola\StorageApi\Workspaces;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\Temp\Temp;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 use ReflectionClass;
 use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
@@ -247,5 +256,70 @@ abstract class BaseDataLoaderTestCase extends TestCase
                 default => throw new InvalidArgumentException('You have passed a not-implemented attribute.'),
             };
         }
+    }
+
+    protected function getWorkspaceCleaner(
+        ?ClientWrapper $clientWrapper,
+        ?string $configId,
+        ComponentSpecification $component,
+    ): WorkspaceCleaner {
+        $clientWrapper = $clientWrapper ?? $this->clientWrapper;
+
+        $componentsApi = new Components($clientWrapper->getBasicClient());
+        $workspacesApi = new Workspaces($clientWrapper->getBasicClient());
+
+        $workspaceProviderFactoryFactory = new WorkspaceProviderFactoryFactory(
+            componentsApiClient: $componentsApi,
+            workspacesApiClient: $workspacesApi,
+            logger: new NullLogger(),
+        );
+
+        $workspaceProviderFactory = $workspaceProviderFactoryFactory->getWorkspaceProviderFactory(
+            stagingStorage: $component->getInputStagingStorage(),
+            component: $component,
+            configId: $configId !== '' ? $configId : null,
+            backendConfig: null,
+            useReadonlyRole: false,
+        );
+
+        $outputStrategyFactory = new OutputStrategyFactory(
+            clientWrapper: $this->clientWrapper,
+            logger: new NullLogger(),
+            format: 'json',
+        );
+
+        $outputProviderInitializer = new OutputProviderInitializer(
+            stagingFactory: $outputStrategyFactory,
+            workspaceProviderFactory: $workspaceProviderFactory,
+            dataDirectory: $this->getWorkingDirPath(),
+        );
+
+        $outputProviderInitializer->initializeProviders(
+            stagingType: $component->getOutputStagingStorage(),
+            tokenInfo: $clientWrapper->getToken()->getTokenInfo(),
+        );
+
+        $inputStrategyFactory = new InputStrategyFactory(
+            clientWrapper: $this->clientWrapper,
+            logger: new NullLogger(),
+            format: 'json',
+        );
+
+        $inputProviderInitializer = new InputProviderInitializer(
+            stagingFactory: $inputStrategyFactory,
+            workspaceProviderFactory: $workspaceProviderFactory,
+            dataDirectory: $this->getWorkingDirPath(),
+        );
+
+        $inputProviderInitializer->initializeProviders(
+            stagingType: $component->getInputStagingStorage(),
+            tokenInfo: $clientWrapper->getToken()->getTokenInfo(),
+        );
+
+        return new WorkspaceCleaner(
+            outputStrategyFactory: $outputStrategyFactory,
+            inputStrategyFactory: $inputStrategyFactory,
+            logger: new NullLogger(),
+        );
     }
 }

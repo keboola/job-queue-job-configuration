@@ -340,7 +340,11 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         }
         self::assertNotNull($readonlyWorkspace);
         self::assertSame($readOnlyWorkspace, $readonlyWorkspace['readOnlyStorageAccess']);
-        $dataLoader->cleanWorkspace($component, configId: null);
+        $this->getWorkspaceCleaner(
+            clientWrapper: $this->clientWrapper,
+            configId: null,
+            component: $component,
+        )->cleanWorkspace($component, null);
     }
 
     public function readonlyFlagProvider(): Generator
@@ -1154,9 +1158,12 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $clientWrapperMock->method('getBasicClient')->willReturn($clientMock);
         $clientWrapperMock->method('getBranchClient')->willReturn($clientMock);
 
-        $dataLoader = $this->getOutputDataLoader($clientWrapperMock, configId: $configId);
         // immediately calling cleanWorkspace without using it means it was not initialized
-        $dataLoader->cleanWorkspace($component, configId: null);
+        $this->getWorkspaceCleaner(
+            clientWrapper: $clientWrapperMock,
+            configId: $configId,
+            component: $component,
+        )->cleanWorkspace($component, $configId);
 
         $listOptions = new ListConfigurationWorkspacesOptions();
         $listOptions->setComponentId($componentId)->setConfigurationId($configId);
