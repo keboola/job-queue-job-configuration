@@ -19,11 +19,11 @@ abstract class BaseInputDataLoaderTestCase extends BaseDataLoaderTestCase
 {
     protected function getInputDataLoader(
         ?ClientWrapper $clientWrapper = null,
-        LoggerInterface $logger = new NullLogger(),
         ?string $configId = null,
         ?string $componentStagingStorageType = null,
     ): InputDataLoader {
         $clientWrapper = $clientWrapper ?? $this->clientWrapper;
+        $logger = new NullLogger();
 
         $inputStrategyFactory = new StrategyFactory(
             clientWrapper: $clientWrapper,
