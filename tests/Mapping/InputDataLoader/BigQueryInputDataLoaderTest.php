@@ -72,7 +72,7 @@ class BigQueryInputDataLoaderTest extends BaseInputDataLoaderTestCase
         $configuration = new Configuration();
         $configuration->setName('testWorkspaceBigQueryPreserve');
         $configuration->setComponentId(self::COMPONENT_ID);
-        // $configuration->setConfiguration($config);
+        $configuration->setConfiguration($jobConfiguration->toArray());
         $componentsApi = new Components($this->clientWrapper->getBasicClient());
         $configId = $componentsApi->addConfiguration($configuration)['id'];
 
