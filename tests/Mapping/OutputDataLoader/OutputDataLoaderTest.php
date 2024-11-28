@@ -170,9 +170,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $dataLoader = $this->getOutputDataLoader($component);
         $dataLoader->storeOutput(
             $component,
-            new JobConfiguration(
-                storage: new Storage(),
-            ),
+            new JobConfiguration(),
             null,
             null,
             'testConfig',
@@ -256,9 +254,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $dataLoader = $this->getOutputDataLoader($component);
         $dataLoader->storeOutput(
             $component,
-            new JobConfiguration(
-                storage: new Storage(),
-            ),
+            new JobConfiguration(),
             null,
             null,
             'testConfig',

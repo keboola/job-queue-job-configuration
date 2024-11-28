@@ -54,10 +54,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $dataLoader = $this->getOutputDataLoader($component);
         $tableQueue = $dataLoader->storeOutput(
             $component,
-            new JobConfiguration(
-                parameters: [],
-                storage: new Storage(),
-            ),
+            new JobConfiguration(),
             null,
             null,
             'testConfig',
@@ -94,10 +91,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         // This time the tables should receive 'update' metadata
         $tableQueue = $dataLoader->storeOutput(
             $component,
-            new JobConfiguration(
-                parameters: [],
-                storage: new Storage(),
-            ),
+            new JobConfiguration(),
             null,
             null,
             'testConfig',
@@ -149,10 +143,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $dataLoader = $this->getOutputDataLoader($component, $clientWrapper);
         $tableQueue = $dataLoader->storeOutput(
             $component,
-            new JobConfiguration(
-                parameters: [],
-                storage: new Storage(),
-            ),
+            new JobConfiguration(),
             (string) $branchId,
             null,
             'testConfig',
@@ -207,10 +198,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $dataLoader = $this->getOutputDataLoader($component);
         $tableQueue = $dataLoader->storeOutput(
             $component,
-            new JobConfiguration(
-                parameters: [],
-                storage: new Storage(),
-            ),
+            new JobConfiguration(),
             null,
             null,
             'testConfig',
@@ -249,10 +237,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         // This time the tables should receive 'update' metadata
         $tableQueue = $dataLoader->storeOutput(
             $component,
-            new JobConfiguration(
-                parameters: [],
-                storage: new Storage(),
-            ),
+            new JobConfiguration(),
             null,
             null,
             'testConfig',
@@ -416,10 +401,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $dataLoader = $this->getOutputDataLoader($component);
         $tableQueue = $dataLoader->storeOutput(
             $component,
-            new JobConfiguration(
-                parameters: [],
-                storage: new Storage(),
-            ),
+            new JobConfiguration(),
             null,
             null,
             'testConfig',

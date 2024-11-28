@@ -79,9 +79,7 @@ class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         );
         $dataLoader->storeOutput(
             component: $component,
-            jobConfiguration: new JobConfiguration(
-                storage: new Storage(),
-            ),
+            jobConfiguration: new JobConfiguration(),
             branchId: null,
             runId: null,
             configId: null,
@@ -156,9 +154,7 @@ class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         );
         $dataLoader->storeOutput(
             component: $component,
-            jobConfiguration: new JobConfiguration(
-                storage: new Storage(),
-            ),
+            jobConfiguration: new JobConfiguration(),
             branchId: null,
             runId: null,
             configId: $configurationId,
@@ -254,9 +250,7 @@ class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         );
         $dataLoader->storeOutput(
             component: $component,
-            jobConfiguration: new JobConfiguration(
-                storage: new Storage(),
-            ),
+            jobConfiguration: new JobConfiguration(),
             branchId: null,
             runId: null,
             configId: $configurationId,
