@@ -47,9 +47,10 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             $this->getDataDirPath() . '/out/tables/sliced.csv.manifest',
             (string) json_encode(['destination' => 'sliced']),
         );
-        $dataLoader = $this->getOutputDataLoader();
+        $component = $this->getComponentWithDefaultBucket();
+        $dataLoader = $this->getOutputDataLoader($component);
         $tableQueue = $dataLoader->storeOutput(
-            $this->getComponentWithDefaultBucket(),
+            $component,
             new JobConfiguration(),
             null,
             null,
@@ -100,7 +101,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             (string) json_encode(['destination' => 'sliced']),
         );
         $component = $this->getComponentWithDefaultBucket();
-        $dataLoader = $this->getOutputDataLoader();
+        $dataLoader = $this->getOutputDataLoader($component);
         $tableQueue = $dataLoader->storeOutput(
             $component,
             new JobConfiguration(
@@ -140,9 +141,10 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
     {
         $this->expectException(UserException::class);
         $this->expectExceptionMessage('Configuration ID not set');
-        $dataLoader = $this->getOutputDataLoader();
+        $component = $this->getComponentWithDefaultBucket();
+        $dataLoader = $this->getOutputDataLoader($component);
         $dataLoader->storeOutput(
-            $this->getComponentWithDefaultBucket(),
+            $component,
             new JobConfiguration(
                 parameters: [],
                 storage: new Storage(),
@@ -179,7 +181,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         ]);
         $this->expectException(ApplicationException::class);
         $this->expectExceptionMessage($error);
-        $dataLoader = $this->getOutputDataLoader();
+        $dataLoader = $this->getOutputDataLoader($component);
         $dataLoader->storeOutput(
             $component,
             new JobConfiguration(
@@ -265,9 +267,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
                 ],
             ],
         ]);
-        $dataLoader = $this->getOutputDataLoader(
-            componentStagingStorageType: AbstractStrategyFactory::WORKSPACE_SNOWFLAKE,
-        );
+        $dataLoader = $this->getOutputDataLoader($component);
         $dataLoader->storeOutput(
             $component,
             new JobConfiguration(
@@ -313,7 +313,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             ),
         );
         $dataLoader = $this->getOutputDataLoader(
-            componentStagingStorageType: AbstractStrategyFactory::WORKSPACE_SNOWFLAKE,
+            component: $component,
             readOnlyWorkspace: $readOnlyWorkspace,
         );
         $dataLoader->storeOutput(
@@ -403,7 +403,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
                 ]),
             ),
         );
-        $dataLoader = $this->getOutputDataLoader($this->clientWrapper);
+        $dataLoader = $this->getOutputDataLoader($component, $this->clientWrapper);
         $tableQueue = $dataLoader->storeOutput(
             $component,
             new JobConfiguration(
@@ -543,7 +543,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
                 ]),
             ),
         );
-        $dataLoader = $this->getOutputDataLoader($this->clientWrapper);
+        $dataLoader = $this->getOutputDataLoader($component, $this->clientWrapper);
         $tableQueue = $dataLoader->storeOutput(
             $component,
             new JobConfiguration(
@@ -640,7 +640,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             ),
         );
 
-        $dataLoader = $this->getOutputDataLoader($this->clientWrapper);
+        $dataLoader = $this->getOutputDataLoader($component, $this->clientWrapper);
         $tableQueue = $dataLoader->storeOutput(
             $component,
             new JobConfiguration(
@@ -793,7 +793,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
                 ]),
             ),
         );
-        $dataLoader = $this->getOutputDataLoader($this->clientWrapper);
+        $dataLoader = $this->getOutputDataLoader($component, $this->clientWrapper);
         $tableQueue = $dataLoader->storeOutput(
             $component,
             new JobConfiguration(
@@ -970,7 +970,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
                 ]),
             ),
         );
-        $dataLoader = $this->getOutputDataLoader($this->clientWrapper);
+        $dataLoader = $this->getOutputDataLoader($component, $this->clientWrapper);
         $tableQueue = $dataLoader->storeOutput(
             $component,
             new JobConfiguration(
@@ -1103,7 +1103,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
                 ]),
             ),
         );
-        $dataLoader = $this->getOutputDataLoader($this->clientWrapper);
+        $dataLoader = $this->getOutputDataLoader($component, $this->clientWrapper);
         $tableQueue = $dataLoader->storeOutput(
             $component,
             new JobConfiguration(

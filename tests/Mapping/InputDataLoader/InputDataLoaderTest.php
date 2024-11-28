@@ -60,7 +60,7 @@ class InputDataLoaderTest extends BaseInputDataLoaderTestCase
                 ]),
             ),
         );
-        $dataLoader = $this->getInputDataLoader();
+        $dataLoader = $this->getInputDataLoader($component);
         $this->expectException(UserException::class);
         $this->expectExceptionMessage(
             "The buckets \"$bucketId\" come from a development " .
@@ -122,7 +122,7 @@ class InputDataLoaderTest extends BaseInputDataLoaderTestCase
                 ]),
             ),
         );
-        $dataLoader = $this->getInputDataLoader();
+        $dataLoader = $this->getInputDataLoader($component);
         $storageState = $dataLoader->loadInputData(
             component: $component,
             jobConfiguration: new Configuration(

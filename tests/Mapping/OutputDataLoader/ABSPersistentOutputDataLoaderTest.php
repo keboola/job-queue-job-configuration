@@ -73,9 +73,9 @@ class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $logger = new TestLogger();
 
         $dataLoader = $this->getOutputDataLoader(
+            component: $component,
             clientWrapper: $clientWrapper,
             logger: $logger,
-            componentStagingStorageType: AbstractStrategyFactory::WORKSPACE_ABS,
         );
         $dataLoader->storeOutput(
             component: $component,
@@ -149,10 +149,10 @@ class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCase
 
         $logger = new TestLogger();
         $dataLoader = $this->getOutputDataLoader(
+            component: $component,
             clientWrapper: $clientWrapper,
             logger: $logger,
             configId: $configurationId,
-            componentStagingStorageType: AbstractStrategyFactory::WORKSPACE_ABS,
         );
         $dataLoader->storeOutput(
             component: $component,
@@ -247,10 +247,10 @@ class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $logger = new TestLogger();
 
         $dataLoader = $this->getOutputDataLoader(
+            component: $component,
             clientWrapper: $clientWrapper,
             logger: $logger,
             configId: $configurationId,
-            componentStagingStorageType: AbstractStrategyFactory::WORKSPACE_ABS,
         );
         $dataLoader->storeOutput(
             component: $component,

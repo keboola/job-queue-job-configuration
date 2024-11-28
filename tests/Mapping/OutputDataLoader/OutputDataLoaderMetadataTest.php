@@ -50,9 +50,10 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
             $this->getDataDirPath() . '/out/tables/sliced.csv.manifest',
             (string) json_encode(['destination' => 'sliced']),
         );
-        $dataLoader = $this->getOutputDataLoader();
+        $component = $this->getComponentWithDefaultBucket();
+        $dataLoader = $this->getOutputDataLoader($component);
         $tableQueue = $dataLoader->storeOutput(
-            $this->getComponentWithDefaultBucket(),
+            $component,
             new Configuration(
                 parameters: [],
                 storage: new Storage(),
@@ -92,7 +93,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         // let's run the data loader again.
         // This time the tables should receive 'update' metadata
         $tableQueue = $dataLoader->storeOutput(
-            $this->getComponentWithDefaultBucket(),
+            $component,
             new Configuration(
                 parameters: [],
                 storage: new Storage(),
@@ -144,9 +145,10 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
                 (string) $branchId,
             ),
         );
-        $dataLoader = $this->getOutputDataLoader($clientWrapper);
+        $component = $this->getComponentWithDefaultBucket();
+        $dataLoader = $this->getOutputDataLoader($component, $clientWrapper);
         $tableQueue = $dataLoader->storeOutput(
-            $this->getComponentWithDefaultBucket(),
+            $component,
             new Configuration(
                 parameters: [],
                 storage: new Storage(),
@@ -201,9 +203,10 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
             $this->getDataDirPath() . '/out/tables/sliced.csv.manifest',
             (string) json_encode(['destination' => 'sliced']),
         );
-        $dataLoader = $this->getOutputDataLoader();
+        $component = $this->getComponentWithDefaultBucket();
+        $dataLoader = $this->getOutputDataLoader($component);
         $tableQueue = $dataLoader->storeOutput(
-            $this->getComponentWithDefaultBucket(),
+            $component,
             new Configuration(
                 parameters: [],
                 storage: new Storage(),
@@ -245,7 +248,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         // let's run the data loader again.
         // This time the tables should receive 'update' metadata
         $tableQueue = $dataLoader->storeOutput(
-            $this->getComponentWithDefaultBucket(),
+            $component,
             new Configuration(
                 parameters: [],
                 storage: new Storage(),
@@ -325,9 +328,10 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
                 ]),
             ),
         );
-        $dataLoader = $this->getOutputDataLoader();
+        $component = $this->getComponentWithDefaultBucket();
+        $dataLoader = $this->getOutputDataLoader($component);
         $tableQueue = $dataLoader->storeOutput(
-            $this->getComponentWithDefaultBucket(),
+            $component,
             new Configuration(
                 parameters: [],
                 storage: $storage,
@@ -409,9 +413,10 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         }
         JSON;
         $fs->dumpFile($this->getDataDirPath() . '/out/tables/sliced.csv.manifest', $manifest);
-        $dataLoader = $this->getOutputDataLoader();
+        $component = $this->getComponentWithDefaultBucket();
+        $dataLoader = $this->getOutputDataLoader($component);
         $tableQueue = $dataLoader->storeOutput(
-            $this->getComponentWithDefaultBucket(),
+            $component,
             new Configuration(
                 parameters: [],
                 storage: new Storage(),
@@ -505,9 +510,10 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
             ),
         );
 
-        $dataLoader = $this->getOutputDataLoader();
+        $component = $this->getComponentWithDefaultBucket();
+        $dataLoader = $this->getOutputDataLoader($component);
         $tableQueue = $dataLoader->storeOutput(
-            $this->getComponentWithDefaultBucket(),
+            $component,
             new Configuration(
                 parameters: [],
                 storage: $storage,

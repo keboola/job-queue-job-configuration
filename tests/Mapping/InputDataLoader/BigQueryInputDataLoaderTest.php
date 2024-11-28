@@ -97,9 +97,9 @@ class BigQueryInputDataLoaderTest extends BaseInputDataLoaderTestCase
         );
 
         $dataLoader = $this->getInputDataLoader(
+            component: $component,
             clientWrapper: $this->clientWrapper,
             configId: $configId,
-            componentStagingStorageType: AbstractStrategyFactory::WORKSPACE_BIGQUERY,
         );
         $dataLoader->loadInputData(
             component: $component,

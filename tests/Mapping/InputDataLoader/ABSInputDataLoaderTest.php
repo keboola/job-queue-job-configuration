@@ -55,9 +55,10 @@ class ABSInputDataLoaderTest extends BaseInputDataLoaderTestCase
         );
         sleep(1);
 
-        $dataLoader = $this->getInputDataLoader();
+        $component = $this->getComponent();
+        $dataLoader = $this->getInputDataLoader($component);
         $dataLoader->loadInputData(
-            component: $this->getComponent(),
+            component: $component,
             jobConfiguration: new Configuration(
                 storage: $storage,
             ),

@@ -69,9 +69,10 @@ class S3InputDataLoaderTest extends BaseInputDataLoaderTestCase
             new CsvFile($filePath),
         );
 
-        $dataLoader = $this->getInputDataLoader($this->clientWrapper);
+        $component = $this->getS3StagingComponent();
+        $dataLoader = $this->getInputDataLoader($component, $this->clientWrapper);
         $dataLoader->loadInputData(
-            component: $this->getS3StagingComponent(),
+            component: $component,
             jobConfiguration: new Configuration(
                 storage: $storage,
             ),

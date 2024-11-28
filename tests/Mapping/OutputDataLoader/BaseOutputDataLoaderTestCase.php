@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\OutputDataLoader;
 
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\Mapping\OutputDataLoader;
 use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceProviderFactoryFactory;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\BaseDataLoaderTestCase;
@@ -18,10 +19,10 @@ use Psr\Log\NullLogger;
 abstract class BaseOutputDataLoaderTestCase extends BaseDataLoaderTestCase
 {
     protected function getOutputDataLoader(
+        ComponentSpecification $component,
         ?ClientWrapper $clientWrapper = null,
         LoggerInterface $logger = new NullLogger(),
         ?string $configId = null,
-        ?string $componentStagingStorageType = null,
         ?bool $readOnlyWorkspace = null,
     ): OutputDataLoader {
         $clientWrapper = $clientWrapper ?? $this->clientWrapper;
@@ -34,8 +35,6 @@ abstract class BaseOutputDataLoaderTestCase extends BaseDataLoaderTestCase
 
         $componentsApi = new Components($clientWrapper->getBasicClient());
         $workspacesApi = new Workspaces($clientWrapper->getBasicClient());
-
-        $component = $this->getComponentWithDefaultBucket($componentStagingStorageType);
 
         $workspaceProviderFactoryFactory = new WorkspaceProviderFactoryFactory(
             componentsApiClient: $componentsApi,
