@@ -6,7 +6,7 @@ namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\InputDataLoader;
 
 use Keboola\Csv\CsvFile;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
-use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration as JobConfiguration;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Input;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Storage;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TablesList;
@@ -48,13 +48,15 @@ class S3InputDataLoaderTest extends BaseInputDataLoaderTestCase
     {
         $bucketId = $this->clientWrapper->getBasicClient()->createBucket($this->getResourceName(), 'in');
 
-        $storage = new Storage(
-            input: new Input(
-                tables: new TablesList([
-                    [
-                        'source' => "$bucketId.test",
-                    ],
-                ]),
+        $jobConfiguration = new JobConfiguration(
+            storage: new Storage(
+                input: new Input(
+                    tables: new TablesList([
+                        [
+                            'source' => "$bucketId.test",
+                        ],
+                    ]),
+                ),
             ),
         );
         $fs = new Filesystem();
@@ -73,9 +75,7 @@ class S3InputDataLoaderTest extends BaseInputDataLoaderTestCase
         $dataLoader = $this->getInputDataLoader($component, $this->clientWrapper);
         $dataLoader->loadInputData(
             component: $component,
-            jobConfiguration: new Configuration(
-                storage: $storage,
-            ),
+            jobConfiguration: $jobConfiguration,
             jobState: new State(),
         );
 

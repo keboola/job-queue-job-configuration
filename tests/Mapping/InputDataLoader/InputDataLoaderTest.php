@@ -9,7 +9,7 @@ use Keboola\InputMapping\State\InputFileStateList;
 use Keboola\InputMapping\Table\Result;
 use Keboola\JobQueue\JobConfiguration\Exception\UserException;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
-use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration as JobConfiguration;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Input;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Storage;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TablesList;
@@ -50,14 +50,16 @@ class InputDataLoaderTest extends BaseInputDataLoaderTestCase
                 ],
             ],
         ]);
-        $storage = new Storage(
-            input: new Input(
-                tables: new TablesList([
-                    [
-                        'source' => "$bucketId.test",
-                        'destination' => 'test.csv',
-                    ],
-                ]),
+        $jobConfiguration = new JobConfiguration(
+            storage: new Storage(
+                input: new Input(
+                    tables: new TablesList([
+                        [
+                            'source' => "$bucketId.test",
+                            'destination' => 'test.csv',
+                        ],
+                    ]),
+                ),
             ),
         );
         $dataLoader = $this->getInputDataLoader($component);
@@ -68,9 +70,7 @@ class InputDataLoaderTest extends BaseInputDataLoaderTestCase
         );
         $dataLoader->loadInputData(
             component: $component,
-            jobConfiguration: new Configuration(
-                storage: $storage,
-            ),
+            jobConfiguration: $jobConfiguration,
             jobState: new State(),
         );
     }
@@ -112,22 +112,22 @@ class InputDataLoaderTest extends BaseInputDataLoaderTestCase
             ],
             'features' => ['dev-mapping-allowed'],
         ]);
-        $storage = new Storage(
-            input: new Input(
-                tables: new TablesList([
-                    [
-                        'source' => "$bucketId.test",
-                        'destination' => 'test.csv',
-                    ],
-                ]),
+        $jobConfiguration = new JobConfiguration(
+            storage: new Storage(
+                input: new Input(
+                    tables: new TablesList([
+                        [
+                            'source' => "$bucketId.test",
+                            'destination' => 'test.csv',
+                        ],
+                    ]),
+                ),
             ),
         );
         $dataLoader = $this->getInputDataLoader($component);
         $storageState = $dataLoader->loadInputData(
             component: $component,
-            jobConfiguration: new Configuration(
-                storage: $storage,
-            ),
+            jobConfiguration: $jobConfiguration,
             jobState: new State(),
         );
         self::assertInstanceOf(Result::class, $storageState->inputTableResult);

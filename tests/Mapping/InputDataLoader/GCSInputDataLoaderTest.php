@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\InputDataLoader;
 
 use Keboola\Csv\CsvFile;
-use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration as JobConfiguration;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\FilesList;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Input;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Storage;
@@ -26,16 +26,18 @@ class GCSInputDataLoaderTest extends BaseInputDataLoaderTestCase
         $this->clientWrapper->getBasicClient()->createBucket($this->getResourceName(), 'in');
         $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, $this->getResourceName(), 'in');
 
-        $storage = new Storage(
-            input: new Input(
-                tables: new TablesList([
-                    [
-                        'source' => "$bucketId.test",
-                    ],
-                ]),
-                files: new FilesList([
-                    ['tags' => [$this->getResourceName()], 'overwrite' => true],
-                ]),
+        $jobConfiguration = new JobConfiguration(
+            storage: new Storage(
+                input: new Input(
+                    tables: new TablesList([
+                        [
+                            'source' => "$bucketId.test",
+                        ],
+                    ]),
+                    files: new FilesList([
+                        ['tags' => [$this->getResourceName()], 'overwrite' => true],
+                    ]),
+                ),
             ),
         );
         $fs = new Filesystem();
@@ -60,9 +62,7 @@ class GCSInputDataLoaderTest extends BaseInputDataLoaderTestCase
         $dataLoader = $this->getInputDataLoader($component);
         $dataLoader->loadInputData(
             component: $component,
-            jobConfiguration: new Configuration(
-                storage: $storage,
-            ),
+            jobConfiguration: $jobConfiguration,
             jobState: new State(),
         );
 

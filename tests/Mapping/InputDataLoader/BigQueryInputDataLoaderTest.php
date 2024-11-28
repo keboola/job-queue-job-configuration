@@ -57,15 +57,17 @@ class BigQueryInputDataLoaderTest extends BaseInputDataLoaderTestCase
             ],
         ]);
 
-        $storage = new Storage(
-            input: new Input(
-                tables: new TablesList([
-                    [
-                        'source' => sprintf('%s.test', $bucketId),
-                        'destination' => 'test',
-                        'keep_internal_timestamp_column' => false,
-                    ],
-                ]),
+        $jobConfiguration = new JobConfiguration(
+            storage: new Storage(
+                input: new Input(
+                    tables: new TablesList([
+                        [
+                            'source' => sprintf('%s.test', $bucketId),
+                            'destination' => 'test',
+                            'keep_internal_timestamp_column' => false,
+                        ],
+                    ]),
+                ),
             ),
         );
         $configuration = new Configuration();
@@ -103,9 +105,7 @@ class BigQueryInputDataLoaderTest extends BaseInputDataLoaderTestCase
         );
         $dataLoader->loadInputData(
             component: $component,
-            jobConfiguration: new JobConfiguration(
-                storage: $storage,
-            ),
+            jobConfiguration: $jobConfiguration,
             jobState: new State(),
         );
         $credentials = $dataLoader->getWorkspaceCredentials();

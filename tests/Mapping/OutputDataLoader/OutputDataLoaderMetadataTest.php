@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\OutputDataLoader;
 
-use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration as JobConfiguration;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Input;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Output;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Storage;
@@ -54,7 +54,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $dataLoader = $this->getOutputDataLoader($component);
         $tableQueue = $dataLoader->storeOutput(
             $component,
-            new Configuration(
+            new JobConfiguration(
                 parameters: [],
                 storage: new Storage(),
             ),
@@ -94,7 +94,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         // This time the tables should receive 'update' metadata
         $tableQueue = $dataLoader->storeOutput(
             $component,
-            new Configuration(
+            new JobConfiguration(
                 parameters: [],
                 storage: new Storage(),
             ),
@@ -149,7 +149,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $dataLoader = $this->getOutputDataLoader($component, $clientWrapper);
         $tableQueue = $dataLoader->storeOutput(
             $component,
-            new Configuration(
+            new JobConfiguration(
                 parameters: [],
                 storage: new Storage(),
             ),
@@ -207,7 +207,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $dataLoader = $this->getOutputDataLoader($component);
         $tableQueue = $dataLoader->storeOutput(
             $component,
-            new Configuration(
+            new JobConfiguration(
                 parameters: [],
                 storage: new Storage(),
             ),
@@ -249,7 +249,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         // This time the tables should receive 'update' metadata
         $tableQueue = $dataLoader->storeOutput(
             $component,
-            new Configuration(
+            new JobConfiguration(
                 parameters: [],
                 storage: new Storage(),
             ),
@@ -279,63 +279,62 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
             "id,text,row_number\n1,test,1\n1,test,2\n1,test,3",
         );
 
-        $storage = new Storage(
-            input: new Input(
-                tables: new TablesList([
-                    [
-                        'source' => $bucketId . '.test',
-                    ],
-                ]),
-            ),
-            output: new Output(
-                tables: new TablesList([
-                    [
-                        'source' => 'sliced.csv',
-                        'destination' => $bucketId . '.out',
-                        'metadata' => [
-                            [
-                                'key' => 'table.key.one',
-                                'value' => 'table value one',
+        $jobConfiguration = new JobConfiguration(
+            storage: new Storage(
+                input: new Input(
+                    tables: new TablesList([
+                        [
+                            'source' => $bucketId . '.test',
+                        ],
+                    ]),
+                ),
+                output: new Output(
+                    tables: new TablesList([
+                        [
+                            'source' => 'sliced.csv',
+                            'destination' => $bucketId . '.out',
+                            'metadata' => [
+                                [
+                                    'key' => 'table.key.one',
+                                    'value' => 'table value one',
+                                ],
+                                [
+                                    'key' => 'table.key.two',
+                                    'value' => 'table value two',
+                                ],
                             ],
-                            [
-                                'key' => 'table.key.two',
-                                'value' => 'table value two',
+                            'column_metadata' => [
+                                'id' => [
+                                    [
+                                        'key' => 'column.key.one',
+                                        'value' => 'column value one id',
+                                    ],
+                                    [
+                                        'key' => 'column.key.two',
+                                        'value' => 'column value two id',
+                                    ],
+                                ],
+                                'text' => [
+                                    [
+                                        'key' => 'column.key.one',
+                                        'value' => 'column value one text',
+                                    ],
+                                    [
+                                        'key' => 'column.key.two',
+                                        'value' => 'column value two text',
+                                    ],
+                                ],
                             ],
                         ],
-                        'column_metadata' => [
-                            'id' => [
-                                [
-                                    'key' => 'column.key.one',
-                                    'value' => 'column value one id',
-                                ],
-                                [
-                                    'key' => 'column.key.two',
-                                    'value' => 'column value two id',
-                                ],
-                            ],
-                            'text' => [
-                                [
-                                    'key' => 'column.key.one',
-                                    'value' => 'column value one text',
-                                ],
-                                [
-                                    'key' => 'column.key.two',
-                                    'value' => 'column value two text',
-                                ],
-                            ],
-                        ],
-                    ],
-                ]),
+                    ]),
+                ),
             ),
         );
         $component = $this->getComponentWithDefaultBucket();
         $dataLoader = $this->getOutputDataLoader($component);
         $tableQueue = $dataLoader->storeOutput(
             $component,
-            new Configuration(
-                parameters: [],
-                storage: $storage,
-            ),
+            $jobConfiguration,
             null,
             null,
             'testConfig',
@@ -417,7 +416,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $dataLoader = $this->getOutputDataLoader($component);
         $tableQueue = $dataLoader->storeOutput(
             $component,
-            new Configuration(
+            new JobConfiguration(
                 parameters: [],
                 storage: new Storage(),
             ),
@@ -473,40 +472,41 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
             '"text":[{"key":"column.key.one","value":"column value one text"},'.
             '{"key":"column.key.two","value":"column value two text"}]}}',
         );
-
-        $storage = new Storage(
-            input: new Input(
-                tables: new TablesList([
-                    [
-                        'source' => 'in.c-runner-test.test',
-                    ],
-                ]),
-            ),
-            output: new Output(
-                tables: new TablesList([
-                    [
-                        'source' => 'sliced.csv',
-                        'destination' => $bucketId . '.sliced',
-                        'metadata' => [
-                            [
-                                'key' => 'table.key.one',
-                                'value' => 'table value three',
-                            ],
-                            [
-                                'key' => 'table.key.two',
-                                'value' => 'table value four',
-                            ],
+        $jobConfiguration = new JobConfiguration(
+            storage: new Storage(
+                input: new Input(
+                    tables: new TablesList([
+                        [
+                            'source' => 'in.c-runner-test.test',
                         ],
-                        'column_metadata' => [
-                            'id' => [
+                    ]),
+                ),
+                output: new Output(
+                    tables: new TablesList([
+                        [
+                            'source' => 'sliced.csv',
+                            'destination' => $bucketId . '.sliced',
+                            'metadata' => [
                                 [
-                                    'key' => 'column.key.two',
-                                    'value' => 'a new column value two id',
+                                    'key' => 'table.key.one',
+                                    'value' => 'table value three',
+                                ],
+                                [
+                                    'key' => 'table.key.two',
+                                    'value' => 'table value four',
+                                ],
+                            ],
+                            'column_metadata' => [
+                                'id' => [
+                                    [
+                                        'key' => 'column.key.two',
+                                        'value' => 'a new column value two id',
+                                    ],
                                 ],
                             ],
                         ],
-                    ],
-                ]),
+                    ]),
+                ),
             ),
         );
 
@@ -514,10 +514,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $dataLoader = $this->getOutputDataLoader($component);
         $tableQueue = $dataLoader->storeOutput(
             $component,
-            new Configuration(
-                parameters: [],
-                storage: $storage,
-            ),
+            $jobConfiguration,
             null,
             null,
             'testConfig',

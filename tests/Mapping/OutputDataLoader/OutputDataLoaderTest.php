@@ -307,9 +307,11 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
                 ],
             ],
         ]);
-        $storage = new Storage(
-            input: new Input(
-                readOnlyStorageAccess: $readOnlyWorkspace,
+        $jobConfiguration = new JobConfiguration(
+            storage: new Storage(
+                input: new Input(
+                    readOnlyStorageAccess: $readOnlyWorkspace,
+                ),
             ),
         );
         $dataLoader = $this->getOutputDataLoader(
@@ -318,9 +320,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         );
         $dataLoader->storeOutput(
             $component,
-            new JobConfiguration(
-                storage: $storage,
-            ),
+            $jobConfiguration,
             null,
             null,
             'testConfig',
@@ -376,40 +376,39 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
                 ],
             ],
         ]);
-        $storage = new Storage(
-            output: new Output(
-                tables: new TablesList([
-                    [
-                        'source' => 'typed-data.csv',
-                        'destination' => sprintf(
-                            '%s.fixed-type-test',
-                            $bucketId,
-                        ),
-                        'columns' => ['int', 'string', 'decimal', 'float', 'bool', 'date', 'timestamp'],
-                        'primary_key' => ['int'],
-                        'column_metadata' => [
-                            'int' => (new GenericStorage('int', ['nullable' => false]))->toMetadata(),
-                            'string' => (new GenericStorage(
-                                'varchar',
-                                ['length' => '17', 'nullable' => false],
-                            ))->toMetadata(),
-                            'decimal' => (new GenericStorage('decimal', ['length' => '10.2']))->toMetadata(),
-                            'float' => (new GenericStorage('float'))->toMetadata(),
-                            'bool' => (new GenericStorage('bool'))->toMetadata(),
-                            'date' => (new GenericStorage('date'))->toMetadata(),
-                            'timestamp' => (new GenericStorage('timestamp'))->toMetadata(),
+        $jobConfiguration = new JobConfiguration(
+            storage: new Storage(
+                output: new Output(
+                    tables: new TablesList([
+                        [
+                            'source' => 'typed-data.csv',
+                            'destination' => sprintf(
+                                '%s.fixed-type-test',
+                                $bucketId,
+                            ),
+                            'columns' => ['int', 'string', 'decimal', 'float', 'bool', 'date', 'timestamp'],
+                            'primary_key' => ['int'],
+                            'column_metadata' => [
+                                'int' => (new GenericStorage('int', ['nullable' => false]))->toMetadata(),
+                                'string' => (new GenericStorage(
+                                    'varchar',
+                                    ['length' => '17', 'nullable' => false],
+                                ))->toMetadata(),
+                                'decimal' => (new GenericStorage('decimal', ['length' => '10.2']))->toMetadata(),
+                                'float' => (new GenericStorage('float'))->toMetadata(),
+                                'bool' => (new GenericStorage('bool'))->toMetadata(),
+                                'date' => (new GenericStorage('date'))->toMetadata(),
+                                'timestamp' => (new GenericStorage('timestamp'))->toMetadata(),
+                            ],
                         ],
-                    ],
-                ]),
+                    ]),
+                ),
             ),
         );
         $dataLoader = $this->getOutputDataLoader($component, $this->clientWrapper);
         $tableQueue = $dataLoader->storeOutput(
             $component,
-            new JobConfiguration(
-                parameters: [],
-                storage: $storage,
-            ),
+            $jobConfiguration,
             null,
             null,
             'testConfig',
@@ -470,85 +469,85 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
                 'dataTypesSupport' => 'authoritative',
             ],
         ]);
-        $storage = new Storage(
-            output: new Output(
-                tables: new TablesList([
-                    [
-                        'source' => 'typed-data.csv',
-                        'destination' => $tableId,
-                        'schema' => [
-                            [
-                                'name' => 'int',
-                                'data_type' => [
-                                    'base' => [
-                                        'type' => BaseType::NUMERIC,
+        $jobConfiguration = new JobConfiguration(
+            storage: new Storage(
+                output: new Output(
+                    tables: new TablesList([
+                        [
+                            'source' => 'typed-data.csv',
+                            'destination' => $tableId,
+                            'schema' => [
+                                [
+                                    'name' => 'int',
+                                    'data_type' => [
+                                        'base' => [
+                                            'type' => BaseType::NUMERIC,
+                                        ],
+                                    ],
+                                    'primary_key' => true,
+                                    'nullable' => false,
+                                ],
+                                [
+                                    'name' => 'string',
+                                    'data_type' => [
+                                        'base' => [
+                                            'type' => BaseType::STRING,
+                                            'length' => '17',
+                                        ],
+                                    ],
+                                    'nullable' => false,
+                                ],
+                                [
+                                    'name' => 'decimal',
+                                    'data_type' => [
+                                        'base' => [
+                                            'type' => BaseType::NUMERIC,
+                                            'length' => '10,2',
+                                        ],
                                     ],
                                 ],
-                                'primary_key' => true,
-                                'nullable' => false,
-                            ],
-                            [
-                                'name' => 'string',
-                                'data_type' => [
-                                    'base' => [
-                                        'type' => BaseType::STRING,
-                                        'length' => '17',
+                                [
+                                    'name' => 'float',
+                                    'data_type' => [
+                                        'base' => [
+                                            'type' => BaseType::FLOAT,
+                                        ],
                                     ],
                                 ],
-                                'nullable' => false,
-                            ],
-                            [
-                                'name' => 'decimal',
-                                'data_type' => [
-                                    'base' => [
-                                        'type' => BaseType::NUMERIC,
-                                        'length' => '10,2',
+                                [
+                                    'name' => 'bool',
+                                    'data_type' => [
+                                        'base' => [
+                                            'type' => BaseType::BOOLEAN,
+                                        ],
                                     ],
                                 ],
-                            ],
-                            [
-                                'name' => 'float',
-                                'data_type' => [
-                                    'base' => [
-                                        'type' => BaseType::FLOAT,
+                                [
+                                    'name' => 'date',
+                                    'data_type' => [
+                                        'base' => [
+                                            'type' => BaseType::DATE,
+                                        ],
                                     ],
                                 ],
-                            ],
-                            [
-                                'name' => 'bool',
-                                'data_type' => [
-                                    'base' => [
-                                        'type' => BaseType::BOOLEAN,
-                                    ],
-                                ],
-                            ],
-                            [
-                                'name' => 'date',
-                                'data_type' => [
-                                    'base' => [
-                                        'type' => BaseType::DATE,
-                                    ],
-                                ],
-                            ],
-                            [
-                                'name' => 'timestamp',
-                                'data_type' => [
-                                    'base' => [
-                                        'type' => BaseType::TIMESTAMP,
+                                [
+                                    'name' => 'timestamp',
+                                    'data_type' => [
+                                        'base' => [
+                                            'type' => BaseType::TIMESTAMP,
+                                        ],
                                     ],
                                 ],
                             ],
                         ],
-                    ],
-                ]),
+                    ]),
+                ),
             ),
         );
         $dataLoader = $this->getOutputDataLoader($component, $this->clientWrapper);
         $tableQueue = $dataLoader->storeOutput(
             $component,
-            new JobConfiguration(
-                storage: $storage,
-            ),
+            $jobConfiguration,
             null,
             null,
             'testConfig',
@@ -600,52 +599,52 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
                 'dataTypesSupport' => 'hints',
             ],
         ]);
-        $storage = new Storage(
-            output: new Output(
-                tables: new TablesList([
-                    [
-                        'source' => 'typed-data.csv',
-                        'destination' => $tableId,
-                        'schema' => [
-                            [
-                                'name' => 'int',
-                                'data_type' => [
-                                    'base' => [
-                                        'type' => BaseType::NUMERIC,
+        $jobConfiguration = new JobConfiguration(
+            storage: new Storage(
+                output: new Output(
+                    tables: new TablesList([
+                        [
+                            'source' => 'typed-data.csv',
+                            'destination' => $tableId,
+                            'schema' => [
+                                [
+                                    'name' => 'int',
+                                    'data_type' => [
+                                        'base' => [
+                                            'type' => BaseType::NUMERIC,
+                                        ],
+                                    ],
+                                    'primary_key' => true,
+                                ],
+                                [
+                                    'name' => 'string',
+                                    'data_type' => [
+                                        'base' => [
+                                            'type' => BaseType::STRING,
+                                            'length' => '17',
+                                        ],
                                     ],
                                 ],
-                                'primary_key' => true,
-                            ],
-                            [
-                                'name' => 'string',
-                                'data_type' => [
-                                    'base' => [
-                                        'type' => BaseType::STRING,
-                                        'length' => '17',
-                                    ],
-                                ],
-                            ],
-                            [
-                                'name' => 'decimal',
-                                'data_type' => [
-                                    'base' => [
-                                        'type' => BaseType::NUMERIC,
-                                        'length' => '10,2',
+                                [
+                                    'name' => 'decimal',
+                                    'data_type' => [
+                                        'base' => [
+                                            'type' => BaseType::NUMERIC,
+                                            'length' => '10,2',
+                                        ],
                                     ],
                                 ],
                             ],
                         ],
-                    ],
-                ]),
+                    ]),
+                ),
             ),
         );
 
         $dataLoader = $this->getOutputDataLoader($component, $this->clientWrapper);
         $tableQueue = $dataLoader->storeOutput(
             $component,
-            new JobConfiguration(
-                storage: $storage,
-            ),
+            $jobConfiguration,
             null,
             null,
             'testConfig',
@@ -751,54 +750,54 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
                 ],
             ],
         ]);
-        $storage = new Storage(
-            output: new Output(
-                tables: new TablesList([
-                    [
-                        'source' => 'typed-data.csv',
-                        'destination' => $tableId,
-                        'description' => 'table description',
-                        'table_metadata' => [
-                            'key1' => 'value1',
-                            'key2' => 'value2',
-                        ],
-                        'schema' => [
-                            [
-                                'name' => 'int',
-                                'data_type' => [
-                                    'base' => [
-                                        'type' => BaseType::NUMERIC,
+        $jobConfiguration = new JobConfiguration(
+            storage: new Storage(
+                output: new Output(
+                    tables: new TablesList([
+                        [
+                            'source' => 'typed-data.csv',
+                            'destination' => $tableId,
+                            'description' => 'table description',
+                            'table_metadata' => [
+                                'key1' => 'value1',
+                                'key2' => 'value2',
+                            ],
+                            'schema' => [
+                                [
+                                    'name' => 'int',
+                                    'data_type' => [
+                                        'base' => [
+                                            'type' => BaseType::NUMERIC,
+                                        ],
+                                    ],
+                                    'primary_key' => true,
+                                    'nullable' => false,
+                                    'metadata' => [
+                                        'key1' => 'value1',
+                                        'key2' => 'value2',
                                     ],
                                 ],
-                                'primary_key' => true,
-                                'nullable' => false,
-                                'metadata' => [
-                                    'key1' => 'value1',
-                                    'key2' => 'value2',
-                                ],
-                            ],
-                            [
-                                'name' => 'string',
-                                'data_type' => [
-                                    'base' => [
-                                        'type' => BaseType::STRING,
-                                        'length' => '17',
+                                [
+                                    'name' => 'string',
+                                    'data_type' => [
+                                        'base' => [
+                                            'type' => BaseType::STRING,
+                                            'length' => '17',
+                                        ],
                                     ],
+                                    'description' => 'column description',
+                                    'nullable' => false,
                                 ],
-                                'description' => 'column description',
-                                'nullable' => false,
                             ],
                         ],
-                    ],
-                ]),
+                    ]),
+                ),
             ),
         );
         $dataLoader = $this->getOutputDataLoader($component, $this->clientWrapper);
         $tableQueue = $dataLoader->storeOutput(
             $component,
-            new JobConfiguration(
-                storage: $storage,
-            ),
+            $jobConfiguration,
             null,
             null,
             'testConfig',
@@ -911,71 +910,71 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
                 ],
             ],
         ]);
-        $storage = new Storage(
-            output: new Output(
-                tables: new TablesList([
-                    [
-                        'source' => 'typed-data.csv',
-                        'destination' => $tableId,
-                        'description' => 'table description',
-                        'table_metadata' => [
-                            'key1' => 'value1',
-                            'key2' => 'value2',
+        $jobConfiguration = new JobConfiguration(
+            storage: new Storage(
+                output: new Output(
+                    tables: new TablesList([
+                        [
+                            'source' => 'typed-data.csv',
+                            'destination' => $tableId,
+                            'description' => 'table description',
+                            'table_metadata' => [
+                                'key1' => 'value1',
+                                'key2' => 'value2',
+                            ],
+                            'schema' => [
+                                [
+                                    'name' => 'Id',
+                                    'data_type' => [
+                                        'base' => [
+                                            'type' => BaseType::STRING,
+                                        ],
+                                    ],
+                                    'primary_key' => false,
+                                    'nullable' => false,
+                                ],
+                                [
+                                    'name' => 'Name',
+                                    'data_type' => [
+                                        'base' => [
+                                            'type' => BaseType::STRING,
+                                            'length' => '255',
+                                        ],
+                                    ],
+                                    'primary_key' => true,
+                                    'nullable' => false,
+                                ],
+                                [
+                                    'name' => 'foo',
+                                    'data_type' => [
+                                        'base' => [
+                                            'type' => BaseType::STRING,
+                                            'length' => '500',
+                                        ],
+                                    ],
+                                    'primary_key' => true,
+                                    'nullable' => false,
+                                ],
+                                [
+                                    'name' => 'New Column',
+                                    'data_type' => [
+                                        'base' => [
+                                            'type' => BaseType::STRING,
+                                            'length' => '255',
+                                        ],
+                                    ],
+                                    'nullable' => false,
+                                ],
+                            ],
                         ],
-                        'schema' => [
-                            [
-                                'name' => 'Id',
-                                'data_type' => [
-                                    'base' => [
-                                        'type' => BaseType::STRING,
-                                    ],
-                                ],
-                                'primary_key' => false,
-                                'nullable' => false,
-                            ],
-                            [
-                                'name' => 'Name',
-                                'data_type' => [
-                                    'base' => [
-                                        'type' => BaseType::STRING,
-                                        'length' => '255',
-                                    ],
-                                ],
-                                'primary_key' => true,
-                                'nullable' => false,
-                            ],
-                            [
-                                'name' => 'foo',
-                                'data_type' => [
-                                    'base' => [
-                                        'type' => BaseType::STRING,
-                                        'length' => '500',
-                                    ],
-                                ],
-                                'primary_key' => true,
-                                'nullable' => false,
-                            ],
-                            [
-                                'name' => 'New Column',
-                                'data_type' => [
-                                    'base' => [
-                                        'type' => BaseType::STRING,
-                                        'length' => '255',
-                                    ],
-                                ],
-                                'nullable' => false,
-                            ],
-                        ],
-                    ],
-                ]),
+                    ]),
+                ),
             ),
         );
         $dataLoader = $this->getOutputDataLoader($component, $this->clientWrapper);
         $tableQueue = $dataLoader->storeOutput(
             $component,
-            new JobConfiguration(
-                storage: $storage,
-            ),
+            $jobConfiguration,
             null,
             null,
             'testConfig',
@@ -1053,62 +1052,62 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
                 ],
             ],
         ]);
-        $storage = new Storage(
-            output: new Output(
-                tables: new TablesList([
-                    [
-                        'source' => 'typed-data.csv',
-                        'destination' => $bucketId . '.typed-test',
-                        'description' => 'table description',
-                        'table_metadata' => [
-                            'key1' => 'value1',
-                            'key2' => 'value2',
+        $jobConfiguration = new JobConfiguration(
+            storage: new Storage(
+                output: new Output(
+                    tables: new TablesList([
+                        [
+                            'source' => 'typed-data.csv',
+                            'destination' => $bucketId . '.typed-test',
+                            'description' => 'table description',
+                            'table_metadata' => [
+                                'key1' => 'value1',
+                                'key2' => 'value2',
+                            ],
+                            'schema' => [
+                                [
+                                    'name' => 'varchar',
+                                    'data_type' => [
+                                        'base' => [
+                                            'type' => BaseType::STRING,
+                                        ],
+                                        'snowflake' => [
+                                            'type' => Snowflake::TYPE_NVARCHAR2,
+                                        ],
+                                    ],
+                                ],
+                                [
+                                    'name' => 'number',
+                                    'data_type' => [
+                                        'base' => [
+                                            'type' => BaseType::INTEGER,
+                                        ],
+                                        'snowflake' => [
+                                            'type' => Snowflake::TYPE_INTEGER,
+                                        ],
+                                    ],
+                                ],
+                                [
+                                    'name' => 'float',
+                                    'data_type' => [
+                                        'base' => [
+                                            'type' => BaseType::FLOAT,
+                                        ],
+                                        'snowflake' => [
+                                            'type' => Snowflake::TYPE_DOUBLE,
+                                        ],
+                                    ],
+                                ],
+                            ],
                         ],
-                        'schema' => [
-                            [
-                                'name' => 'varchar',
-                                'data_type' => [
-                                    'base' => [
-                                        'type' => BaseType::STRING,
-                                    ],
-                                    'snowflake' => [
-                                        'type' => Snowflake::TYPE_NVARCHAR2,
-                                    ],
-                                ],
-                            ],
-                            [
-                                'name' => 'number',
-                                'data_type' => [
-                                    'base' => [
-                                        'type' => BaseType::INTEGER,
-                                    ],
-                                    'snowflake' => [
-                                        'type' => Snowflake::TYPE_INTEGER,
-                                    ],
-                                ],
-                            ],
-                            [
-                                'name' => 'float',
-                                'data_type' => [
-                                    'base' => [
-                                        'type' => BaseType::FLOAT,
-                                    ],
-                                    'snowflake' => [
-                                        'type' => Snowflake::TYPE_DOUBLE,
-                                    ],
-                                ],
-                            ],
-                        ],
-                    ],
-                ]),
+                    ]),
+                ),
             ),
         );
         $dataLoader = $this->getOutputDataLoader($component, $this->clientWrapper);
         $tableQueue = $dataLoader->storeOutput(
             $component,
-            new JobConfiguration(
-                storage: $storage,
-            ),
+            $jobConfiguration,
             null,
             null,
             'testConfig',
