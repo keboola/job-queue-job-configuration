@@ -107,9 +107,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         self::assertNotNull($tableQueue);
 
         $tableQueue->waitForAll();
-        $legacyPrefixDisabled = $this->clientWrapper
-            ->getToken()
-            ->hasFeature('disable-legacy-bucket-prefix');
         self::assertFalse($this->clientWrapper->getBasicClient()->tableExists(
             $component->getDefaultBucketName('testConfig') . '.sliced',
         ),);
