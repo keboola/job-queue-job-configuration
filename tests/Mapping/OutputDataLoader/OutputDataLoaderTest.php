@@ -75,21 +75,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
 
     public function testExecutorDefaultBucketOverride(): void
     {
-        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'test-override', 'in');
-        if ($bucketId) {
-            try {
-                $this->clientWrapper->getBasicClient()->dropBucket(
-                    $bucketId,
-                    ['force' => true, 'async' => true],
-                );
-            } catch (ClientException $e) {
-                if ($e->getCode() !== 404) {
-                    throw $e;
-                }
-            }
-        }
-
-        $bucketId = $this->clientWrapper->getBasicClient()->createBucket('test-override', 'in');
+        $bucketId = self::dropAndCreateBucket($this->clientWrapper, 'test-override', 'in');
 
         $fs = new Filesystem();
         $fs->dumpFile(

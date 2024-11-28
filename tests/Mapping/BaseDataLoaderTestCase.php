@@ -168,6 +168,26 @@ abstract class BaseDataLoaderTestCase extends TestCase
         return null;
     }
 
+    /**
+     * Drop existing bucket with the same name and create a new one.
+     * @return string Bucket ID
+     */
+    protected static function dropAndCreateBucket(
+        ClientWrapper $clientWrapper,
+        string $bucketDisplayName,
+        string $stage,
+    ): string {
+        $storageApiClient = $clientWrapper->getBasicClient();
+
+        foreach ($storageApiClient->listBuckets() as $bucket) {
+            if ($bucket['displayName'] === $bucketDisplayName && $bucket['stage'] === $stage) {
+                $storageApiClient->dropBucket($bucket['id'], ['async' => true, 'force' => true]);
+            }
+        }
+
+        return $storageApiClient->createBucket($bucketDisplayName, $stage, static::class);
+    }
+
     private function getClientWrapperForGCPProject(bool $useMasterToken = false): ClientWrapper
     {
         $token = $useMasterToken

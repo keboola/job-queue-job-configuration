@@ -22,8 +22,7 @@ class ABSInputDataLoaderTest extends BaseInputDataLoaderTestCase
 
     public function testLoadInputData(): void
     {
-        $this->clientWrapper->getBasicClient()->createBucket($this->getResourceName(), 'in');
-        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, $this->getResourceName(), 'in');
+        $bucketId = self::dropAndCreateBucket($this->clientWrapper, $this->getResourceName(), 'in');
 
         $jobConfiguration = new JobConfiguration(
             storage: new Storage(
