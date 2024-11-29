@@ -47,7 +47,15 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             $this->getDataDirPath() . '/out/tables/sliced.csv.manifest',
             (string) json_encode(['destination' => 'sliced']),
         );
+
         $component = $this->getComponentWithDefaultBucket();
+        self::dropDefaultBucket(
+            clientWrapper: $this->clientWrapper,
+            stage: 'in',
+            component: $component,
+            configId: 'testConfig',
+        );
+
         $dataLoader = $this->getOutputDataLoader($component);
         $tableQueue = $dataLoader->storeOutput(
             $component,
@@ -63,7 +71,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $tableQueue->waitForAll();
         $bucketId = self::getBucketIdByDisplayName(
             clientWrapper: $this->clientWrapper,
-            bucketDisplayName: $this->getResourceName(),
+            bucketDisplayName: 'docker-demo-testConfig',
             stage: 'in',
         );
         self::assertTrue(
@@ -75,6 +83,13 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
 
     public function testExecutorDefaultBucketOverride(): void
     {
+        $component = $this->getComponentWithDefaultBucket();
+        self::dropDefaultBucket(
+            clientWrapper: $this->clientWrapper,
+            stage: 'in',
+            component: $component,
+            configId: 'testConfig',
+        );
         $bucketId = self::dropAndCreateBucket($this->clientWrapper, 'test-override', 'in');
 
         $fs = new Filesystem();
@@ -86,7 +101,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             $this->getDataDirPath() . '/out/tables/sliced.csv.manifest',
             (string) json_encode(['destination' => 'sliced']),
         );
-        $component = $this->getComponentWithDefaultBucket();
         $dataLoader = $this->getOutputDataLoader($component);
         $tableQueue = $dataLoader->storeOutput(
             $component,
@@ -109,15 +123,10 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $tableQueue->waitForAll();
         self::assertFalse($this->clientWrapper->getBasicClient()->tableExists(
             $component->getDefaultBucketName('testConfig') . '.sliced',
-        ),);
+        ));
         self::assertTrue($this->clientWrapper->getBasicClient()->tableExists($bucketId . '.sliced'));
         self::assertEquals([], $dataLoader->getWorkspaceCredentials());
         self::assertNull($dataLoader->getWorkspaceBackendSize());
-
-        $this->clientWrapper->getBasicClient()->dropBucket(
-            $bucketId,
-            ['force' => true, 'async' => true],
-        );
     }
 
     public function testNoConfigDefaultBucketException(): void
@@ -125,6 +134,12 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $this->expectException(UserException::class);
         $this->expectExceptionMessage('Configuration ID not set');
         $component = $this->getComponentWithDefaultBucket();
+        self::dropDefaultBucket(
+            clientWrapper: $this->clientWrapper,
+            stage: 'in',
+            component: $component,
+            configId: 'testConfig',
+        );
         $dataLoader = $this->getOutputDataLoader($component);
         $dataLoader->storeOutput(
             $component,

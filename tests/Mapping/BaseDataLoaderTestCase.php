@@ -169,6 +169,23 @@ abstract class BaseDataLoaderTestCase extends TestCase
     }
 
     /**
+     * Drop existing component's default bucket with the same name and create a new one.
+     * @return string Bucket ID
+     */
+    protected static function dropAndCreateDefaultBucket(
+        ClientWrapper $clientWrapper,
+        string $stage,
+        ComponentSpecification $component,
+        string $configId,
+    ): string {
+        return self::dropAndCreateBucket(
+            $clientWrapper,
+            $component->getDefaultBucketName($configId),
+            $stage,
+        );
+    }
+
+    /**
      * Drop existing bucket with the same name and create a new one.
      * @return string Bucket ID
      */
@@ -186,6 +203,39 @@ abstract class BaseDataLoaderTestCase extends TestCase
         }
 
         return $storageApiClient->createBucket($bucketDisplayName, $stage, static::class);
+    }
+
+    /**
+     * Drop existing bucket with the same name.
+     */
+    protected static function dropBucket(
+        ClientWrapper $clientWrapper,
+        string $bucketDisplayName,
+        string $stage,
+    ): void {
+        $storageApiClient = $clientWrapper->getBasicClient();
+
+        foreach ($storageApiClient->listBuckets() as $bucket) {
+            if ($bucket['displayName'] === $bucketDisplayName && $bucket['stage'] === $stage) {
+                $storageApiClient->dropBucket($bucket['id'], ['async' => true, 'force' => true]);
+            }
+        }
+    }
+
+    /**
+     * Drop existing component's default bucket with the same name.
+     */
+    protected static function dropDefaultBucket(
+        ClientWrapper $clientWrapper,
+        string $stage,
+        ComponentSpecification $component,
+        string $configId,
+    ): void {
+        self::dropBucket(
+            $clientWrapper,
+            $component->getDefaultBucketName($configId),
+            $stage,
+        );
     }
 
     private function getClientWrapperForGCPProject(bool $useMasterToken = false): ClientWrapper

@@ -50,7 +50,15 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
             $this->getDataDirPath() . '/out/tables/sliced.csv.manifest',
             (string) json_encode(['destination' => 'sliced']),
         );
+
         $component = $this->getComponentWithDefaultBucket();
+        self::dropDefaultBucket(
+            clientWrapper: $this->clientWrapper,
+            stage: 'in',
+            component: $component,
+            configId: 'testConfig',
+        );
+
         $dataLoader = $this->getOutputDataLoader($component);
         $tableQueue = $dataLoader->storeOutput(
             $component,
@@ -64,7 +72,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
-        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, $this->getResourceName(), 'in');
+        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig', 'in');
         self::assertNotNull($bucketId);
 
         $bucketMetadata = $this->metadata->listBucketMetadata($bucketId);
@@ -132,6 +140,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         );
 
         $branchId = $this->createBranch($this->clientWrapper->getBasicClient(), 'test-branch');
+        $branchBucketName = sprintf('%s-%s', $branchId, 'docker-demo-testConfig');
         $clientWrapper = new ClientWrapper(
             new ClientOptions(
                 (string) getenv('STORAGE_API_URL'),
@@ -139,7 +148,13 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
                 (string) $branchId,
             ),
         );
+
         $component = $this->getComponentWithDefaultBucket();
+        $bucketId = self::getBucketIdByDisplayName($clientWrapper, $branchBucketName, 'in');
+        if ($bucketId !== null) {
+            $clientWrapper->getBasicClient()->dropBucket($bucketId);
+        }
+
         $dataLoader = $this->getOutputDataLoader($component, $clientWrapper);
         $tableQueue = $dataLoader->storeOutput(
             $component,
@@ -153,7 +168,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
-        $branchBucketName = sprintf('%s-%s', $branchId, $this->getResourceName());
         $bucketId = self::getBucketIdByDisplayName($clientWrapper, $branchBucketName, 'in');
         self::assertNotNull($bucketId);
         $bucketMetadata = $this->metadata->listBucketMetadata($bucketId);
@@ -194,7 +208,15 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
             $this->getDataDirPath() . '/out/tables/sliced.csv.manifest',
             (string) json_encode(['destination' => 'sliced']),
         );
+
         $component = $this->getComponentWithDefaultBucket();
+        self::dropDefaultBucket(
+            clientWrapper: $this->clientWrapper,
+            stage: 'in',
+            component: $component,
+            configId: 'testConfig',
+        );
+
         $dataLoader = $this->getOutputDataLoader($component);
         $tableQueue = $dataLoader->storeOutput(
             $component,
@@ -208,7 +230,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
-        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, $this->getResourceName(), 'in');
+        $bucketId = self::getBucketIdByDisplayName($this->clientWrapper, 'docker-demo-testConfig', 'in');
         self::assertNotNull($bucketId);
         $bucketMetadata = $this->metadata->listBucketMetadata($bucketId);
         $expectedBucketMetadata = [
@@ -316,6 +338,12 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
             ),
         );
         $component = $this->getComponentWithDefaultBucket();
+        self::dropDefaultBucket(
+            clientWrapper: $this->clientWrapper,
+            stage: 'in',
+            component: $component,
+            configId: 'testConfig',
+        );
         $dataLoader = $this->getOutputDataLoader($component);
         $tableQueue = $dataLoader->storeOutput(
             $component,
@@ -398,6 +426,12 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         JSON;
         $fs->dumpFile($this->getDataDirPath() . '/out/tables/sliced.csv.manifest', $manifest);
         $component = $this->getComponentWithDefaultBucket();
+        self::dropDefaultBucket(
+            clientWrapper: $this->clientWrapper,
+            stage: 'in',
+            component: $component,
+            configId: 'testConfig',
+        );
         $dataLoader = $this->getOutputDataLoader($component);
         $tableQueue = $dataLoader->storeOutput(
             $component,
@@ -493,6 +527,13 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         );
 
         $component = $this->getComponentWithDefaultBucket();
+        self::dropDefaultBucket(
+            clientWrapper: $this->clientWrapper,
+            stage: 'in',
+            component: $component,
+            configId: 'testConfig',
+        );
+
         $dataLoader = $this->getOutputDataLoader($component);
         $tableQueue = $dataLoader->storeOutput(
             $component,
