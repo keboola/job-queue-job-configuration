@@ -84,6 +84,9 @@ class ComponentSpecification
         return !empty($this->data['default_bucket']);
     }
 
+    /**
+     * Returns component default bucket ID (not bucket name!) for given config
+     */
     public function getDefaultBucketName(string $configId): string
     {
         return $this->data['default_bucket_stage'] . '.c-' . $this->getSanitizedComponentId() . '-' . $configId;

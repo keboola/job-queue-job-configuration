@@ -54,7 +54,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $component = $this->getComponentWithDefaultBucket();
         self::dropDefaultBucket(
             clientWrapper: $this->clientWrapper,
-            stage: 'in',
             component: $component,
             configId: 'testConfig',
         );
@@ -212,7 +211,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $component = $this->getComponentWithDefaultBucket();
         self::dropDefaultBucket(
             clientWrapper: $this->clientWrapper,
-            stage: 'in',
             component: $component,
             configId: 'testConfig',
         );
@@ -340,7 +338,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $component = $this->getComponentWithDefaultBucket();
         self::dropDefaultBucket(
             clientWrapper: $this->clientWrapper,
-            stage: 'in',
             component: $component,
             configId: 'testConfig',
         );
@@ -428,7 +425,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $component = $this->getComponentWithDefaultBucket();
         self::dropDefaultBucket(
             clientWrapper: $this->clientWrapper,
-            stage: 'in',
             component: $component,
             configId: 'testConfig',
         );
@@ -529,7 +525,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $component = $this->getComponentWithDefaultBucket();
         self::dropDefaultBucket(
             clientWrapper: $this->clientWrapper,
-            stage: 'in',
             component: $component,
             configId: 'testConfig',
         );

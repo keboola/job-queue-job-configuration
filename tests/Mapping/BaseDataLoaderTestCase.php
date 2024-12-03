@@ -208,17 +208,18 @@ abstract class BaseDataLoaderTestCase extends TestCase
     /**
      * Drop existing bucket with the same name.
      */
-    protected static function dropBucket(
-        ClientWrapper $clientWrapper,
-        string $bucketDisplayName,
-        string $stage,
-    ): void {
+    protected static function dropBucket(ClientWrapper $clientWrapper, string $bucketId): void
+    {
         $storageApiClient = $clientWrapper->getBasicClient();
 
-        foreach ($storageApiClient->listBuckets() as $bucket) {
-            if ($bucket['displayName'] === $bucketDisplayName && $bucket['stage'] === $stage) {
-                $storageApiClient->dropBucket($bucket['id'], ['async' => true, 'force' => true]);
+        try {
+            $storageApiClient->dropBucket($bucketId, ['async' => true, 'force' => true]);
+        } catch (ClientException $e) {
+            if ($e->getCode() === 404) {
+                return;
             }
+
+            throw $e;
         }
     }
 
@@ -227,15 +228,10 @@ abstract class BaseDataLoaderTestCase extends TestCase
      */
     protected static function dropDefaultBucket(
         ClientWrapper $clientWrapper,
-        string $stage,
         ComponentSpecification $component,
         string $configId,
     ): void {
-        self::dropBucket(
-            $clientWrapper,
-            $component->getDefaultBucketName($configId),
-            $stage,
-        );
+        self::dropBucket($clientWrapper, $component->getDefaultBucketName($configId));
     }
 
     private function getClientWrapperForGCPProject(bool $useMasterToken = false): ClientWrapper
