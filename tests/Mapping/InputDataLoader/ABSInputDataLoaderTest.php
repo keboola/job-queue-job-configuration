@@ -20,6 +20,18 @@ class ABSInputDataLoaderTest extends BaseInputDataLoaderTestCase
 {
     protected const DEFAULT_PROJECT = 'azure';
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->assertFileBackend('azure', $this->clientWrapper->getBasicClient());
+    }
+
+    protected static function expectedDefaultTableBackend(): string
+    {
+        return 'snowflake';
+    }
+
     public function testLoadInputData(): void
     {
         $bucketId = self::dropAndCreateBucket($this->clientWrapper, $this->getResourceName(), 'in');

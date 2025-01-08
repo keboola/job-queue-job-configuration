@@ -18,6 +18,11 @@ use Psr\Log\NullLogger;
 
 abstract class BaseOutputDataLoaderTestCase extends BaseDataLoaderTestCase
 {
+    protected static function expectedDefaultTableBackend(): string
+    {
+        return 'snowflake';
+    }
+
     protected function getOutputDataLoader(
         ComponentSpecification $component,
         ?ClientWrapper $clientWrapper = null,

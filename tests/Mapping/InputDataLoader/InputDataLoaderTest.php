@@ -19,6 +19,11 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class InputDataLoaderTest extends BaseInputDataLoaderTestCase
 {
+    protected static function expectedDefaultTableBackend(): string
+    {
+        return 'snowflake';
+    }
+
     public function testBranchMappingDisabled(): void
     {
         $bucketId = $this->clientWrapper->getBasicClient()->createBucket($this->getResourceName(), 'in');

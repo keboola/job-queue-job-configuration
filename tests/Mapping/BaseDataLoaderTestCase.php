@@ -9,6 +9,7 @@ use Keboola\InputMapping\Staging\StrategyFactory as InputStrategyFactory;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceCleaner;
 use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceProviderFactoryFactory;
+use Keboola\JobQueue\JobConfiguration\Tests\BackendAssertsTrait;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseAzureProject;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseGCPProject;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseSnowflakeProject;
@@ -30,6 +31,8 @@ use Symfony\Component\Filesystem\Filesystem;
 
 abstract class BaseDataLoaderTestCase extends TestCase
 {
+    use BackendAssertsTrait;
+
     private const DEFAULT_COMPONENT_STAGING_STORAGE_TYPE = 'local';
     protected const COMPONENT_ID = 'docker-demo';
     protected const DEFAULT_PROJECT = 'snowflake';
@@ -37,11 +40,14 @@ abstract class BaseDataLoaderTestCase extends TestCase
     private string $workingDirPath;
     protected ClientWrapper $clientWrapper;
 
+    abstract protected static function expectedDefaultTableBackend(): string;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->initClientWrapper();
+        $this->assertDefaultTableBackend(static::expectedDefaultTableBackend(), $this->clientWrapper->getBasicClient());
         $this->prepareWorkingDir();
         $this->cleanupBucketAndFiles();
     }

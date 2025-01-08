@@ -27,6 +27,11 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $this->metadata = new Metadata($this->clientWrapper->getBasicClient());
     }
 
+    protected static function expectedDefaultTableBackend(): string
+    {
+        return 'snowflake';
+    }
+
     /**
      * Transform metadata into a key-value array
      */
