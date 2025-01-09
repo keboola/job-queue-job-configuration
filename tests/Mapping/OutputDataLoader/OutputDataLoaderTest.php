@@ -36,6 +36,11 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
 {
+    protected static function expectedDefaultTableBackend(): string
+    {
+        return 'snowflake';
+    }
+
     public function testExecutorDefaultBucket(): void
     {
         $fs = new Filesystem();

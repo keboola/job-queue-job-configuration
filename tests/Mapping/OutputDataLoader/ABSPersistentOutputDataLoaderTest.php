@@ -33,6 +33,13 @@ class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->assertFileBackend('azure', $this->clientWrapper->getBasicClient());
+    }
+
+    protected static function expectedDefaultTableBackend(): string
+    {
+        return 'snowflake';
     }
 
     public function testAbsWorkspaceNoConfig(): void

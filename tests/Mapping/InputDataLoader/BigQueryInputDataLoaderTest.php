@@ -24,6 +24,11 @@ class BigQueryInputDataLoaderTest extends BaseInputDataLoaderTestCase
     protected const COMPONENT_ID = 'keboola.runner-workspace-bigquery-test';
     protected const DEFAULT_PROJECT = 'gcp';
 
+    protected static function expectedDefaultTableBackend(): string
+    {
+        return 'bigquery';
+    }
+
     public function testWorkspaceBigQueryNoPreserve(): void
     {
         $bucketId = $this->clientWrapper->getBasicClient()->createBucket(

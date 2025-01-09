@@ -18,6 +18,13 @@ class S3InputDataLoaderTest extends BaseInputDataLoaderTestCase
     public function setUp(): void
     {
         parent::setUp();
+
+        $this->assertFileBackend('aws', $this->clientWrapper->getBasicClient());
+    }
+
+    protected static function expectedDefaultTableBackend(): string
+    {
+        return 'snowflake';
     }
 
     private function getS3StagingComponent(): ComponentSpecification

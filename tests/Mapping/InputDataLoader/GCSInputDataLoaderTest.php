@@ -20,6 +20,18 @@ class GCSInputDataLoaderTest extends BaseInputDataLoaderTestCase
 {
     protected const DEFAULT_PROJECT = 'gcp';
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->assertFileBackend('gcp', $this->clientWrapper->getBasicClient());
+    }
+
+    protected static function expectedDefaultTableBackend(): string
+    {
+        return 'bigquery';
+    }
+
     public function testLoadInputData(): void
     {
         $bucketId = self::dropAndCreateBucket($this->clientWrapper, $this->getResourceName(), 'in');
