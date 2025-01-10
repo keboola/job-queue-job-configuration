@@ -24,6 +24,7 @@ use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\Temp\Temp;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use ReflectionClass;
 use RuntimeException;
@@ -337,6 +338,7 @@ abstract class BaseDataLoaderTestCase extends TestCase
         ?ClientWrapper $clientWrapper,
         ?string $configId,
         ComponentSpecification $component,
+        LoggerInterface $logger = new NullLogger(),
     ): WorkspaceCleaner {
         $clientWrapper = $clientWrapper ?? $this->clientWrapper;
 
@@ -346,7 +348,7 @@ abstract class BaseDataLoaderTestCase extends TestCase
         $workspaceProviderFactoryFactory = new WorkspaceProviderFactoryFactory(
             componentsApiClient: $componentsApi,
             workspacesApiClient: $workspacesApi,
-            logger: new NullLogger(),
+            logger: $logger,
         );
 
         assert($configId !== '');
@@ -360,7 +362,7 @@ abstract class BaseDataLoaderTestCase extends TestCase
 
         $outputStrategyFactory = new OutputStrategyFactory(
             clientWrapper: $this->clientWrapper,
-            logger: new NullLogger(),
+            logger: $logger,
             format: 'json',
         );
 
@@ -377,7 +379,7 @@ abstract class BaseDataLoaderTestCase extends TestCase
 
         $inputStrategyFactory = new InputStrategyFactory(
             clientWrapper: $this->clientWrapper,
-            logger: new NullLogger(),
+            logger: $logger,
             format: 'json',
         );
 
@@ -395,7 +397,7 @@ abstract class BaseDataLoaderTestCase extends TestCase
         return new WorkspaceCleaner(
             outputStrategyFactory: $outputStrategyFactory,
             inputStrategyFactory: $inputStrategyFactory,
-            logger: new NullLogger(),
+            logger: $logger,
         );
     }
 }
