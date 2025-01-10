@@ -293,6 +293,20 @@ abstract class BaseDataLoaderTestCase extends TestCase
         );
     }
 
+    private function getClientWrapperForRedshiftProject(bool $useMasterToken = false): ClientWrapper
+    {
+        $token = $useMasterToken
+            ? getenv('TEST_STORAGE_API_TOKEN_MASTER_REDSHIFT')
+            : getenv('TEST_STORAGE_API_TOKEN_REDSHIFT');
+
+        return new ClientWrapper(
+            new ClientOptions(
+                (string) getenv('STORAGE_API_URL__REDSHIFT'),
+                (string) $token,
+            ),
+        );
+    }
+
     protected function getResourceName(): string
     {
         $name = $this->name();
@@ -312,6 +326,7 @@ abstract class BaseDataLoaderTestCase extends TestCase
         $this->clientWrapper = match (static::DEFAULT_PROJECT) {
             'gcp' => $this->getClientWrapperForGCPProject(),
             'azure' => $this->getClientWrapperForAzureProject(),
+            'redshift' => $this->getClientWrapperForRedshiftProject(),
             default => $this->getClientWrapperForSnowflakeProject(),
         };
 
