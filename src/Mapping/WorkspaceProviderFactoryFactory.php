@@ -14,6 +14,7 @@ use Keboola\StagingProvider\WorkspaceProviderFactory\AbstractCachedWorkspaceProv
 use Keboola\StagingProvider\WorkspaceProviderFactory\ComponentWorkspaceProviderFactory;
 use Keboola\StagingProvider\WorkspaceProviderFactory\Configuration\WorkspaceBackendConfig;
 use Keboola\StagingProvider\WorkspaceProviderFactory\Credentials\ABSWorkspaceCredentials;
+use Keboola\StagingProvider\WorkspaceProviderFactory\Credentials\DatabaseWorkspaceCredentials;
 use Keboola\StagingProvider\WorkspaceProviderFactory\ExistingDatabaseWorkspaceProviderFactory;
 use Keboola\StagingProvider\WorkspaceProviderFactory\ExistingFilesystemWorkspaceProviderFactory;
 use Keboola\StorageApi\Components;
@@ -86,11 +87,13 @@ class WorkspaceProviderFactoryFactory
                 true,
             );
             $workspaceId = (string) $workspace['id'];
-            $password = $workspace['connection']['password'];
+            $workspaceCredentials = DatabaseWorkspaceCredentials::fromPasswordResetArray($workspace['connection']);
             $this->logger->info(sprintf('Created a new persistent workspace "%s".', $workspaceId));
         } elseif (count($workspaces) === 1) {
             $workspaceId = (string) $workspaces[0]['id'];
-            $password = $this->workspacesApiClient->resetWorkspacePassword((int) $workspaceId)['password'];
+            $workspaceCredentials = DatabaseWorkspaceCredentials::fromPasswordResetArray(
+                $this->workspacesApiClient->resetWorkspacePassword((int) $workspaceId),
+            );
             $this->logger->info(sprintf('Reusing persistent workspace "%s".', $workspaceId));
         } else {
             $ids = array_column($workspaces, 'id');
@@ -104,12 +107,14 @@ class WorkspaceProviderFactoryFactory
                 $component->getId(),
                 $workspaceId,
             ));
-            $password = $this->workspacesApiClient->resetWorkspacePassword((int) $workspaceId)['password'];
+            $workspaceCredentials = DatabaseWorkspaceCredentials::fromPasswordResetArray(
+                $this->workspacesApiClient->resetWorkspacePassword((int) $workspaceId),
+            );
         }
         return new ExistingDatabaseWorkspaceProviderFactory(
             $this->workspacesApiClient,
             $workspaceId,
-            $password,
+            $workspaceCredentials,
         );
     }
 
