@@ -29,6 +29,7 @@
       <exclude>tests/Mapping/OutputDataLoader/ABSPersistentOutputDataLoaderTest.php</exclude>
       <exclude>tests/Mapping/OutputDataLoader/OutputDataLoaderMetadataTest.php</exclude>
       <exclude>tests/Mapping/OutputDataLoader/OutputDataLoaderTest.php</exclude>
+      <exclude>tests/Mapping/OutputDataLoader/RedshiftPersistentOutputDataLoaderTest.php</exclude>
     </testsuite>
     <testsuite name="mapping-general">
       <file>tests/Mapping/InputDataLoader/InputDataLoaderTest.php</file>
@@ -47,6 +48,9 @@
     </testsuite>
     <testsuite name="mapping-s3">
       <file>tests/Mapping/InputDataLoader/S3InputDataLoaderTest.php</file>
+    </testsuite>
+    <testsuite name="mapping-redshift">
+        <file>tests/Mapping/OutputDataLoader/RedshiftPersistentOutputDataLoaderTest.php</file>
     </testsuite>
   </testsuites>
   <source>
