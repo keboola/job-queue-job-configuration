@@ -32,6 +32,10 @@ $stackUrlToTokensEnv = [
         'TEST_STORAGE_API_TOKEN_AZURE',
         'TEST_STORAGE_API_TOKEN_MASTER_AZURE',
     ],
+    'STORAGE_API_URL__REDSHIFT' => [
+        'TEST_STORAGE_API_TOKEN_REDSHIFT',
+        'TEST_STORAGE_API_TOKEN_MASTER_REDSHIFT',
+    ],
 ];
 
 foreach ($stackUrlToTokensEnv as $stackUrlEnv => $tokensEnv) {
