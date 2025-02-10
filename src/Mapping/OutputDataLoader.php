@@ -12,10 +12,11 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\Runtim
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Output;
 use Keboola\OutputMapping\DeferredTasks\LoadTableQueue;
 use Keboola\OutputMapping\Exception\InvalidOutputException;
+use Keboola\OutputMapping\OutputMappingSettings;
 use Keboola\OutputMapping\Staging\StrategyFactory as OutputStrategyFactory;
-use Keboola\OutputMapping\Writer\AbstractWriter;
+use Keboola\OutputMapping\SystemMetadata;
+use Keboola\OutputMapping\TableLoader;
 use Keboola\OutputMapping\Writer\FileWriter;
-use Keboola\OutputMapping\Writer\TableWriter;
 use Keboola\StagingProvider\Provider\WorkspaceStagingProvider;
 use Psr\Log\LoggerInterface;
 
@@ -57,18 +58,18 @@ class OutputDataLoader extends BaseDataLoader
         $uploadTablesOptions = ['mapping' => $outputStorageConfig->tables->toArray()];
 
         $commonSystemMetadata = [
-            AbstractWriter::SYSTEM_KEY_COMPONENT_ID => $component->getId(),
-            AbstractWriter::SYSTEM_KEY_CONFIGURATION_ID => $configId,
+            SystemMetadata::SYSTEM_KEY_COMPONENT_ID => $component->getId(),
+            SystemMetadata::SYSTEM_KEY_CONFIGURATION_ID => $configId,
         ];
         if ($configRowId) {
-            $commonSystemMetadata[AbstractWriter::SYSTEM_KEY_CONFIGURATION_ROW_ID] = $configRowId;
+            $commonSystemMetadata[SystemMetadata::SYSTEM_KEY_CONFIGURATION_ROW_ID] = $configRowId;
         }
         $tableSystemMetadata = $fileSystemMetadata = $commonSystemMetadata;
         if ($branchId !== null) {
-            $tableSystemMetadata[AbstractWriter::SYSTEM_KEY_BRANCH_ID] = $branchId;
+            $tableSystemMetadata[SystemMetadata::SYSTEM_KEY_BRANCH_ID] = $branchId;
         }
 
-        $fileSystemMetadata[AbstractWriter::SYSTEM_KEY_RUN_ID] = $runId;
+        $fileSystemMetadata[SystemMetadata::SYSTEM_KEY_RUN_ID] = $runId;
 
         // Get default bucket
         if ($defaultBucketName) {
@@ -78,7 +79,6 @@ class OutputDataLoader extends BaseDataLoader
 
         try {
             $fileWriter = new FileWriter($this->outputStrategyFactory);
-            $fileWriter->setFormat($component->getConfigurationFormat());
             $fileWriter->uploadFiles(
                 $this->dataOutDir . '/files/',
                 ['mapping' => $outputStorageConfig->files->toArray()],
@@ -104,15 +104,25 @@ class OutputDataLoader extends BaseDataLoader
 
                 return null;
             }
-            $tableWriter = new TableWriter($this->outputStrategyFactory);
-            $tableWriter->setFormat($component->getConfigurationFormat());
-            $tableQueue = $tableWriter->uploadTables(
-                $this->dataOutDir . '/tables/',
-                $uploadTablesOptions,
-                $tableSystemMetadata,
-                $component->getOutputStagingStorage(),
-                $isFailedJob,
-                $this->getDataTypeSupport($component, $outputStorageConfig)->value,
+
+            $tableLoader = new TableLoader(
+                logger: $this->outputStrategyFactory->getLogger(),
+                clientWrapper: $this->outputStrategyFactory->getClientWrapper(),
+                strategyFactory: $this->outputStrategyFactory,
+            );
+
+            $mappingSettings = new OutputMappingSettings(
+                configuration: $uploadTablesOptions,
+                sourcePathPrefix: $this->dataOutDir . '/tables/',
+                storageApiToken: $this->outputStrategyFactory->getClientWrapper()->getToken(),
+                isFailedJob: $isFailedJob,
+                dataTypeSupport: $this->getDataTypeSupport($component, $outputStorageConfig)->value,
+            );
+
+            $tableQueue = $tableLoader->uploadTables(
+                outputStaging: $component->getOutputStagingStorage(),
+                configuration: $mappingSettings,
+                systemMetadata: new SystemMetadata($tableSystemMetadata),
             );
 
             if (!$inputStorageConfig->files->isEmpty()) {
