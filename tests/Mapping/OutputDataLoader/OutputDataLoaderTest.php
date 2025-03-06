@@ -330,7 +330,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $workspaces = $workspacesApi->listWorkspaces();
         $readonlyWorkspace = null;
         foreach ($workspaces as $workspace) {
-            if ($workspace['connection']['schema'] === $schemaName) {
+            if (($workspace['connection']['schema'] ?? null) === $schemaName) {
                 $readonlyWorkspace = $workspace;
             }
         }
