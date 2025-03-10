@@ -55,6 +55,7 @@ class JobDefinitionTest extends TestCase
             isDisabled: true,
             configuration: $configuration,
             state: $state,
+            replacedVariablesValues: [],
         );
         self::assertSame($component, $jobDefinition->component);
         self::assertSame($configId, $jobDefinition->configId);
@@ -106,6 +107,7 @@ class JobDefinitionTest extends TestCase
             isDisabled: true,
             configuration: $configuration,
             state: $state,
+            replacedVariablesValues: [],
         );
     }
 }

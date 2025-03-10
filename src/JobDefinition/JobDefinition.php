@@ -16,6 +16,7 @@ readonly class JobDefinition
         public bool $isDisabled,
         public Configuration\Configuration $configuration,
         public State\State $state,
+        public array $replacedVariablesValues,
     ) {
         if (!in_array($this->configVersion, [null, ''], true) && in_array($this->configId, [null, ''], true)) {
             throw new InvalidArgumentException('configVersion cannot be set if configId is empty.');
