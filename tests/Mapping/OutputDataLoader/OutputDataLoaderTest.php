@@ -1167,11 +1167,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $componentsApi->deleteConfiguration($componentId, $configId);
     }
 
-    public function testWorkspaceCleanupWhenInitialized(): void
-    {
-        $this->markTestSkipped('Will be implemented in separate PR, see Jira issue PST-2213');
-    }
-
     public function testWorkspaceCleanupFailure(): void
     {
         $this->markTestSkipped('Will be implemented in separate PR, see Jira issue PST-2213');
