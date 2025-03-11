@@ -16,6 +16,7 @@ use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseSnowflakeProjec
 use Keboola\OutputMapping\Staging\StrategyFactory as OutputStrategyFactory;
 use Keboola\StagingProvider\InputProviderInitializer;
 use Keboola\StagingProvider\OutputProviderInitializer;
+use Keboola\StagingProvider\WorkspaceProviderFactory\AbstractCachedWorkspaceProviderFactory;
 use Keboola\StorageApi\ClientException;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Options\ListFilesOptions;
@@ -353,12 +354,52 @@ abstract class BaseDataLoaderTestCase extends TestCase
         ?ClientWrapper $clientWrapper,
         ?string $configId,
         ComponentSpecification $component,
+        ?AbstractCachedWorkspaceProviderFactory $workspaceProviderFactory = null,
+        ?OutputStrategyFactory $outputStrategyFactory = null,
+        ?InputStrategyFactory $inputStrategyFactory = null,
         LoggerInterface $logger = new NullLogger(),
     ): WorkspaceCleaner {
         $clientWrapper = $clientWrapper ?? $this->clientWrapper;
 
-        $componentsApi = new Components($clientWrapper->getBasicClient());
-        $workspacesApi = new Workspaces($clientWrapper->getBasicClient());
+        $workspaceProviderFactory ??= $this->createWorkspaceProviderFactory(
+            $component,
+            $configId,
+            $clientWrapper,
+            $logger
+        );
+
+        $outputStrategyFactory ??= $this->createOutputStrategyFactory(
+            $component,
+            $clientWrapper,
+            $workspaceProviderFactory,
+            $logger
+        );
+
+        $inputStrategyFactory ??= $this->createInputStrategyFactory(
+            $component,
+            $workspaceProviderFactory,
+            $clientWrapper,
+            $logger,
+        );
+
+        return new WorkspaceCleaner(
+            outputStrategyFactory: $outputStrategyFactory,
+            inputStrategyFactory: $inputStrategyFactory,
+            logger: $logger,
+        );
+    }
+
+    protected function createWorkspaceProviderFactory(
+        ComponentSpecification $component,
+        ?string $configId,
+        ?ClientWrapper $clientWrapper = null,
+        LoggerInterface $logger = new NullLogger(),
+    ): AbstractCachedWorkspaceProviderFactory {
+        assert($configId !== '');
+        $clientWrapper ??= $this->clientWrapper;
+
+        $componentsApi = new Components($clientWrapper->getBranchClient());
+        $workspacesApi = new Workspaces($clientWrapper->getBranchClient());
 
         $workspaceProviderFactoryFactory = new WorkspaceProviderFactoryFactory(
             componentsApiClient: $componentsApi,
@@ -366,17 +407,23 @@ abstract class BaseDataLoaderTestCase extends TestCase
             logger: $logger,
         );
 
-        assert($configId !== '');
-        $workspaceProviderFactory = $workspaceProviderFactoryFactory->getWorkspaceProviderFactory(
+        return $workspaceProviderFactoryFactory->getWorkspaceProviderFactory(
             stagingStorage: $component->getInputStagingStorage(),
             component: $component,
             configId: $configId,
             backendConfig: null,
             useReadonlyRole: false,
         );
+    }
 
+    protected function createOutputStrategyFactory(
+        ComponentSpecification $component,
+        ClientWrapper $clientWrapper,
+        AbstractCachedWorkspaceProviderFactory $workspaceProviderFactory,
+        LoggerInterface $logger,
+    ): OutputStrategyFactory {
         $outputStrategyFactory = new OutputStrategyFactory(
-            clientWrapper: $this->clientWrapper,
+            clientWrapper: $clientWrapper,
             logger: $logger,
             format: 'json',
         );
@@ -391,6 +438,17 @@ abstract class BaseDataLoaderTestCase extends TestCase
             stagingType: $component->getOutputStagingStorage(),
             tokenInfo: $clientWrapper->getToken()->getTokenInfo(),
         );
+
+        return $outputStrategyFactory;
+    }
+
+    protected function createInputStrategyFactory(
+        ComponentSpecification $component,
+        AbstractCachedWorkspaceProviderFactory $workspaceProviderFactory,
+        ?ClientWrapper $clientWrapper = null,
+        LoggerInterface $logger = new NullLogger(),
+    ): InputStrategyFactory {
+        $clientWrapper ??= $this->clientWrapper;
 
         $inputStrategyFactory = new InputStrategyFactory(
             clientWrapper: $this->clientWrapper,
@@ -409,10 +467,6 @@ abstract class BaseDataLoaderTestCase extends TestCase
             tokenInfo: $clientWrapper->getToken()->getTokenInfo(),
         );
 
-        return new WorkspaceCleaner(
-            outputStrategyFactory: $outputStrategyFactory,
-            inputStrategyFactory: $inputStrategyFactory,
-            logger: $logger,
-        );
+        return $inputStrategyFactory;
     }
 }
