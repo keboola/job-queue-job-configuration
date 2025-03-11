@@ -5,11 +5,17 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping;
 
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
+use Keboola\StorageApi\BranchAwareClient;
 use Keboola\StorageApi\Client as StorageApiClient;
 use Keboola\StorageApi\ClientException;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Options\Components\Configuration;
 use Keboola\StorageApi\Options\Components\ListConfigurationWorkspacesOptions;
+use Keboola\StorageApi\Workspaces;
+use Keboola\StorageApiBranch\ClientWrapper;
+use Monolog\Handler\TestHandler;
+use Monolog\Logger;
+use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
 
 class WorkspaceCleanerTest extends BaseDataLoaderTestCase
@@ -79,6 +85,116 @@ class WorkspaceCleanerTest extends BaseDataLoaderTestCase
         self::assertCount(0, $componentsApiClient->listConfigurationWorkspaces($workspaceListOptions));
     }
 
+
+    public static function workspaceCleanupFailureProvider(): iterable
+    {
+        yield 'Bad request' => [
+            'deleteException' => new ClientException('Bad request', 400),
+            'shouldBeLogged' => true,
+        ];
+
+        yield 'Not found' => [
+            'deleteException' => new ClientException('Workspace not found', 404),
+            'shouldBeLogged' => false,
+        ];
+
+        yield 'Unauthorized' => [
+            'deleteException' => new ClientException('Unauthorized', 401),
+            'shouldBeLogged' => true,
+        ];
+    }
+
+    /** @dataProvider workspaceCleanupFailureProvider */
+    public function testWorkspaceCleanupFailure(
+        ClientException $deleteException,
+        bool $shouldBeLogged,
+    ): void {
+        $componentsApiClient = new Components($this->clientWrapper->getBasicClient());
+
+        $componentId = 'keboola.runner-workspace-test';
+        $component = new ComponentSpecification([
+            'id' => $componentId,
+            'data' => [
+                'definition' => [
+                    'type' => 'aws-ecr',
+                    // phpcs:ignore Generic.Files.LineLength.MaxExceeded
+                    'uri' => '147946154733.dkr.ecr.us-east-1.amazonaws.com/developer-portal-v2/keboola.runner-workspace-test',
+                    'tag' => '1.6.2',
+                ],
+                'staging-storage' => [
+                    'input' => 'workspace-snowflake',
+                    'output' => 'workspace-snowflake',
+                ],
+            ],
+        ]);
+
+        $storageApiToken = $this->createMock(BranchAwareClient::class);
+        $storageApiToken->method('verifyToken')->willReturn(
+            $this->clientWrapper->getBasicClient()->verifyToken(),
+        );
+        $storageApiToken->method('apiPostJson')->willReturnCallback(
+            $this->clientWrapper->getBasicClient()->apiPostJson(...),
+        );
+
+        // simulate API error
+        $storageApiToken->expects(self::once())
+            ->method('apiDelete')
+            ->willThrowException($deleteException)
+        ;
+
+        $clientWrapper = $this->createMock(ClientWrapper::class);
+        $clientWrapper->method('getToken')->willReturn($this->clientWrapper->getToken());
+        $clientWrapper->method('getBasicClient')->willReturn($storageApiToken);
+        $clientWrapper->method('getBranchClient')->willReturn($storageApiToken);
+
+        $configId = $this->createConfig($componentId, 'test-workspaceCleaner-cleanupFailure');
+
+        $workspaceListOptions = new ListConfigurationWorkspacesOptions();
+        $workspaceListOptions->setComponentId($componentId)->setConfigurationId($configId);
+
+        $logsHandler = new TestHandler();
+        $logger = new Logger('test', [$logsHandler]);
+
+        // create InputStrategyFactory manually so we can trigger workspace creation
+        $workspaceProviderFactory = $this->createWorkspaceProviderFactory(
+            $component,
+            $configId,
+            clientWrapper: $clientWrapper,
+        );
+
+        $inputStrategyFactory = $this->createInputStrategyFactory(
+            $component,
+            $workspaceProviderFactory,
+            clientWrapper: $clientWrapper,
+        );
+
+        // this causes workspace creation (so that we can test its cleanup)
+        $inputStrategyFactory->getStrategyMap()['workspace-snowflake']->getTableDataProvider()->getCredentials();
+        self::assertCount(1, $componentsApiClient->listConfigurationWorkspaces($workspaceListOptions));
+
+        $workspaceCleaner = $this->getWorkspaceCleaner(
+            clientWrapper: $clientWrapper,
+            configId: $configId,
+            component: $component,
+            workspaceProviderFactory: $workspaceProviderFactory,
+            inputStrategyFactory: $inputStrategyFactory,
+            logger: $logger,
+        );
+
+        $workspaceCleaner->cleanWorkspace(
+            $component,
+            $configId,
+        );
+
+        if ($shouldBeLogged) {
+            self::assertTrue($logsHandler->hasErrorThatContains(
+                'Failed to cleanup workspace: ' . $deleteException->getMessage(),
+            ));
+        } else {
+            self::assertFalse($logsHandler->hasRecords(LogLevel::ERROR));
+        }
+    }
+
     /**
      * @param non-empty-string $configId
      * @return non-empty-string
@@ -91,6 +207,15 @@ class WorkspaceCleanerTest extends BaseDataLoaderTestCase
     ): string {
         $storageApiClient ??= $this->clientWrapper->getBranchClient();
         $componentsApiClient = new Components($storageApiClient);
+        $workspacesApi = new Workspaces($storageApiClient);
+
+        $workspaceListOptions = (new ListConfigurationWorkspacesOptions())
+            ->setComponentId($componentId)
+            ->setConfigurationId($configId)
+        ;
+        foreach($componentsApiClient->listConfigurationWorkspaces($workspaceListOptions) as $workspace) {
+            $workspacesApi->deleteWorkspace($workspace['id'], async: true);
+        }
 
         try {
             $componentsApiClient->deleteConfiguration($componentId, $configId);
