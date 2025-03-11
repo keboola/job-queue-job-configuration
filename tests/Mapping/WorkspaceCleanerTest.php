@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping;
 
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
+use Keboola\StagingProvider\Provider\NewWorkspaceStagingProvider;
 use Keboola\StorageApi\BranchAwareClient;
 use Keboola\StorageApi\Client as StorageApiClient;
 use Keboola\StorageApi\ClientException;
@@ -54,7 +55,7 @@ class WorkspaceCleanerTest extends BaseDataLoaderTestCase
         $logger = new NullLogger();
 
         // create InputStrategyFactory manually so we can trigger workspace creation
-        $workspaceProviderFactory = $this->createWorkspaceProviderFactory(
+        $workspaceProviderFactory = $this->createWorkspaceProvider(
             $component,
             $configId,
         );
@@ -65,14 +66,16 @@ class WorkspaceCleanerTest extends BaseDataLoaderTestCase
         );
 
         // this causes workspace creation (so that we can test its cleanup)
-        $inputStrategyFactory->getStrategyMap()['workspace-snowflake']->getTableDataProvider()->getCredentials();
+        $tableDataProvider = $inputStrategyFactory->getStrategyMap()['workspace-snowflake']->getTableDataProvider();
+        self::assertInstanceOf(NewWorkspaceStagingProvider::class, $tableDataProvider);
+        $tableDataProvider->getCredentials();
         self::assertCount(1, $componentsApiClient->listConfigurationWorkspaces($workspaceListOptions));
 
         $workspaceCleaner = $this->getWorkspaceCleaner(
             clientWrapper: $this->clientWrapper,
             configId: $configId,
             component: $component,
-            workspaceProviderFactory: $workspaceProviderFactory,
+            workspaceProvider: $workspaceProviderFactory,
             inputStrategyFactory: $inputStrategyFactory,
             logger: $logger,
         );
@@ -156,7 +159,7 @@ class WorkspaceCleanerTest extends BaseDataLoaderTestCase
         $logger = new Logger('test', [$logsHandler]);
 
         // create InputStrategyFactory manually so we can trigger workspace creation
-        $workspaceProviderFactory = $this->createWorkspaceProviderFactory(
+        $workspaceProviderFactory = $this->createWorkspaceProvider(
             $component,
             $configId,
             clientWrapper: $clientWrapper,
@@ -169,14 +172,16 @@ class WorkspaceCleanerTest extends BaseDataLoaderTestCase
         );
 
         // this causes workspace creation (so that we can test its cleanup)
-        $inputStrategyFactory->getStrategyMap()['workspace-snowflake']->getTableDataProvider()->getCredentials();
+        $tableDataProvider = $inputStrategyFactory->getStrategyMap()['workspace-snowflake']->getTableDataProvider();
+        self::assertInstanceOf(NewWorkspaceStagingProvider::class, $tableDataProvider);
+        $tableDataProvider->getCredentials();
         self::assertCount(1, $componentsApiClient->listConfigurationWorkspaces($workspaceListOptions));
 
         $workspaceCleaner = $this->getWorkspaceCleaner(
             clientWrapper: $clientWrapper,
             configId: $configId,
             component: $component,
-            workspaceProviderFactory: $workspaceProviderFactory,
+            workspaceProvider: $workspaceProviderFactory,
             inputStrategyFactory: $inputStrategyFactory,
             logger: $logger,
         );
@@ -213,7 +218,16 @@ class WorkspaceCleanerTest extends BaseDataLoaderTestCase
             ->setComponentId($componentId)
             ->setConfigurationId($configId)
         ;
-        foreach($componentsApiClient->listConfigurationWorkspaces($workspaceListOptions) as $workspace) {
+        try {
+            $existingWorkspaces = $componentsApiClient->listConfigurationWorkspaces($workspaceListOptions);
+        } catch (ClientException $e) {
+            if ($e->getCode() !== 404) {
+                throw $e;
+            }
+
+            $existingWorkspaces = [];
+        }
+        foreach ($existingWorkspaces as $workspace) {
             $workspacesApi->deleteWorkspace($workspace['id'], async: true);
         }
 

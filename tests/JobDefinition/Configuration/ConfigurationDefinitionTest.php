@@ -239,6 +239,29 @@ class ConfigurationDefinitionTest extends TestCase
         );
     }
 
+    public function testRuntimeBackendConfigurationWithNullWorkspaceCredentials(): void
+    {
+        $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
+            'configuration' => [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'foo',
+                        'context' => 'wml',
+                        'workspace_credentials' => null,
+                    ],
+                ],
+            ],
+        ]);
+
+        self::assertSame(
+            [
+                'type' => 'foo',
+                'context' => 'wml',
+            ],
+            $config['runtime']['backend'],
+        );
+    }
+
     public function testConfigurationWithTableFiles(): void
     {
         (new Processor())->processConfiguration(new ConfigurationDefinition(), [

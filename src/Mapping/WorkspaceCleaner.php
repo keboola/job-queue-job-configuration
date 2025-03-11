@@ -8,7 +8,7 @@ use Keboola\InputMapping\Staging\AbstractStrategyFactory;
 use Keboola\InputMapping\Staging\StrategyFactory as InputStrategyFactory;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\OutputMapping\Staging\StrategyFactory as OutputStrategyFactory;
-use Keboola\StagingProvider\Provider\WorkspaceStagingProvider;
+use Keboola\StagingProvider\Provider\NewWorkspaceStagingProvider;
 use Keboola\StorageApi\ClientException;
 use Psr\Log\LoggerInterface;
 
@@ -32,7 +32,7 @@ class WorkspaceCleaner
         );
         foreach ($maps as $stagingDefinition) {
             foreach ($this->getStagingProviders($stagingDefinition) as $stagingProvider) {
-                if (!$stagingProvider instanceof WorkspaceStagingProvider) {
+                if (!$stagingProvider instanceof NewWorkspaceStagingProvider) {
                     continue;
                 }
                 if (in_array($stagingProvider, $cleanedProviders, true)) {

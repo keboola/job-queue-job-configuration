@@ -8,7 +8,6 @@ use Generator;
 use Keboola\Datatype\Definition\BaseType;
 use Keboola\Datatype\Definition\GenericStorage;
 use Keboola\Datatype\Definition\Snowflake;
-use Keboola\InputMapping\Staging\AbstractStrategyFactory;
 use Keboola\JobQueue\JobConfiguration\Exception\ApplicationException;
 use Keboola\JobQueue\JobConfiguration\Exception\UserException;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
@@ -23,7 +22,6 @@ use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseSnowflakeProjec
 use Keboola\OutputMapping\Staging\StrategyFactory;
 use Keboola\OutputMapping\Writer\Table\MappingDestination;
 use Keboola\StorageApi\BranchAwareClient;
-use Keboola\StorageApi\ClientException;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Options\Components\Configuration;
 use Keboola\StorageApi\Options\Components\ListConfigurationWorkspacesOptions;
@@ -68,7 +66,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
         self::assertNotNull($tableQueue);
 
@@ -119,7 +116,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
         self::assertNotNull($tableQueue);
 
@@ -153,7 +149,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             null,
             null,
-            projectFeatures: [],
         );
     }
 
@@ -189,11 +184,10 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
     }
 
-    public function invalidStagingProvider(): array
+    public static function invalidStagingProvider(): array
     {
         return [
             'snowflake-redshift' => [
@@ -273,7 +267,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
         $credentials = $dataLoader->getWorkspaceCredentials();
         self::assertEquals(
@@ -321,7 +314,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
         $credentials = $dataLoader->getWorkspaceCredentials();
 
@@ -343,7 +335,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         )->cleanWorkspace($component, null);
     }
 
-    public function readonlyFlagProvider(): Generator
+    public static function readonlyFlagProvider(): iterable
     {
         yield 'readonly on' => [true];
         yield 'readonly off' => [false];
@@ -409,7 +401,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
@@ -548,7 +539,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
@@ -645,7 +635,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            [],
         );
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
@@ -798,7 +787,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
@@ -975,7 +963,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
@@ -1108,7 +1095,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
@@ -1222,7 +1208,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $this->assertEquals($expectedType, $method->invoke($outputDataLoader, $component, $outputStorageConfig));
     }
 
-    public function dataTypeSupportProvider(): iterable
+    public static function dataTypeSupportProvider(): iterable
     {
 
         yield 'default-values' => [

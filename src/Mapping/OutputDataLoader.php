@@ -17,7 +17,8 @@ use Keboola\OutputMapping\Staging\StrategyFactory as OutputStrategyFactory;
 use Keboola\OutputMapping\SystemMetadata;
 use Keboola\OutputMapping\TableLoader;
 use Keboola\OutputMapping\Writer\FileWriter;
-use Keboola\StagingProvider\Provider\WorkspaceStagingProvider;
+use Keboola\StagingProvider\Provider\ExistingWorkspaceStagingProvider;
+use Keboola\StagingProvider\Provider\NewWorkspaceStagingProvider;
 use Psr\Log\LoggerInterface;
 
 class OutputDataLoader extends BaseDataLoader
@@ -38,7 +39,6 @@ class OutputDataLoader extends BaseDataLoader
         ?string $runId,
         ?string $configId,
         ?string $configRowId,
-        array $projectFeatures,
         bool $isFailedJob = false,
     ): ?LoadTableQueue {
         $this->validateComponentStagingSetting($component);
@@ -168,7 +168,8 @@ class OutputDataLoader extends BaseDataLoader
         // the workspace providers are shared between input and output, so it's "ok"
         foreach ($this->outputStrategyFactory->getStrategyMap() as $stagingDefinition) {
             foreach ($this->getStagingProviders($stagingDefinition) as $stagingProvider) {
-                if (!$stagingProvider instanceof WorkspaceStagingProvider) {
+                if (!$stagingProvider instanceof NewWorkspaceStagingProvider &&
+                    !$stagingProvider instanceof ExistingWorkspaceStagingProvider) {
                     continue;
                 }
 
@@ -186,7 +187,8 @@ class OutputDataLoader extends BaseDataLoader
         // the workspace providers are shared between input and output, so it's "ok"
         foreach ($this->outputStrategyFactory->getStrategyMap() as $stagingDefinition) {
             foreach ($this->getStagingProviders($stagingDefinition) as $stagingProvider) {
-                if (!$stagingProvider instanceof WorkspaceStagingProvider) {
+                if (!$stagingProvider instanceof NewWorkspaceStagingProvider &&
+                    !$stagingProvider instanceof ExistingWorkspaceStagingProvider) {
                     continue;
                 }
 

@@ -5,17 +5,10 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\OutputDataLoader;
 
 use ColinODell\PsrTestLogger\TestLogger;
-use Keboola\InputMapping\Staging\AbstractStrategyFactory;
-use Keboola\InputMapping\Staging\StrategyFactory as InputStrategyFactory;
 use Keboola\JobQueue\JobConfiguration\Exception\ApplicationException;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration as JobConfiguration;
-use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Storage;
-use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceCleaner;
-use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceProviderFactoryFactory;
-use Keboola\OutputMapping\Staging\StrategyFactory as OutputStrategyFactory;
-use Keboola\StagingProvider\InputProviderInitializer;
-use Keboola\StagingProvider\OutputProviderInitializer;
+use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceProviderFactory;
 use Keboola\StorageApi\BranchAwareClient;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Options\Components\Configuration;
@@ -23,7 +16,6 @@ use Keboola\StorageApi\Options\Components\ListConfigurationWorkspacesOptions;
 use Keboola\StorageApi\Workspaces;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\StorageApiToken;
-use Psr\Log\NullLogger;
 
 class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCase
 {
@@ -79,9 +71,18 @@ class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         ));
         $logger = new TestLogger();
 
+        // workspaceProvider holds the workspace reference so it must be shared between dataLoader & workspaceCleaner
+        $workspaceProvider = $this->createWorkspaceProvider(
+            component: $component,
+            configId: null,
+            clientWrapper: $clientWrapper,
+            logger: $logger,
+        );
+
         $dataLoader = $this->getOutputDataLoader(
             component: $component,
             clientWrapper: $clientWrapper,
+            workspaceProvider: $workspaceProvider,
             logger: $logger,
         );
         $dataLoader->storeOutput(
@@ -91,11 +92,10 @@ class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             runId: null,
             configId: null,
             configRowId: null,
-            projectFeatures: [],
         );
 
         $credentials = $dataLoader->getWorkspaceCredentials();
-        self::assertEquals(['connectionString', 'container'], array_keys($credentials));
+        self::assertEquals(['container', 'connectionString'], array_keys($credentials));
         self::assertStringStartsWith('BlobEndpoint=https://', $credentials['connectionString']);
         self::assertTrue($logger->hasNoticeThatContains('Created a new ephemeral workspace.'));
 
@@ -103,6 +103,7 @@ class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             clientWrapper: $clientWrapper,
             configId: null,
             component: $component,
+            workspaceProvider: $workspaceProvider,
         )->cleanWorkspace($component, configId: null);
 
         // checked in mock that the workspace is deleted
@@ -166,11 +167,10 @@ class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             runId: null,
             configId: $configurationId,
             configRowId: null,
-            projectFeatures: [],
         );
 
         $credentials = $dataLoader->getWorkspaceCredentials();
-        self::assertEquals(['connectionString', 'container'], array_keys($credentials));
+        self::assertEquals(['container', 'connectionString'], array_keys($credentials));
         self::assertStringStartsWith('BlobEndpoint=https://', $credentials['connectionString']);
 
         $workspaces = $componentsApi->listConfigurationWorkspaces(
@@ -262,11 +262,10 @@ class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             runId: null,
             configId: $configurationId,
             configRowId: null,
-            projectFeatures: [],
         );
 
         $credentials = $dataLoader->getWorkspaceCredentials();
-        self::assertEquals(['connectionString', 'container'], array_keys($credentials));
+        self::assertEquals(['container', 'connectionString'], array_keys($credentials));
         self::assertStringStartsWith('BlobEndpoint=https://', $credentials['connectionString']);
         $workspaces = $componentsApi->listConfigurationWorkspaces(
             (new ListConfigurationWorkspacesOptions())
@@ -350,12 +349,12 @@ class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $clientWrapper->method('getBranchClient')->willReturn($client);
         $logger = new TestLogger();
         try {
-            $workspaceFactory = new WorkspaceProviderFactoryFactory(
+            $workspaceFactory = new WorkspaceProviderFactory(
                 new Components($clientWrapper->getBranchClient()),
                 new Workspaces($clientWrapper->getBranchClient()),
                 $logger,
             );
-            $workspaceFactory->getWorkspaceProviderFactory(
+            $workspaceFactory->getWorkspaceStaging(
                 'workspace-abs',
                 $component,
                 $configurationId,
