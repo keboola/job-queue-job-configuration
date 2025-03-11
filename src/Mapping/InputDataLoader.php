@@ -20,7 +20,8 @@ use Keboola\JobQueue\JobConfiguration\Exception\UserException;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\State\State;
-use Keboola\StagingProvider\Provider\WorkspaceStagingProvider;
+use Keboola\StagingProvider\Provider\ExistingWorkspaceStagingProvider;
+use Keboola\StagingProvider\Provider\NewWorkspaceStagingProvider;
 use Keboola\StorageApi\ClientException;
 use Psr\Log\LoggerInterface;
 
@@ -99,7 +100,8 @@ class InputDataLoader extends BaseDataLoader
         // the workspace providers are shared between input and output, so it's "ok"
         foreach ($this->inputStrategyFactory->getStrategyMap() as $stagingDefinition) {
             foreach ($this->getStagingProviders($stagingDefinition) as $stagingProvider) {
-                if (!$stagingProvider instanceof WorkspaceStagingProvider) {
+                if (!$stagingProvider instanceof NewWorkspaceStagingProvider &&
+                    !$stagingProvider instanceof ExistingWorkspaceStagingProvider) {
                     continue;
                 }
 

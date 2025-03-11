@@ -6,12 +6,9 @@ namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\OutputDataLoader;
 
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\Mapping\OutputDataLoader;
-use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceProviderFactoryFactory;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\BaseDataLoaderTestCase;
 use Keboola\OutputMapping\Staging\StrategyFactory as OutputStrategyFactory;
-use Keboola\StagingProvider\OutputProviderInitializer;
-use Keboola\StorageApi\Components;
-use Keboola\StorageApi\Workspaces;
+use Keboola\StagingProvider\Provider\AbstractWorkspaceProvider;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -26,44 +23,27 @@ abstract class BaseOutputDataLoaderTestCase extends BaseDataLoaderTestCase
     protected function getOutputDataLoader(
         ComponentSpecification $component,
         ?ClientWrapper $clientWrapper = null,
+        ?AbstractWorkspaceProvider $workspaceProvider = null,
+        ?OutputStrategyFactory $outputStrategyFactory = null,
         LoggerInterface $logger = new NullLogger(),
         ?string $configId = null,
         ?bool $readOnlyWorkspace = null,
     ): OutputDataLoader {
         $clientWrapper = $clientWrapper ?? $this->clientWrapper;
 
-        $outputStrategyFactory = new OutputStrategyFactory(
+        $workspaceProvider ??= $this->createWorkspaceProvider(
+            component: $component,
+            configId: $configId,
+            readOnlyWorkspace: $readOnlyWorkspace,
             clientWrapper: $clientWrapper,
             logger: $logger,
-            format: 'json',
         );
 
-        $componentsApi = new Components($clientWrapper->getBasicClient());
-        $workspacesApi = new Workspaces($clientWrapper->getBasicClient());
-
-        $workspaceProviderFactoryFactory = new WorkspaceProviderFactoryFactory(
-            componentsApiClient: $componentsApi,
-            workspacesApiClient: $workspacesApi,
-            logger: $logger,
-        );
-
-        $workspaceProviderFactory = $workspaceProviderFactoryFactory->getWorkspaceProviderFactory(
-            stagingStorage: $component->getInputStagingStorage(),
+        $outputStrategyFactory ??= $this->createOutputStrategyFactory(
             component: $component,
-            configId: $configId !== '' ? $configId : null,
-            backendConfig: null,
-            useReadonlyRole: $readOnlyWorkspace,
-        );
-
-        $outputProviderInitializer = new OutputProviderInitializer(
-            stagingFactory: $outputStrategyFactory,
-            workspaceProviderFactory: $workspaceProviderFactory,
-            dataDirectory: $this->getWorkingDirPath(),
-        );
-
-        $outputProviderInitializer->initializeProviders(
-            stagingType: $component->getOutputStagingStorage(),
-            tokenInfo: $clientWrapper->getToken()->getTokenInfo(),
+            clientWrapper: $clientWrapper,
+            workspaceProvider: $workspaceProvider,
+            logger: $logger,
         );
 
         return new OutputDataLoader(

@@ -67,9 +67,18 @@ class RedshiftPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCas
         ));
         $logger = new TestLogger;
 
+        // workspaceProvider holds the workspace reference so it must be shared between dataLoader & workspaceCleaner
+        $workspaceProvider = $this->createWorkspaceProvider(
+            component: $component,
+            configId: null,
+            clientWrapper: $clientWrapper,
+            logger: $logger,
+        );
+
         $dataLoader = $this->getOutputDataLoader(
             component: $component,
-            clientWrapper: $this->clientWrapper,
+            clientWrapper: $clientWrapper,
+            workspaceProvider: $workspaceProvider,
             logger: $logger,
         );
         $dataLoader->storeOutput(
@@ -79,7 +88,6 @@ class RedshiftPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCas
             runId: null,
             configId: null,
             configRowId: null,
-            projectFeatures: [],
         );
 
         $credentials = $dataLoader->getWorkspaceCredentials();
@@ -94,6 +102,7 @@ class RedshiftPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCas
             clientWrapper: $clientWrapper,
             configId: null,
             component: $component,
+            workspaceProvider: $workspaceProvider,
         )->cleanWorkspace($component, configId: null);
         // checked in mock that the workspace is deleted
     }
@@ -154,7 +163,6 @@ class RedshiftPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCas
             runId: null,
             configId: $configurationId,
             configRowId: null,
-            projectFeatures: [],
         );
 
         $credentials = $dataLoader->getWorkspaceCredentials();
@@ -245,7 +253,6 @@ class RedshiftPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCas
             runId: null,
             configId: $configurationId,
             configRowId: null,
-            projectFeatures: [],
         );
 
         $credentials = $dataLoader->getWorkspaceCredentials();
@@ -279,7 +286,6 @@ class RedshiftPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCas
         // cleanup after the test
         $workspacesApi = new Workspaces($this->clientWrapper->getBasicClient());
         $workspacesApi->deleteWorkspace($workspaces[0]['id'], [], true);
-        $records = $logger->records;
         self::assertTrue($logger->hasInfoThatContains(
             sprintf('Reusing persistent workspace "%s".', $workspace['id']),
         ));
@@ -350,7 +356,6 @@ class RedshiftPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCas
             runId: null,
             configId: $configurationId,
             configRowId: null,
-            projectFeatures: [],
         );
 
         $this->assertTrue($logger->hasWarning(

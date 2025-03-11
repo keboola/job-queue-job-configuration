@@ -319,6 +319,7 @@ class ConfigurationTest extends TestCase
                     'backend' => [
                         'type' => 'small',
                         'context' => null,
+                        'workspace_credentials' => null,
                     ],
                 ],
                 'variables_id' => '123',
