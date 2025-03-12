@@ -1103,56 +1103,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         self::assertTrue($tableDetails['isTyped']);
     }
 
-    public function testWorkspaceCleanupSuccess(): void
-    {
-        $componentId = 'keboola.runner-workspace-test';
-        $component = new ComponentSpecification([
-            'id' => $componentId,
-            'data' => [
-                'definition' => [
-                    'type' => 'aws-ecr',
-                    // phpcs:ignore Generic.Files.LineLength.MaxExceeded
-                    'uri' => '147946154733.dkr.ecr.us-east-1.amazonaws.com/developer-portal-v2/keboola.runner-workspace-test',
-                    'tag' => '1.6.2',
-                ],
-                'staging-storage' => [
-                    'input' => 'workspace-snowflake',
-                    'output' => 'workspace-snowflake',
-                ],
-            ],
-        ]);
-        $clientMock = $this->createMock(BranchAwareClient::class);
-        $clientMock->method('verifyToken')->willReturn($this->clientWrapper->getBasicClient()->verifyToken());
-        $configuration = new Configuration();
-        $configuration->setName('testWorkspaceCleanup');
-        $configuration->setComponentId($componentId);
-        $configuration->setConfiguration([]);
-        $componentsApi = new Components($this->clientWrapper->getBasicClient());
-        $configId = $componentsApi->addConfiguration($configuration)['id'];
-
-        $clientMock->expects(self::never())
-            ->method('apiPostJson');
-        $clientMock->expects(self::never())
-            ->method('apiDelete');
-
-        $clientWrapperMock = $this->createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBasicClient')->willReturn($clientMock);
-        $clientWrapperMock->method('getBranchClient')->willReturn($clientMock);
-
-        // immediately calling cleanWorkspace without using it means it was not initialized
-        $this->getWorkspaceCleaner(
-            clientWrapper: $clientWrapperMock,
-            configId: $configId,
-            component: $component,
-        )->cleanWorkspace($component, $configId);
-
-        $listOptions = new ListConfigurationWorkspacesOptions();
-        $listOptions->setComponentId($componentId)->setConfigurationId($configId);
-        $workspaces = $componentsApi->listConfigurationWorkspaces($listOptions);
-        self::assertCount(0, $workspaces);
-        $componentsApi->deleteConfiguration($componentId, $configId);
-    }
-
     public function testExternallyManagedWorkspaceSuccess(): void
     {
         $this->markTestSkipped('Will be implemented in separate PR, see Jira issue PST-2213');

@@ -26,6 +26,55 @@ class WorkspaceCleanerTest extends BaseDataLoaderTestCase
         return 'snowflake';
     }
 
+    public function testWorkspaceCleanupSuccess(): void
+    {
+        $componentsApiClient = new Components($this->clientWrapper->getBasicClient());
+
+        $componentId = 'keboola.runner-workspace-test';
+        $component = new ComponentSpecification([
+            'id' => $componentId,
+            'data' => [
+                'definition' => [
+                    'type' => 'aws-ecr',
+                    // phpcs:ignore Generic.Files.LineLength.MaxExceeded
+                    'uri' => '147946154733.dkr.ecr.us-east-1.amazonaws.com/developer-portal-v2/keboola.runner-workspace-test',
+                    'tag' => '1.6.2',
+                ],
+                'staging-storage' => [
+                    'input' => 'workspace-snowflake',
+                    'output' => 'workspace-snowflake',
+                ],
+            ],
+        ]);
+
+        $configId = $this->createConfig($componentId, 'test-workspaceCleaner-cleanupSuccess');
+
+        $workspaceListOptions = new ListConfigurationWorkspacesOptions();
+        $workspaceListOptions->setComponentId($componentId)->setConfigurationId($configId);
+
+        $clientMock = $this->createMock(BranchAwareClient::class);
+        $clientMock->method('verifyToken')->willReturn($this->clientWrapper->getBasicClient()->verifyToken());
+        $clientMock->expects(self::never())->method('apiPostJson');
+        $clientMock->expects(self::never())->method('apiDelete');
+
+        $clientWrapperMock = $this->createMock(ClientWrapper::class);
+        $clientWrapperMock->method('getBasicClient')->willReturn($clientMock);
+        $clientWrapperMock->method('getBranchClient')->willReturn($clientMock);
+
+        self::assertCount(0, $componentsApiClient->listConfigurationWorkspaces($workspaceListOptions));
+
+        $workspaceCleaner = $this->getWorkspaceCleaner(
+            clientWrapper: $clientWrapperMock,
+            configId: $configId,
+            component: $component,
+        );
+
+        // immediately calling cleanWorkspace without using it means it was not initialized
+        $workspaceCleaner->cleanWorkspace($component, $configId);
+
+        self::assertCount(0, $componentsApiClient->listConfigurationWorkspaces($workspaceListOptions));
+    }
+
     public function testWorkspaceCleanupWhenInitialized(): void
     {
         $componentsApiClient = new Components($this->clientWrapper->getBasicClient());
