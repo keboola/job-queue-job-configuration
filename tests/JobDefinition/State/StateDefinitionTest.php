@@ -15,7 +15,7 @@ class StateDefinitionTest extends TestCase
     {
         $state = [];
         $expected = [
-            StateDefinition::NAMESPACE_COMPONENT => [],
+            'component' => [],
         ];
         $processed = (new Processor())->processConfiguration(new StateDefinition(), ['state' => $state]);
         self::assertEquals($expected, $processed);
@@ -24,10 +24,10 @@ class StateDefinitionTest extends TestCase
     public function testComponentState(): void
     {
         $state = [
-            StateDefinition::NAMESPACE_COMPONENT => ['key' => 'foo'],
+            'component' => ['key' => 'foo'],
         ];
         $expected = [
-            StateDefinition::NAMESPACE_COMPONENT => ['key' => 'foo'],
+            'component' => ['key' => 'foo'],
         ];
         $processed = (new Processor())->processConfiguration(new StateDefinition(), ['state' => $state]);
         self::assertEquals($expected, $processed);
@@ -36,9 +36,9 @@ class StateDefinitionTest extends TestCase
     public function testStorageInputTablesState(): void
     {
         $state = [
-            StateDefinition::NAMESPACE_STORAGE => [
-                StateDefinition::NAMESPACE_INPUT => [
-                    StateDefinition::NAMESPACE_TABLES => [
+            'storage' => [
+                'input' => [
+                    'tables' => [
                         [
                             'source' => 'sourceTable',
                             'lastImportDate' => 'someDate',
@@ -48,16 +48,16 @@ class StateDefinitionTest extends TestCase
             ],
         ];
         $expected = [
-            StateDefinition::NAMESPACE_COMPONENT => [],
-            StateDefinition::NAMESPACE_STORAGE => [
-                StateDefinition::NAMESPACE_INPUT => [
-                    StateDefinition::NAMESPACE_TABLES => [
+            'component' => [],
+            'storage' => [
+                'input' => [
+                    'tables' => [
                         [
                             'source' => 'sourceTable',
                             'lastImportDate' => 'someDate',
                         ],
                     ],
-                    StateDefinition::NAMESPACE_FILES => [],
+                    'files' => [],
                 ],
             ],
         ];
@@ -68,9 +68,9 @@ class StateDefinitionTest extends TestCase
     public function testStorageInputTablesStateExtraKey(): void
     {
         $state = [
-            StateDefinition::NAMESPACE_STORAGE => [
-                StateDefinition::NAMESPACE_INPUT => [
-                    StateDefinition::NAMESPACE_TABLES => [
+            'storage' => [
+                'input' => [
+                    'tables' => [
                         [
                             'source' => 'sourceTable',
                             'lastImportDate' => 'someDate',
@@ -89,9 +89,9 @@ class StateDefinitionTest extends TestCase
     public function testStorageInputTablesStateMissingKey(): void
     {
         $state = [
-            StateDefinition::NAMESPACE_STORAGE => [
-                StateDefinition::NAMESPACE_INPUT => [
-                    StateDefinition::NAMESPACE_TABLES => [
+            'storage' => [
+                'input' => [
+                    'tables' => [
                         [
                             'source' => 'sourceTable',
                         ],
@@ -110,9 +110,9 @@ class StateDefinitionTest extends TestCase
     public function testStorageInputFilesState(): void
     {
         $state = [
-            StateDefinition::NAMESPACE_STORAGE => [
-                StateDefinition::NAMESPACE_INPUT => [
-                    StateDefinition::NAMESPACE_FILES => [
+            'storage' => [
+                'input' => [
+                    'files' => [
                         [
                             'tags' => [
                                 [
@@ -126,11 +126,11 @@ class StateDefinitionTest extends TestCase
             ],
         ];
         $expected = [
-            StateDefinition::NAMESPACE_COMPONENT => [],
-            StateDefinition::NAMESPACE_STORAGE => [
-                StateDefinition::NAMESPACE_INPUT => [
-                    StateDefinition::NAMESPACE_TABLES => [],
-                    StateDefinition::NAMESPACE_FILES => [
+            'component' => [],
+            'storage' => [
+                'input' => [
+                    'tables' => [],
+                    'files' => [
                         [
                             'tags' => [
                                 [
@@ -150,9 +150,9 @@ class StateDefinitionTest extends TestCase
     public function testStorageInputFilesStateExtraKey(): void
     {
         $state = [
-            StateDefinition::NAMESPACE_STORAGE => [
-                StateDefinition::NAMESPACE_INPUT => [
-                    StateDefinition::NAMESPACE_FILES => [
+            'storage' => [
+                'input' => [
+                    'files' => [
                         [
                             'tags' => [
                                 [
@@ -175,9 +175,9 @@ class StateDefinitionTest extends TestCase
     public function testStorageInputFilesStateMissingKey(): void
     {
         $state = [
-            StateDefinition::NAMESPACE_STORAGE => [
-                StateDefinition::NAMESPACE_INPUT => [
-                    StateDefinition::NAMESPACE_FILES => [
+            'storage' => [
+                'input' => [
+                    'files' => [
                         [
                             'tags' => [
                                 [
