@@ -9,6 +9,7 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\FilesL
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Output;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TableFiles;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TablesList;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\TableModifications;
 use PHPUnit\Framework\TestCase;
 
 class OutputTest extends TestCase
@@ -115,6 +116,8 @@ class OutputTest extends TestCase
             tableFiles: $tableFilesList,
             defaultBucket: 'out.c-my-bucket',
             dataTypeSupport: DataTypeSupport::HINTS,
+            tableModifications: TableModifications::ALL,
+            treatValuesAsNull: ['', 'null'],
         );
 
         $data = $output->toArray();
@@ -124,6 +127,8 @@ class OutputTest extends TestCase
             'files' => $filesList->toArray(),
             'table_files' => $tableFilesList->toArray(),
             'default_bucket' => 'out.c-my-bucket',
+            'table_modifications' => TableModifications::ALL->value,
+            'treat_values_as_null' => ['', 'null'],
             'data_type_support' => DataTypeSupport::HINTS,
         ], $data);
     }

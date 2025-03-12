@@ -77,6 +77,11 @@ class OutputDataLoader extends BaseDataLoader
             $this->logger->debug('Default bucket ' . $uploadTablesOptions['bucket']);
         }
 
+        $treatValuesAsNull = $jobConfiguration->storage->output->treatValuesAsNull;
+        if ($treatValuesAsNull !== null) {
+            $uploadTablesOptions['treat_values_as_null'] = $treatValuesAsNull;
+        }
+
         try {
             $fileWriter = new FileWriter($this->outputStrategyFactory);
             $fileWriter->uploadFiles(

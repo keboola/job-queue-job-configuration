@@ -1205,4 +1205,229 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             DataTypeSupport::NONE,
         ];
     }
+
+    public function testTreatValuesAsNull(): void
+    {
+        $fs = new Filesystem();
+        $fs->dumpFile(
+            $this->getDataDirPath() . '/out/tables/data.csv',
+            '1,text,NAN',
+        );
+        $fs->dumpFile(
+            $this->getDataDirPath() . '/out/tables/data.csv.manifest',
+            (string) json_encode([
+                'columns' => ['id', 'name', 'price'],
+            ]),
+        );
+
+        $component = new ComponentSpecification([
+            'id' => 'docker-demo',
+            'data' => [
+                'definition' => [
+                    'type' => 'dockerhub',
+                    'uri' => 'keboola/docker-demo',
+                    'tag' => 'master',
+                ],
+                'staging-storage' => [
+                    'input' => 'local',
+                    'output' => 'local',
+                ],
+            ],
+        ]);
+
+        $config = JobConfiguration::fromArray([
+            'storage' => [
+                'output' => [
+                    'treat_values_as_null' => ['NAN'],
+                    'tables' => [
+                        [
+                            'source' => 'data.csv',
+                            'destination' => 'in.c-docker-demo-testConfig.treated-values-test',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->dropAndCreateBucket($this->clientWrapper, 'docker-demo-testConfig', 'in');
+        $this->clientWrapper->getTableAndFileStorageClient()->createTableDefinition(
+            'in.c-docker-demo-testConfig',
+            [
+                'name' => 'treated-values-test',
+                'columns' => [
+                    [
+                        'name' => 'id',
+                        'basetype' => BaseType::INTEGER,
+                    ],
+                    [
+                        'name' => 'name',
+                        'basetype' => BaseType::STRING,
+                    ],
+                    [
+                        'name' => 'price',
+                        'basetype' => BaseType::NUMERIC,
+                    ],
+                ],
+            ],
+        );
+
+        $dataLoader = $this->getOutputDataLoader($component);
+
+        $tableQueue = $dataLoader->storeOutput(
+            component: $component,
+            jobConfiguration: $config,
+            branchId: null,
+            runId: null,
+            configId: null,
+            configRowId: null,
+        );
+
+        self::assertNotNull($tableQueue);
+        $tableQueue->waitForAll();
+
+        /** @var array|string $data */
+        $data = $this->clientWrapper->getTableAndFileStorageClient()->getTableDataPreview(
+            'in.c-docker-demo-testConfig.treated-values-test',
+            [
+                'format' => 'json',
+            ],
+        );
+
+        self::assertIsArray($data);
+        self::assertArrayHasKey('rows', $data);
+        self::assertSame(
+            [
+                [
+                    [
+                        'columnName' => 'id',
+                        'value' => '1',
+                        'isTruncated' => false,
+                    ],
+                    [
+                        'columnName' => 'name',
+                        'value' => 'text',
+                        'isTruncated' => false,
+                    ],
+                    [
+                        'columnName' => 'price',
+                        'value' => null,
+                        'isTruncated' => false,
+                    ],
+                ],
+            ],
+            $data['rows'],
+        );
+    }
+
+    public function testTreatValuesAsNullDisable(): void
+    {
+        $fs = new Filesystem();
+        $fs->dumpFile(
+            $this->getDataDirPath() . '/out/tables/data.csv',
+            '1,"",123',
+        );
+        $fs->dumpFile(
+            $this->getDataDirPath() . '/out/tables/data.csv.manifest',
+            (string) json_encode([
+                'columns' => ['id', 'name', 'price'],
+            ]),
+        );
+        $component = new ComponentSpecification([
+            'id' => 'docker-demo',
+            'data' => [
+                'definition' => [
+                    'type' => 'dockerhub',
+                    'uri' => 'keboola/docker-demo',
+                    'tag' => 'master',
+                ],
+                'staging-storage' => [
+                    'input' => 'local',
+                    'output' => 'local',
+                ],
+            ],
+        ]);
+
+        $config = JobConfiguration::fromArray([
+            'storage' => [
+                'output' => [
+                    'treat_values_as_null' => [],
+                    'tables' => [
+                        [
+                            'source' => 'data.csv',
+                            'destination' => 'in.c-docker-demo-testConfig.treated-values-test',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->dropAndCreateBucket($this->clientWrapper, 'docker-demo-testConfig', 'in');
+        $this->clientWrapper->getTableAndFileStorageClient()->createTableDefinition(
+            'in.c-docker-demo-testConfig',
+            [
+                'name' => 'treated-values-test',
+                'columns' => [
+                    [
+                        'name' => 'id',
+                        'basetype' => BaseType::INTEGER,
+                    ],
+                    [
+                        'name' => 'name',
+                        'basetype' => BaseType::STRING,
+                    ],
+                    [
+                        'name' => 'price',
+                        'basetype' => BaseType::INTEGER,
+                    ],
+                ],
+            ],
+        );
+
+        $dataLoader = $this->getOutputDataLoader($component);
+
+        $tableQueue = $dataLoader->storeOutput(
+            component: $component,
+            jobConfiguration: $config,
+            branchId: null,
+            runId: null,
+            configId: null,
+            configRowId: null,
+        );
+
+        self::assertNotNull($tableQueue);
+        $tableQueue->waitForAll();
+
+        /** @var array|string $data */
+        $data = $this->clientWrapper->getTableAndFileStorageClient()->getTableDataPreview(
+            'in.c-docker-demo-testConfig.treated-values-test',
+            [
+                'format' => 'json',
+            ],
+        );
+
+        self::assertIsArray($data);
+        self::assertArrayHasKey('rows', $data);
+        self::assertSame(
+            [
+                [
+                    [
+                        'columnName' => 'id',
+                        'value' => '1',
+                        'isTruncated' => false,
+                    ],
+                    [
+                        'columnName' => 'name',
+                        'value' => '',
+                        'isTruncated' => false,
+                    ],
+                    [
+                        'columnName' => 'price',
+                        'value' => '123',
+                        'isTruncated' => false,
+                    ],
+                ],
+            ],
+            $data['rows'],
+        );
+    }
 }
