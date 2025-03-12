@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\JobDefinition\State;
 
-use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -47,6 +46,9 @@ class StateDefinition implements ConfigurationInterface
                             ->end()
                         ->end()
                     ->end()
+                ->end()
+                ->arrayNode('data_app')
+                    ->ignoreExtraKeys(false)
                 ->end()
             ->end()
         ;

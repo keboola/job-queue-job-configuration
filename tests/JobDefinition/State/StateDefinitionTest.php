@@ -207,4 +207,85 @@ class StateDefinitionTest extends TestCase
         self::expectExceptionMessage('Unrecognized option "invalidKey" under "state"');
         (new Processor())->processConfiguration(new StateDefinition(), ['state' => $state]);
     }
+
+    public function testDataAppState(): void
+    {
+        $state = [
+            'data_app' => [
+                'config' => 'value',
+                'nested' => [
+                    'property' => 123,
+                ],
+            ],
+        ];
+        $expected = [
+            'component' => [],
+            'data_app' => [
+                'config' => 'value',
+                'nested' => [
+                    'property' => 123,
+                ],
+            ],
+        ];
+        $processed = (new Processor())->processConfiguration(new StateDefinition(), ['state' => $state]);
+        self::assertEquals($expected, $processed);
+    }
+
+    public function testCompleteState(): void
+    {
+        $state = [
+            'component' => ['key' => 'foo'],
+            'storage' => [
+                'input' => [
+                    'tables' => [
+                        [
+                            'source' => 'sourceTable',
+                            'lastImportDate' => 'someDate',
+                        ],
+                    ],
+                    'files' => [
+                        [
+                            'tags' => [
+                                [
+                                    'name' => 'tag',
+                                ],
+                            ],
+                            'lastImportId' => '12345',
+                        ],
+                    ],
+                ],
+            ],
+            'data_app' => [
+                'config' => 'value',
+            ],
+        ];
+        $expected = [
+            'component' => ['key' => 'foo'],
+            'storage' => [
+                'input' => [
+                    'tables' => [
+                        [
+                            'source' => 'sourceTable',
+                            'lastImportDate' => 'someDate',
+                        ],
+                    ],
+                    'files' => [
+                        [
+                            'tags' => [
+                                [
+                                    'name' => 'tag',
+                                ],
+                            ],
+                            'lastImportId' => '12345',
+                        ],
+                    ],
+                ],
+            ],
+            'data_app' => [
+                'config' => 'value',
+            ],
+        ];
+        $processed = (new Processor())->processConfiguration(new StateDefinition(), ['state' => $state]);
+        self::assertEquals($expected, $processed);
+    }
 }

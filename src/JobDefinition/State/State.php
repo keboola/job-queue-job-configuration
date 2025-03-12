@@ -14,6 +14,7 @@ readonly class State
     public function __construct(
         public Storage $storage = new Storage(),
         public array $component = [],
+        public ?array $dataApp = null,
     ) {
     }
 
@@ -28,14 +29,21 @@ readonly class State
         return new self(
             storage: Storage::fromArray($data['storage'] ?? []),
             component: $data['component'] ?? [],
+            dataApp: $data['data_app'] ?? null,
         );
     }
 
     public function toArray(): array
     {
-        return [
+        $data = [
             'storage' => $this->storage->toArray(),
             'component' => $this->component,
         ];
+
+        if ($this->dataApp !== null) {
+            $data['data_app'] = $this->dataApp;
+        }
+
+        return $data;
     }
 }
