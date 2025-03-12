@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage;
 
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\DataTypeSupport;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\TableModifications;
 
 readonly class Output
 {
@@ -14,6 +15,8 @@ readonly class Output
         public TableFiles $tableFiles = new TableFiles(),
         public ?string $defaultBucket = null,
         public ?DataTypeSupport $dataTypeSupport = null,
+        public ?TableModifications $tableModifications = null,
+        public ?array $treatValuesAsNull = null,
     ) {
     }
 
@@ -27,6 +30,10 @@ readonly class Output
             dataTypeSupport: isset($data['data_type_support'])
                 ? DataTypeSupport::from((string) $data['data_type_support'])
                 : null,
+            tableModifications: isset($data['table_modifications'])
+                ? TableModifications::from($data['table_modifications'])
+                : null,
+            treatValuesAsNull: $data['treat_values_as_null'] ?? null,
         );
     }
 
@@ -37,6 +44,8 @@ readonly class Output
             'files' => $this->files->toArray(),
             'table_files' => $this->tableFiles->toArray(),
             'default_bucket' => $this->defaultBucket,
+            'table_modifications' => $this->tableModifications?->value,
+            'treat_values_as_null' => $this->treatValuesAsNull,
         ];
 
         if ($this->dataTypeSupport !== null) {

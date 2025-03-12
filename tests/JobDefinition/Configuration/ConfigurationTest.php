@@ -9,8 +9,10 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\Backend;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\Runtime;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Input;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Output;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Storage;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TablesList;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\TableModifications;
 use PHPUnit\Framework\TestCase;
 
 class ConfigurationTest extends TestCase
@@ -194,6 +196,8 @@ class ConfigurationTest extends TestCase
                             'is_permanent' => true,
                         ],
                         'default_bucket' => null,
+                        'table_modifications' => null,
+                        'treat_values_as_null' => null,
                     ],
                 ],
                 'processors' => [],
@@ -215,6 +219,10 @@ class ConfigurationTest extends TestCase
                             ],
                         ]),
                     ),
+                    output: new Output(
+                        tableModifications: TableModifications::NON_DESTRUCTIVE,
+                        treatValuesAsNull: ['null', 'NAN'],
+                    )
                 ),
                 processors: [
                     'before' => [
@@ -285,6 +293,8 @@ class ConfigurationTest extends TestCase
                             'is_permanent' => true,
                         ],
                         'default_bucket' => null,
+                        'table_modifications' => 'non-destructive',
+                        'treat_values_as_null' => ['null', 'NAN'],
                     ],
                 ],
                 'processors' => [
