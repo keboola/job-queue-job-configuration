@@ -1103,11 +1103,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         self::assertTrue($tableDetails['isTyped']);
     }
 
-    public function testExternallyManagedWorkspaceSuccess(): void
-    {
-        $this->markTestSkipped('Will be implemented in separate PR, see Jira issue PST-2213');
-    }
-
     /**
      * @dataProvider dataTypeSupportProvider
      */

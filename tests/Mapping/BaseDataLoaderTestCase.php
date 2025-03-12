@@ -7,6 +7,7 @@ namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping;
 use InvalidArgumentException;
 use Keboola\InputMapping\Staging\StrategyFactory as InputStrategyFactory;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\Backend;
 use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceCleaner;
 use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceProviderFactory;
 use Keboola\JobQueue\JobConfiguration\Tests\BackendAssertsTrait;
@@ -366,6 +367,7 @@ abstract class BaseDataLoaderTestCase extends TestCase
             $component,
             $configId,
             false,
+            null,
             $clientWrapper,
             $logger,
         );
@@ -395,6 +397,7 @@ abstract class BaseDataLoaderTestCase extends TestCase
         ComponentSpecification $component,
         ?string $configId,
         ?bool $readOnlyWorkspace = null,
+        ?Backend $backendConfig = null,
         ?ClientWrapper $clientWrapper = null,
         LoggerInterface $logger = new NullLogger(),
     ): AbstractWorkspaceProvider {
@@ -414,7 +417,7 @@ abstract class BaseDataLoaderTestCase extends TestCase
             stagingStorage: $component->getInputStagingStorage(),
             component: $component,
             configId: $configId,
-            backendConfig: null,
+            backendConfig: $backendConfig,
             useReadonlyRole: $readOnlyWorkspace,
         );
     }

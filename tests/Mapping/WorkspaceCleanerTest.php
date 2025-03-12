@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping;
 
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\Backend;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\WorkspaceCredentials;
 use Keboola\StagingProvider\Provider\NewWorkspaceStagingProvider;
 use Keboola\StorageApi\BranchAwareClient;
 use Keboola\StorageApi\Client as StorageApiClient;
@@ -247,6 +249,81 @@ class WorkspaceCleanerTest extends BaseDataLoaderTestCase
         } else {
             self::assertFalse($logsHandler->hasRecords(LogLevel::ERROR));
         }
+    }
+
+    public function testExternallyManagedWorkspaceSuccess(): void
+    {
+        $componentsApiClient = new Components($this->clientWrapper->getBasicClient());
+
+        $componentId = 'keboola.runner-workspace-test';
+        $component = new ComponentSpecification([
+            'id' => $componentId,
+            'data' => [
+                'definition' => [
+                    'type' => 'aws-ecr',
+                    // phpcs:ignore Generic.Files.LineLength.MaxExceeded
+                    'uri' => '147946154733.dkr.ecr.us-east-1.amazonaws.com/developer-portal-v2/keboola.runner-workspace-test',
+                    'tag' => '1.6.2',
+                ],
+                'staging-storage' => [
+                    'input' => 'workspace-snowflake',
+                    'output' => 'workspace-snowflake',
+                ],
+            ],
+        ]);
+
+        $configId = $this->createConfig($componentId, 'test-workspaceCleaner-externallyManagedWorkspaceSuccess');
+
+        $workspaceListOptions = new ListConfigurationWorkspacesOptions();
+        $workspaceListOptions->setComponentId($componentId)->setConfigurationId($configId);
+
+        // create InputStrategyFactory manually so we can trigger workspace creation
+        $workspaceProviderPrev = $this->createWorkspaceProvider(
+            $component,
+            $configId,
+        );
+
+        $inputStrategyFactory = $this->createInputStrategyFactory(
+            $component,
+            $workspaceProviderPrev,
+        );
+
+        $tableDataProvider = $inputStrategyFactory->getStrategyMap()['workspace-snowflake']->getTableDataProvider();
+        self::assertInstanceOf(NewWorkspaceStagingProvider::class, $tableDataProvider);
+        $credentials = $tableDataProvider->getCredentials();
+        self::assertCount(1, $componentsApiClient->listConfigurationWorkspaces($workspaceListOptions));
+
+        $workspaceCredentials = WorkspaceCredentials::fromArray([
+            'id' => $tableDataProvider->getWorkspaceId(),
+            'type' => $tableDataProvider->getBackendType(),
+            '#password' => $credentials['password'],
+        ]);
+
+        // create fresh workspaceProvider unaware of the existing workspace
+        $workspaceProviderCurrent = $this->createWorkspaceProvider(
+            component: $component,
+            configId: $configId,
+            backendConfig: new Backend(
+                workspaceCredentials: $workspaceCredentials,
+            ),
+        );
+
+        $workspaceCleaner = $this->getWorkspaceCleaner(
+            clientWrapper: $this->clientWrapper,
+            configId: $configId,
+            component: $component,
+            workspaceProvider: $workspaceProviderCurrent,
+        );
+
+        $workspaceCleaner->cleanWorkspace(
+            $component,
+            $configId,
+        );
+
+        // cleanWorkspace should not delete workspace if credentials were provided manually
+        $existingWorkspaces = $componentsApiClient->listConfigurationWorkspaces($workspaceListOptions);
+        self::assertCount(1, $existingWorkspaces);
+        self::assertSame($workspaceCredentials->id, (string) $existingWorkspaces[0]['id']);
     }
 
     /**
