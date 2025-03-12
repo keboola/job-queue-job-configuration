@@ -10,24 +10,18 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 class StateDefinition implements ConfigurationInterface
 {
-    public const NAMESPACE_COMPONENT = 'component';
-    public const NAMESPACE_STORAGE = 'storage';
-    public const NAMESPACE_INPUT = 'input';
-    public const NAMESPACE_TABLES = 'tables';
-    public const NAMESPACE_FILES = 'files';
-
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('state');
         $root = $treeBuilder->getRootNode();
         $root
             ->children()
-                ->arrayNode(self::NAMESPACE_COMPONENT)->prototype('variable')->end()->end()
-                ->arrayNode(self::NAMESPACE_STORAGE)
+                ->arrayNode('component')->prototype('variable')->end()->end()
+                ->arrayNode('storage')
                     ->children()
-                        ->arrayNode(self::NAMESPACE_INPUT)
+                        ->arrayNode('input')
                             ->children()
-                                ->arrayNode(self::NAMESPACE_TABLES)
+                                ->arrayNode('tables')
                                     ->prototype('array')
                                         ->children()
                                             ->scalarNode('source')->isRequired()->end()
@@ -35,7 +29,7 @@ class StateDefinition implements ConfigurationInterface
                                         ->end()
                                     ->end()
                                 ->end()
-                                ->arrayNode(self::NAMESPACE_FILES)
+                                ->arrayNode('files')
                                     ->prototype('array')
                                         ->children()
                                             ->arrayNode('tags')->isRequired()
