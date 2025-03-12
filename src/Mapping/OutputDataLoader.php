@@ -125,7 +125,7 @@ class OutputDataLoader extends BaseDataLoader
                 systemMetadata: new SystemMetadata($tableSystemMetadata),
             );
 
-            if (!$inputStorageConfig->files->isEmpty()) {
+            if (!$inputStorageConfig->files->isEmpty() && !$isFailedJob) {
                 // tag input files
                 $fileWriter->tagFiles($inputStorageConfig->files->toArray());
             }
