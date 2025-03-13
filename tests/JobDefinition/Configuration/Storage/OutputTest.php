@@ -129,7 +129,7 @@ class OutputTest extends TestCase
             'default_bucket' => 'out.c-my-bucket',
             'table_modifications' => TableModifications::ALL->value,
             'treat_values_as_null' => ['', 'null'],
-            'data_type_support' => DataTypeSupport::HINTS,
+            'data_type_support' => DataTypeSupport::HINTS->value,
         ], $data);
     }
 
