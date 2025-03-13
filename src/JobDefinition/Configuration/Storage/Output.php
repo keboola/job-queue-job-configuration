@@ -49,7 +49,7 @@ readonly class Output
         ];
 
         if ($this->dataTypeSupport !== null) {
-            $data['data_type_support'] = $this->dataTypeSupport;
+            $data['data_type_support'] = $this->dataTypeSupport->value;
         }
 
         return $data;
