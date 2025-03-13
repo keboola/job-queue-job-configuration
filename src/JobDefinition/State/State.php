@@ -46,4 +46,31 @@ readonly class State
 
         return $data;
     }
+
+    public function withStorage(Storage $storage): self
+    {
+        return new self(
+            storage: $storage,
+            component: $this->component,
+            dataApp: $this->dataApp,
+        );
+    }
+
+    public function withComponent(array $component): self
+    {
+        return new self(
+            storage: $this->storage,
+            component: $component,
+            dataApp: $this->dataApp,
+        );
+    }
+
+    public function withDataApp(?array $dataApp): self
+    {
+        return new self(
+            storage: $this->storage,
+            component: $this->component,
+            dataApp: $dataApp,
+        );
+    }
 }

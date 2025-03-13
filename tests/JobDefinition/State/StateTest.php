@@ -165,4 +165,79 @@ class StateTest extends TestCase
         self::assertSame($component, $array['component']);
         self::assertArrayNotHasKey('data_app', $array);
     }
+
+    public function testWithStorage(): void
+    {
+        $initialStorage = new Storage();
+        $component = ['foo' => 'bar'];
+        $dataApp = ['config' => 'value'];
+        $state = new State($initialStorage, $component, $dataApp);
+
+        $newStorage = new Storage(
+            new Input(
+                new TablesList([
+                    new Table('in-myTable1', '2022-01-01T00:00:00+00:00'),
+                ]),
+                new FilesList([]),
+            ),
+        );
+
+        $newState = $state->withStorage($newStorage);
+
+        self::assertSame($newStorage, $newState->storage);
+        self::assertSame($component, $newState->component);
+        self::assertSame($dataApp, $newState->dataApp);
+        self::assertSame($initialStorage, $state->storage);
+        self::assertNotSame($state, $newState);
+    }
+
+    public function testWithComponent(): void
+    {
+        $storage = new Storage();
+        $initialComponent = ['foo' => 'bar'];
+        $dataApp = ['config' => 'value'];
+        $state = new State($storage, $initialComponent, $dataApp);
+
+        $newComponent = ['baz' => 'qux'];
+        $newState = $state->withComponent($newComponent);
+
+        self::assertSame($newComponent, $newState->component);
+        self::assertSame($storage, $newState->storage);
+        self::assertSame($dataApp, $newState->dataApp);
+        self::assertSame($initialComponent, $state->component);
+        self::assertNotSame($state, $newState);
+    }
+
+    public function testWithDataApp(): void
+    {
+        $storage = new Storage();
+        $component = ['foo' => 'bar'];
+        $initialDataApp = ['config' => 'value'];
+        $state = new State($storage, $component, $initialDataApp);
+
+        $newDataApp = ['config' => 'new-value'];
+        $newState = $state->withDataApp($newDataApp);
+
+        self::assertSame($newDataApp, $newState->dataApp);
+        self::assertSame($storage, $newState->storage);
+        self::assertSame($component, $newState->component);
+        self::assertSame($initialDataApp, $state->dataApp);
+        self::assertNotSame($state, $newState);
+    }
+
+    public function testWithDataAppNull(): void
+    {
+        $storage = new Storage();
+        $component = ['foo' => 'bar'];
+        $initialDataApp = ['config' => 'value'];
+        $state = new State($storage, $component, $initialDataApp);
+
+        $newState = $state->withDataApp(null);
+
+        self::assertNull($newState->dataApp);
+        self::assertSame($storage, $newState->storage);
+        self::assertSame($component, $newState->component);
+        self::assertSame($initialDataApp, $state->dataApp);
+        self::assertNotSame($state, $newState);
+    }
 }
