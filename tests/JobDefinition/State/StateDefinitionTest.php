@@ -18,7 +18,7 @@ class StateDefinitionTest extends TestCase
             'component' => [],
         ];
         $processed = (new Processor())->processConfiguration(new StateDefinition(), ['state' => $state]);
-        self::assertEquals($expected, $processed);
+        self::assertSame($expected, $processed);
     }
 
     public function testComponentState(): void
@@ -30,7 +30,19 @@ class StateDefinitionTest extends TestCase
             'component' => ['key' => 'foo'],
         ];
         $processed = (new Processor())->processConfiguration(new StateDefinition(), ['state' => $state]);
-        self::assertEquals($expected, $processed);
+        self::assertSame($expected, $processed);
+    }
+
+    public function testComponentStateWithNonNormalizedKeys(): void
+    {
+        $state = [
+            'component' => ['camelCase' => 'value', 'snake_case' => 'another_value'],
+        ];
+        $expected = [
+            'component' => ['camelCase' => 'value', 'snake_case' => 'another_value'],
+        ];
+        $processed = (new Processor())->processConfiguration(new StateDefinition(), ['state' => $state]);
+        self::assertSame($expected, $processed);
     }
 
     public function testStorageInputTablesState(): void
@@ -48,7 +60,6 @@ class StateDefinitionTest extends TestCase
             ],
         ];
         $expected = [
-            'component' => [],
             'storage' => [
                 'input' => [
                     'tables' => [
@@ -60,9 +71,10 @@ class StateDefinitionTest extends TestCase
                     'files' => [],
                 ],
             ],
+            'component' => [],
         ];
         $processed = (new Processor())->processConfiguration(new StateDefinition(), ['state' => $state]);
-        self::assertEquals($expected, $processed);
+        self::assertSame($expected, $processed);
     }
 
     public function testStorageInputTablesStateExtraKey(): void
@@ -126,10 +138,8 @@ class StateDefinitionTest extends TestCase
             ],
         ];
         $expected = [
-            'component' => [],
             'storage' => [
                 'input' => [
-                    'tables' => [],
                     'files' => [
                         [
                             'tags' => [
@@ -140,11 +150,13 @@ class StateDefinitionTest extends TestCase
                             'lastImportId' => '12345',
                         ],
                     ],
+                    'tables' => [],
                 ],
             ],
+            'component' => [],
         ];
         $processed = (new Processor())->processConfiguration(new StateDefinition(), ['state' => $state]);
-        self::assertEquals($expected, $processed);
+        self::assertSame($expected, $processed);
     }
 
     public function testStorageInputFilesStateExtraKey(): void
@@ -219,16 +231,41 @@ class StateDefinitionTest extends TestCase
             ],
         ];
         $expected = [
-            'component' => [],
             'data_app' => [
                 'config' => 'value',
                 'nested' => [
                     'property' => 123,
                 ],
             ],
+            'component' => [],
         ];
         $processed = (new Processor())->processConfiguration(new StateDefinition(), ['state' => $state]);
-        self::assertEquals($expected, $processed);
+        self::assertSame($expected, $processed);
+    }
+
+    public function testDataAppStateWithNonNormalizedKeys(): void
+    {
+        $state = [
+            'data_app' => [
+                'camelCase' => 'value',
+                'snake_case' => 'another_value',
+                'nested' => [
+                    'mixedCase_property' => 123,
+                ],
+            ],
+        ];
+        $expected = [
+            'data_app' => [
+                'camelCase' => 'value',
+                'snake_case' => 'another_value',
+                'nested' => [
+                    'mixedCase_property' => 123,
+                ],
+            ],
+            'component' => [],
+        ];
+        $processed = (new Processor())->processConfiguration(new StateDefinition(), ['state' => $state]);
+        self::assertSame($expected, $processed);
     }
 
     public function testCompleteState(): void
@@ -286,6 +323,6 @@ class StateDefinitionTest extends TestCase
             ],
         ];
         $processed = (new Processor())->processConfiguration(new StateDefinition(), ['state' => $state]);
-        self::assertEquals($expected, $processed);
+        self::assertSame($expected, $processed);
     }
 }
