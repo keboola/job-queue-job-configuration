@@ -7,8 +7,9 @@ namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping;
 use InvalidArgumentException;
 use Keboola\InputMapping\Staging\StrategyFactory as InputStrategyFactory;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\Backend;
 use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceCleaner;
-use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceProviderFactoryFactory;
+use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceProviderFactory;
 use Keboola\JobQueue\JobConfiguration\Tests\BackendAssertsTrait;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseAzureProject;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseGCPProject;
@@ -16,6 +17,8 @@ use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseSnowflakeProjec
 use Keboola\OutputMapping\Staging\StrategyFactory as OutputStrategyFactory;
 use Keboola\StagingProvider\InputProviderInitializer;
 use Keboola\StagingProvider\OutputProviderInitializer;
+use Keboola\StagingProvider\Provider\AbstractWorkspaceProvider;
+use Keboola\StagingProvider\Provider\LocalStagingProvider;
 use Keboola\StorageApi\ClientException;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Options\ListFilesOptions;
@@ -353,44 +356,105 @@ abstract class BaseDataLoaderTestCase extends TestCase
         ?ClientWrapper $clientWrapper,
         ?string $configId,
         ComponentSpecification $component,
+        ?AbstractWorkspaceProvider $workspaceProvider = null,
+        ?OutputStrategyFactory $outputStrategyFactory = null,
+        ?InputStrategyFactory $inputStrategyFactory = null,
         LoggerInterface $logger = new NullLogger(),
     ): WorkspaceCleaner {
         $clientWrapper = $clientWrapper ?? $this->clientWrapper;
 
-        $componentsApi = new Components($clientWrapper->getBasicClient());
-        $workspacesApi = new Workspaces($clientWrapper->getBasicClient());
+        $workspaceProvider ??= $this->createWorkspaceProvider(
+            $component,
+            $configId,
+            false,
+            null,
+            $clientWrapper,
+            $logger,
+        );
 
-        $workspaceProviderFactoryFactory = new WorkspaceProviderFactoryFactory(
+        $outputStrategyFactory ??= $this->createOutputStrategyFactory(
+            $component,
+            $clientWrapper,
+            $workspaceProvider,
+            $logger,
+        );
+
+        $inputStrategyFactory ??= $this->createInputStrategyFactory(
+            $component,
+            $workspaceProvider,
+            $clientWrapper,
+            $logger,
+        );
+
+        return new WorkspaceCleaner(
+            outputStrategyFactory: $outputStrategyFactory,
+            inputStrategyFactory: $inputStrategyFactory,
+            logger: $logger,
+        );
+    }
+
+    protected function createWorkspaceProvider(
+        ComponentSpecification $component,
+        ?string $configId,
+        ?bool $readOnlyWorkspace = null,
+        ?Backend $backendConfig = null,
+        ?ClientWrapper $clientWrapper = null,
+        LoggerInterface $logger = new NullLogger(),
+    ): AbstractWorkspaceProvider {
+        assert($configId !== '');
+        $clientWrapper ??= $this->clientWrapper;
+
+        $componentsApi = new Components($clientWrapper->getBranchClient());
+        $workspacesApi = new Workspaces($clientWrapper->getBranchClient());
+
+        $workspaceProviderFactoryFactory = new WorkspaceProviderFactory(
             componentsApiClient: $componentsApi,
             workspacesApiClient: $workspacesApi,
             logger: $logger,
         );
 
-        assert($configId !== '');
-        $workspaceProviderFactory = $workspaceProviderFactoryFactory->getWorkspaceProviderFactory(
+        return $workspaceProviderFactoryFactory->getWorkspaceStaging(
             stagingStorage: $component->getInputStagingStorage(),
             component: $component,
             configId: $configId,
-            backendConfig: null,
-            useReadonlyRole: false,
+            backendConfig: $backendConfig,
+            useReadonlyRole: $readOnlyWorkspace,
         );
+    }
 
+    protected function createOutputStrategyFactory(
+        ComponentSpecification $component,
+        ClientWrapper $clientWrapper,
+        AbstractWorkspaceProvider $workspaceProvider,
+        LoggerInterface $logger,
+    ): OutputStrategyFactory {
         $outputStrategyFactory = new OutputStrategyFactory(
-            clientWrapper: $this->clientWrapper,
+            clientWrapper: $clientWrapper,
             logger: $logger,
             format: 'json',
         );
 
         $outputProviderInitializer = new OutputProviderInitializer(
             stagingFactory: $outputStrategyFactory,
-            workspaceProviderFactory: $workspaceProviderFactory,
-            dataDirectory: $this->getWorkingDirPath(),
+            workspaceStagingProvider: $workspaceProvider,
+            localStagingProvider: new LocalStagingProvider($this->getWorkingDirPath()),
         );
 
         $outputProviderInitializer->initializeProviders(
             stagingType: $component->getOutputStagingStorage(),
             tokenInfo: $clientWrapper->getToken()->getTokenInfo(),
         );
+
+        return $outputStrategyFactory;
+    }
+
+    protected function createInputStrategyFactory(
+        ComponentSpecification $component,
+        AbstractWorkspaceProvider $workspaceProvider,
+        ?ClientWrapper $clientWrapper = null,
+        LoggerInterface $logger = new NullLogger(),
+    ): InputStrategyFactory {
+        $clientWrapper ??= $this->clientWrapper;
 
         $inputStrategyFactory = new InputStrategyFactory(
             clientWrapper: $this->clientWrapper,
@@ -400,8 +464,8 @@ abstract class BaseDataLoaderTestCase extends TestCase
 
         $inputProviderInitializer = new InputProviderInitializer(
             stagingFactory: $inputStrategyFactory,
-            workspaceProviderFactory: $workspaceProviderFactory,
-            dataDirectory: $this->getWorkingDirPath(),
+            workspaceStagingProvider: $workspaceProvider,
+            localStagingProvider: new LocalStagingProvider($this->getWorkingDirPath()),
         );
 
         $inputProviderInitializer->initializeProviders(
@@ -409,10 +473,6 @@ abstract class BaseDataLoaderTestCase extends TestCase
             tokenInfo: $clientWrapper->getToken()->getTokenInfo(),
         );
 
-        return new WorkspaceCleaner(
-            outputStrategyFactory: $outputStrategyFactory,
-            inputStrategyFactory: $inputStrategyFactory,
-            logger: $logger,
-        );
+        return $inputStrategyFactory;
     }
 }

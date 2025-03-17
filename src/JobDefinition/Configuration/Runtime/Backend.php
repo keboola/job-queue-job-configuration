@@ -9,6 +9,7 @@ readonly class Backend
     public function __construct(
         public ?string $type = null,
         public ?string $context = null,
+        public ?WorkspaceCredentials $workspaceCredentials = null,
     ) {
     }
 
@@ -17,6 +18,9 @@ readonly class Backend
         return new self(
             type: $data['type'] ?? null,
             context: $data['context'] ?? null,
+            workspaceCredentials: isset($data['workspace_credentials']) ?
+                WorkspaceCredentials::fromArray($data['workspace_credentials']) :
+                null,
         );
     }
 
@@ -25,6 +29,7 @@ readonly class Backend
         return [
             'type' => $this->type,
             'context' => $this->context,
+            'workspace_credentials' => $this->workspaceCredentials?->toArray(),
         ];
     }
 }

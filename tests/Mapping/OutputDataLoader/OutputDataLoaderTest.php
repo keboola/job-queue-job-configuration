@@ -8,7 +8,6 @@ use Generator;
 use Keboola\Datatype\Definition\BaseType;
 use Keboola\Datatype\Definition\GenericStorage;
 use Keboola\Datatype\Definition\Snowflake;
-use Keboola\InputMapping\Staging\AbstractStrategyFactory;
 use Keboola\JobQueue\JobConfiguration\Exception\ApplicationException;
 use Keboola\JobQueue\JobConfiguration\Exception\UserException;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
@@ -23,7 +22,6 @@ use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseSnowflakeProjec
 use Keboola\OutputMapping\Staging\StrategyFactory;
 use Keboola\OutputMapping\Writer\Table\MappingDestination;
 use Keboola\StorageApi\BranchAwareClient;
-use Keboola\StorageApi\ClientException;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Options\Components\Configuration;
 use Keboola\StorageApi\Options\Components\ListConfigurationWorkspacesOptions;
@@ -68,7 +66,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
         self::assertNotNull($tableQueue);
 
@@ -119,7 +116,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
         self::assertNotNull($tableQueue);
 
@@ -153,7 +149,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             null,
             null,
-            projectFeatures: [],
         );
     }
 
@@ -189,11 +184,10 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
     }
 
-    public function invalidStagingProvider(): array
+    public static function invalidStagingProvider(): array
     {
         return [
             'snowflake-redshift' => [
@@ -273,7 +267,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
         $credentials = $dataLoader->getWorkspaceCredentials();
         self::assertEquals(
@@ -321,7 +314,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
         $credentials = $dataLoader->getWorkspaceCredentials();
 
@@ -343,7 +335,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         )->cleanWorkspace($component, null);
     }
 
-    public function readonlyFlagProvider(): Generator
+    public static function readonlyFlagProvider(): iterable
     {
         yield 'readonly on' => [true];
         yield 'readonly off' => [false];
@@ -409,7 +401,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
@@ -548,7 +539,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
@@ -645,7 +635,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            [],
         );
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
@@ -798,7 +787,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
@@ -975,7 +963,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
@@ -1108,78 +1095,12 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
         $tableDetails = $this->clientWrapper->getBasicClient()->getTable($bucketId . '.typed-test');
         self::assertTrue($tableDetails['isTyped']);
-    }
-
-    public function testWorkspaceCleanupSuccess(): void
-    {
-        $componentId = 'keboola.runner-workspace-test';
-        $component = new ComponentSpecification([
-            'id' => $componentId,
-            'data' => [
-                'definition' => [
-                    'type' => 'aws-ecr',
-                    // phpcs:ignore Generic.Files.LineLength.MaxExceeded
-                    'uri' => '147946154733.dkr.ecr.us-east-1.amazonaws.com/developer-portal-v2/keboola.runner-workspace-test',
-                    'tag' => '1.6.2',
-                ],
-                'staging-storage' => [
-                    'input' => 'workspace-snowflake',
-                    'output' => 'workspace-snowflake',
-                ],
-            ],
-        ]);
-        $clientMock = $this->createMock(BranchAwareClient::class);
-        $clientMock->method('verifyToken')->willReturn($this->clientWrapper->getBasicClient()->verifyToken());
-        $configuration = new Configuration();
-        $configuration->setName('testWorkspaceCleanup');
-        $configuration->setComponentId($componentId);
-        $configuration->setConfiguration([]);
-        $componentsApi = new Components($this->clientWrapper->getBasicClient());
-        $configId = $componentsApi->addConfiguration($configuration)['id'];
-
-        $clientMock->expects(self::never())
-            ->method('apiPostJson');
-        $clientMock->expects(self::never())
-            ->method('apiDelete');
-
-        $clientWrapperMock = $this->createMock(ClientWrapper::class);
-        $clientWrapperMock->method('getBasicClient')->willReturn($clientMock);
-        $clientWrapperMock->method('getBranchClient')->willReturn($clientMock);
-
-        // immediately calling cleanWorkspace without using it means it was not initialized
-        $this->getWorkspaceCleaner(
-            clientWrapper: $clientWrapperMock,
-            configId: $configId,
-            component: $component,
-        )->cleanWorkspace($component, $configId);
-
-        $listOptions = new ListConfigurationWorkspacesOptions();
-        $listOptions->setComponentId($componentId)->setConfigurationId($configId);
-        $workspaces = $componentsApi->listConfigurationWorkspaces($listOptions);
-        self::assertCount(0, $workspaces);
-        $componentsApi->deleteConfiguration($componentId, $configId);
-    }
-
-    public function testWorkspaceCleanupWhenInitialized(): void
-    {
-        $this->markTestSkipped('Will be implemented in separate PR, see Jira issue PST-2213');
-    }
-
-    public function testWorkspaceCleanupFailure(): void
-    {
-        $this->markTestSkipped('Will be implemented in separate PR, see Jira issue PST-2213');
-    }
-
-    public function testExternallyManagedWorkspaceSuccess(): void
-    {
-        $this->markTestSkipped('Will be implemented in separate PR, see Jira issue PST-2213');
     }
 
     /**
@@ -1232,7 +1153,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $this->assertEquals($expectedType, $method->invoke($outputDataLoader, $component, $outputStorageConfig));
     }
 
-    public function dataTypeSupportProvider(): iterable
+    public static function dataTypeSupportProvider(): iterable
     {
 
         yield 'default-values' => [
@@ -1283,5 +1204,230 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             DataTypeSupport::AUTHORITATIVE,
             DataTypeSupport::NONE,
         ];
+    }
+
+    public function testTreatValuesAsNull(): void
+    {
+        $fs = new Filesystem();
+        $fs->dumpFile(
+            $this->getDataDirPath() . '/out/tables/data.csv',
+            '1,text,NAN',
+        );
+        $fs->dumpFile(
+            $this->getDataDirPath() . '/out/tables/data.csv.manifest',
+            (string) json_encode([
+                'columns' => ['id', 'name', 'price'],
+            ]),
+        );
+
+        $component = new ComponentSpecification([
+            'id' => 'docker-demo',
+            'data' => [
+                'definition' => [
+                    'type' => 'dockerhub',
+                    'uri' => 'keboola/docker-demo',
+                    'tag' => 'master',
+                ],
+                'staging-storage' => [
+                    'input' => 'local',
+                    'output' => 'local',
+                ],
+            ],
+        ]);
+
+        $config = JobConfiguration::fromArray([
+            'storage' => [
+                'output' => [
+                    'treat_values_as_null' => ['NAN'],
+                    'tables' => [
+                        [
+                            'source' => 'data.csv',
+                            'destination' => 'in.c-docker-demo-testConfig.treated-values-test',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->dropAndCreateBucket($this->clientWrapper, 'docker-demo-testConfig', 'in');
+        $this->clientWrapper->getTableAndFileStorageClient()->createTableDefinition(
+            'in.c-docker-demo-testConfig',
+            [
+                'name' => 'treated-values-test',
+                'columns' => [
+                    [
+                        'name' => 'id',
+                        'basetype' => BaseType::INTEGER,
+                    ],
+                    [
+                        'name' => 'name',
+                        'basetype' => BaseType::STRING,
+                    ],
+                    [
+                        'name' => 'price',
+                        'basetype' => BaseType::NUMERIC,
+                    ],
+                ],
+            ],
+        );
+
+        $dataLoader = $this->getOutputDataLoader($component);
+
+        $tableQueue = $dataLoader->storeOutput(
+            component: $component,
+            jobConfiguration: $config,
+            branchId: null,
+            runId: null,
+            configId: null,
+            configRowId: null,
+        );
+
+        self::assertNotNull($tableQueue);
+        $tableQueue->waitForAll();
+
+        /** @var array|string $data */
+        $data = $this->clientWrapper->getTableAndFileStorageClient()->getTableDataPreview(
+            'in.c-docker-demo-testConfig.treated-values-test',
+            [
+                'format' => 'json',
+            ],
+        );
+
+        self::assertIsArray($data);
+        self::assertArrayHasKey('rows', $data);
+        self::assertSame(
+            [
+                [
+                    [
+                        'columnName' => 'id',
+                        'value' => '1',
+                        'isTruncated' => false,
+                    ],
+                    [
+                        'columnName' => 'name',
+                        'value' => 'text',
+                        'isTruncated' => false,
+                    ],
+                    [
+                        'columnName' => 'price',
+                        'value' => null,
+                        'isTruncated' => false,
+                    ],
+                ],
+            ],
+            $data['rows'],
+        );
+    }
+
+    public function testTreatValuesAsNullDisable(): void
+    {
+        $fs = new Filesystem();
+        $fs->dumpFile(
+            $this->getDataDirPath() . '/out/tables/data.csv',
+            '1,"",123',
+        );
+        $fs->dumpFile(
+            $this->getDataDirPath() . '/out/tables/data.csv.manifest',
+            (string) json_encode([
+                'columns' => ['id', 'name', 'price'],
+            ]),
+        );
+        $component = new ComponentSpecification([
+            'id' => 'docker-demo',
+            'data' => [
+                'definition' => [
+                    'type' => 'dockerhub',
+                    'uri' => 'keboola/docker-demo',
+                    'tag' => 'master',
+                ],
+                'staging-storage' => [
+                    'input' => 'local',
+                    'output' => 'local',
+                ],
+            ],
+        ]);
+
+        $config = JobConfiguration::fromArray([
+            'storage' => [
+                'output' => [
+                    'treat_values_as_null' => [],
+                    'tables' => [
+                        [
+                            'source' => 'data.csv',
+                            'destination' => 'in.c-docker-demo-testConfig.treated-values-test',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->dropAndCreateBucket($this->clientWrapper, 'docker-demo-testConfig', 'in');
+        $this->clientWrapper->getTableAndFileStorageClient()->createTableDefinition(
+            'in.c-docker-demo-testConfig',
+            [
+                'name' => 'treated-values-test',
+                'columns' => [
+                    [
+                        'name' => 'id',
+                        'basetype' => BaseType::INTEGER,
+                    ],
+                    [
+                        'name' => 'name',
+                        'basetype' => BaseType::STRING,
+                    ],
+                    [
+                        'name' => 'price',
+                        'basetype' => BaseType::INTEGER,
+                    ],
+                ],
+            ],
+        );
+
+        $dataLoader = $this->getOutputDataLoader($component);
+
+        $tableQueue = $dataLoader->storeOutput(
+            component: $component,
+            jobConfiguration: $config,
+            branchId: null,
+            runId: null,
+            configId: null,
+            configRowId: null,
+        );
+
+        self::assertNotNull($tableQueue);
+        $tableQueue->waitForAll();
+
+        /** @var array|string $data */
+        $data = $this->clientWrapper->getTableAndFileStorageClient()->getTableDataPreview(
+            'in.c-docker-demo-testConfig.treated-values-test',
+            [
+                'format' => 'json',
+            ],
+        );
+
+        self::assertIsArray($data);
+        self::assertArrayHasKey('rows', $data);
+        self::assertSame(
+            [
+                [
+                    [
+                        'columnName' => 'id',
+                        'value' => '1',
+                        'isTruncated' => false,
+                    ],
+                    [
+                        'columnName' => 'name',
+                        'value' => '',
+                        'isTruncated' => false,
+                    ],
+                    [
+                        'columnName' => 'price',
+                        'value' => '123',
+                        'isTruncated' => false,
+                    ],
+                ],
+            ],
+            $data['rows'],
+        );
     }
 }

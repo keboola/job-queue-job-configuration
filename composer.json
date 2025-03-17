@@ -26,7 +26,7 @@
         "keboola/common-exceptions": "^1.2",
         "keboola/input-mapping": "^19.0.1",
         "keboola/output-mapping": "^24.24.0",
-        "keboola/staging-provider": "^7.1",
+        "keboola/staging-provider": "^9.1",
         "keboola/storage-api-client": "^15.2.0",
         "psr/log": "^1.1|^2.0|^3.0",
         "symfony/config": "^6.2"

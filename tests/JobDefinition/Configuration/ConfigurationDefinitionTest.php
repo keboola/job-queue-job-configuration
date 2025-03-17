@@ -239,6 +239,29 @@ class ConfigurationDefinitionTest extends TestCase
         );
     }
 
+    public function testRuntimeBackendConfigurationWithNullWorkspaceCredentials(): void
+    {
+        $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
+            'configuration' => [
+                'runtime' => [
+                    'backend' => [
+                        'type' => 'foo',
+                        'context' => 'wml',
+                        'workspace_credentials' => null,
+                    ],
+                ],
+            ],
+        ]);
+
+        self::assertSame(
+            [
+                'type' => 'foo',
+                'context' => 'wml',
+            ],
+            $config['runtime']['backend'],
+        );
+    }
+
     public function testConfigurationWithTableFiles(): void
     {
         (new Processor())->processConfiguration(new ConfigurationDefinition(), [
@@ -784,5 +807,102 @@ class ConfigurationDefinitionTest extends TestCase
                 ],
             ],
         ]);
+    }
+
+    public function testConfigurationWithTableModifications(): void
+    {
+        // default value
+        $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
+            'configuration' => [
+                'storage' => [
+                    'output' => [
+                        'tables' => [],
+                    ],
+                ],
+            ],
+        ]);
+        self::assertArrayNotHasKey('table_modifications', $config['storage']['output']);
+
+        // custom value
+        $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
+            'configuration' => [
+                'storage' => [
+                    'output' => [
+                        'table_modifications' => 'non-destructive',
+                        'tables' => [],
+                    ],
+                ],
+            ],
+        ]);
+        self::assertSame(
+            'non-destructive',
+            $config['storage']['output']['table_modifications'],
+        );
+    }
+
+    public function testConfigurationWithInvalidTableModificationsValue(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage(
+            'The value "invalid" is not allowed for path "configuration.storage.output.table_modifications". ' .
+            'Permissible values: "none", "non-destructive", "all"',
+        );
+        (new Processor())->processConfiguration(new ConfigurationDefinition(), [
+            'configuration' => [
+                'storage' => [
+                    'output' => [
+                        'table_modifications' => 'invalid',
+                        'tables' => [],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    public function testConfigurationWithTreatValuesAsNull(): void
+    {
+        // default value
+        $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
+            'configuration' => [
+                'storage' => [
+                    'output' => [
+                        'tables' => [],
+                    ],
+                ],
+            ],
+        ]);
+        self::assertArrayNotHasKey('treat_values_as_null', $config['storage']['output']);
+
+        // custom value - string
+        $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
+            'configuration' => [
+                'storage' => [
+                    'output' => [
+                        'treat_values_as_null' => 'NULL',
+                        'tables' => [],
+                    ],
+                ],
+            ],
+        ]);
+        self::assertSame(
+            'NULL',
+            $config['storage']['output']['treat_values_as_null'],
+        );
+
+        // custom value - array
+        $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
+            'configuration' => [
+                'storage' => [
+                    'output' => [
+                        'treat_values_as_null' => ['NULL', 'N/A'],
+                        'tables' => [],
+                    ],
+                ],
+            ],
+        ]);
+        self::assertSame(
+            ['NULL', 'N/A'],
+            $config['storage']['output']['treat_values_as_null'],
+        );
     }
 }

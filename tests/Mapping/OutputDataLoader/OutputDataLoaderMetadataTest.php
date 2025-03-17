@@ -71,7 +71,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
@@ -108,7 +107,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
 
         self::assertNotNull($tableQueue);
@@ -167,7 +165,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
@@ -228,7 +225,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             'testRow',
-            projectFeatures: [],
         );
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
@@ -267,7 +263,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             'testRow',
-            projectFeatures: [],
         );
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
@@ -354,7 +349,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
@@ -441,7 +435,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
@@ -542,7 +535,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
             null,
             'testConfig',
             null,
-            projectFeatures: [],
         );
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();

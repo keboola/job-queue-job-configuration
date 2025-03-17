@@ -7,13 +7,13 @@ namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\InputDataLoader;
 use Keboola\InputMapping\Staging\StrategyFactory;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\Mapping\InputDataLoader;
-use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceProviderFactoryFactory;
+use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceProviderFactory;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\BaseDataLoaderTestCase;
 use Keboola\StagingProvider\InputProviderInitializer;
+use Keboola\StagingProvider\Provider\LocalStagingProvider;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Workspaces;
 use Keboola\StorageApiBranch\ClientWrapper;
-use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
 abstract class BaseInputDataLoaderTestCase extends BaseDataLoaderTestCase
@@ -40,14 +40,14 @@ abstract class BaseInputDataLoaderTestCase extends BaseDataLoaderTestCase
         $componentsApi = new Components($clientWrapper->getBasicClient());
         $workspacesApi = new Workspaces($clientWrapper->getBasicClient());
 
-        $workspaceProviderFactoryFactory = new WorkspaceProviderFactoryFactory(
+        $workspaceProviderFactoryFactory = new WorkspaceProviderFactory(
             componentsApiClient: $componentsApi,
             workspacesApiClient: $workspacesApi,
             logger: $logger,
         );
 
         assert($configId !== '');
-        $workspaceProviderFactory = $workspaceProviderFactoryFactory->getWorkspaceProviderFactory(
+        $workspaceProvider = $workspaceProviderFactoryFactory->getWorkspaceStaging(
             stagingStorage: $component->getInputStagingStorage(),
             component: $component,
             configId: $configId,
@@ -57,8 +57,8 @@ abstract class BaseInputDataLoaderTestCase extends BaseDataLoaderTestCase
 
         $inputProviderInitializer = new InputProviderInitializer(
             stagingFactory: $inputStrategyFactory,
-            workspaceProviderFactory: $workspaceProviderFactory,
-            dataDirectory: $this->getWorkingDirPath(),
+            workspaceStagingProvider: $workspaceProvider,
+            localStagingProvider: new LocalStagingProvider($this->getWorkingDirPath()),
         );
 
         $inputProviderInitializer->initializeProviders(
