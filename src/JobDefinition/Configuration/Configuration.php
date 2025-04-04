@@ -13,7 +13,7 @@ readonly class Configuration
     public function __construct(
         public array $parameters = [],
         public Storage\Storage $storage = new Storage\Storage(),
-        public array $processors = [],
+        public Processors\Processors $processors = new Processors\Processors(),
         public ?Runtime\Runtime $runtime = null,
         public ?string $variablesId = null,
         public ?string $variablesValuesId = null,
@@ -38,7 +38,7 @@ readonly class Configuration
         return new self(
             parameters: $data['parameters'] ?? [],
             storage: Storage\Storage::fromArray($data['storage'] ?? []),
-            processors: $data['processors'] ?? [],
+            processors: Processors\Processors::fromArray($data['processors'] ?? []),
             runtime: isset($data['runtime']) ? Runtime\Runtime::fromArray($data['runtime']) : null,
             variablesId: isset($data['variables_id']) ? (string) $data['variables_id'] : null,
             variablesValuesId: isset($data['variables_values_id']) ? (string) $data['variables_values_id'] : null,
@@ -57,7 +57,7 @@ readonly class Configuration
             'action' => $this->action,
             'parameters' => $this->parameters,
             'storage' => $this->storage->toArray(),
-            'processors' => $this->processors,
+            'processors' => $this->processors->toArray(),
             'artifacts' => $this->artifacts,
         ];
 
