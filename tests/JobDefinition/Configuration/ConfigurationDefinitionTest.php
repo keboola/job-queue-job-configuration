@@ -905,4 +905,60 @@ class ConfigurationDefinitionTest extends TestCase
             $config['storage']['output']['treat_values_as_null'],
         );
     }
+
+    public static function provideInvalidProcessorDefinitionTestData(): iterable
+    {
+        foreach (['before', 'after'] as $type) {
+            yield "$type, missing definition" => [
+                'processorsData' => [
+                    $type => [
+                        [],
+                    ],
+                ],
+                'expectedExceptionMessage' =>
+                    "The child config \"definition\" under \"configuration.processors.$type.0\" must be configured.",
+            ];
+            yield "$type, empty definition" => [
+                'processorsData' => [
+                    $type => [
+                        [
+                            'definition' => [],
+                        ],
+                    ],
+                ],
+                'expectedExceptionMessage' =>
+                    "The child config \"component\" under \"configuration.processors.$type.0.definition\""
+                    . ' must be configured.',
+            ];
+            yield "$type, empty definition.component" => [
+                'processorsData' => [
+                    $type => [
+                        [
+                            'definition' => [
+                                'component' => '',
+                            ],
+                        ],
+                    ],
+                ],
+                'expectedExceptionMessage' =>
+                    "The path \"configuration.processors.$type.0.definition.component\" cannot contain"
+                    . ' an empty value, but got "".',
+            ];
+        }
+    }
+
+    /** @dataProvider provideInvalidProcessorDefinitionTestData */
+    public function testConfigurationWithInvalidProcessorDefinition(
+        array $processorsData,
+        string $expectedExceptionMessage,
+    ): void {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage($expectedExceptionMessage);
+
+        (new Processor())->processConfiguration(new ConfigurationDefinition(), [
+            'configuration' => [
+                'processors' => $processorsData,
+            ],
+        ]);
+    }
 }

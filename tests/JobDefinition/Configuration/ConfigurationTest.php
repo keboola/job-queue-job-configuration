@@ -6,6 +6,9 @@ namespace Keboola\JobQueue\JobConfiguration\Tests\JobDefinition\Configuration;
 
 use Keboola\CommonExceptions\ApplicationExceptionInterface;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Processors\Processor;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Processors\ProcessorDefinition;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Processors\Processors;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\Backend;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\Runtime;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Input;
@@ -23,7 +26,7 @@ class ConfigurationTest extends TestCase
 
         self::assertSame([], $configuration->parameters);
         self::assertEquals(new Storage(), $configuration->storage);
-        self::assertSame([], $configuration->processors);
+        self::assertEquals(new Processors(), $configuration->processors);
         self::assertNull($configuration->runtime);
         self::assertNull($configuration->variablesId);
         self::assertNull($configuration->variablesValuesId);
@@ -41,7 +44,7 @@ class ConfigurationTest extends TestCase
 
         self::assertSame([], $configuration->parameters);
         self::assertEquals(new Storage(), $configuration->storage);
-        self::assertSame([], $configuration->processors);
+        self::assertEquals(new Processors(), $configuration->processors);
         self::assertNull($configuration->runtime);
         self::assertNull($configuration->variablesId);
         self::assertNull($configuration->variablesValuesId);
@@ -132,7 +135,7 @@ class ConfigurationTest extends TestCase
 
         self::assertSame($parameters, $configuration->parameters);
         self::assertEquals(Storage::fromArray($storage), $configuration->storage);
-        self::assertSame($processors, $configuration->processors);
+        self::assertEquals(Processors::fromArray($processors), $configuration->processors);
         self::assertEquals(Runtime::fromArray($runtime), $configuration->runtime);
         self::assertSame('123', $configuration->variablesId);
         self::assertSame('456', $configuration->variablesValuesId);
@@ -222,24 +225,24 @@ class ConfigurationTest extends TestCase
                     output: new Output(
                         tableModifications: TableModifications::NON_DESTRUCTIVE,
                         treatValuesAsNull: ['null', 'NAN'],
-                    )
+                    ),
                 ),
-                processors: [
-                    'before' => [
-                        [
-                            'definition' => [
-                                'component' => 'bar',
-                            ],
-                        ],
+                processors: new Processors(
+                    before: [
+                        new Processor(
+                            definition: new ProcessorDefinition(
+                                component: 'bar',
+                            ),
+                        ),
                     ],
-                    'after' => [
-                        [
-                            'definition' => [
-                                'component' => 'foo',
-                            ],
-                        ],
+                    after: [
+                        new Processor(
+                            definition: new ProcessorDefinition(
+                                component: 'foo',
+                            ),
+                        ),
                     ],
-                ],
+                ),
                 runtime: new Runtime(
                     backend: new Backend(
                         type: 'small',
@@ -423,13 +426,6 @@ class ConfigurationTest extends TestCase
             'faa' => 'xxx',
         ], $mergedConfiguration->parameters);
         self::assertSame([
-            'after' => [
-                [
-                    'definition' => [
-                        'component' => 'foo',
-                    ],
-                ],
-            ],
             'before' => [
                 [
                     'definition' => [
@@ -437,7 +433,14 @@ class ConfigurationTest extends TestCase
                     ],
                 ],
             ],
-        ], $mergedConfiguration->processors);
+            'after' => [
+                [
+                    'definition' => [
+                        'component' => 'foo',
+                    ],
+                ],
+            ],
+        ], $mergedConfiguration->processors->toArray());
         self::assertSame('redshift', $mergedConfiguration->runtime?->backend?->type);
     }
 }
