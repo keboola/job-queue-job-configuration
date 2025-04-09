@@ -16,25 +16,13 @@ class ProcessorDefinitionTest extends TestCase
         self::assertSame('test-component', $definition->component);
     }
 
-    public static function provideFromArrayTestData(): iterable
+    public function testFromArray(): void
     {
-        yield 'empty data' => [
-            'data' => [],
-            'expectedComponent' => '',
-        ];
-        yield 'defined component' => [
-            'data' => [
-                'component' => 'test-component',
-            ],
-            'expectedComponent' => 'test-component',
-        ];
-    }
+        $definition = ProcessorDefinition::fromArray([
+            'component' => 'test-component',
+        ]);
 
-    /** @dataProvider provideFromArrayTestData */
-    public function testFromArray(array $data, string $expectedComponent): void
-    {
-        $definition = ProcessorDefinition::fromArray($data);
-        self::assertSame($expectedComponent, $definition->component);
+        self::assertSame('test-component', $definition->component);
     }
 
     public function testToArray(): void

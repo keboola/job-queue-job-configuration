@@ -6,15 +6,23 @@ namespace Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Processo
 
 readonly class ProcessorDefinition
 {
+    /**
+     * @param non-empty-string $component
+     */
     public function __construct(
         public string $component,
     ) {
     }
 
+    /**
+     * @param array{
+     *     component: non-empty-string
+     * } $data
+     */
     public static function fromArray(array $data): self
     {
         return new self(
-            component: $data['component'] ?? '',
+            component: (string) $data['component'],
         );
     }
 

@@ -15,7 +15,7 @@ readonly class Processor
     public static function fromArray(array $data): self
     {
         return new self(
-            definition: ProcessorDefinition::fromArray($data['definition'] ?? []),
+            definition: ProcessorDefinition::fromArray($data['definition']),
             parameters: $data['parameters'] ?? [],
         );
     }

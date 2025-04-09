@@ -35,56 +35,37 @@ class ProcessorTest extends TestCase
         self::assertSame([], $processor->parameters);
     }
 
-    public static function provideFromArrayTestData(): iterable
+    public function testFromArray(): void
     {
-        yield 'empty data' => [
-            'data' => [],
-            'expected' => [
-                'definition' => new ProcessorDefinition(''),
-                'parameters' => [],
-             ],
-        ];
-        yield 'component & parameters defined' => [
-            'data' => [
-                'definition' => [
-                    'component' => 'test-component',
-                ],
-                'parameters' => [
-                    'some-param' => 'some-value',
-                ],
+        $processor = Processor::fromArray([
+            'definition' => [
+                'component' => 'test-component',
             ],
-            'expected' => [
-                'definition' => new ProcessorDefinition('test-component'),
-                'parameters' => [
-                    'some-param' => 'some-value',
-                ],
+            'parameters' => [
+                'some-param' => 'some-value',
             ],
-        ];
-    }
+        ]);
 
-    /** @dataProvider provideFromArrayTestData */
-    public function testFromArray(array $data, array $expected): void
-    {
-        $processor = Processor::fromArray($data);
-
-        self::assertEquals($expected['definition'], $processor->definition);
-        self::assertSame($expected['parameters'], $processor->parameters);
+        self::assertEquals(new ProcessorDefinition('test-component'), $processor->definition);
+        self::assertSame([
+            'some-param' => 'some-value',
+        ], $processor->parameters);
     }
 
     public static function provideToArrayTestData(): iterable
     {
-        yield 'empty component & params' => [
+        yield 'empty params' => [
             'processor' => new Processor(
-                new ProcessorDefinition(''),
+                new ProcessorDefinition('test-component'),
                 [],
             ),
             'expected' => [
                 'definition' => [
-                    'component' => '',
+                    'component' => 'test-component',
                 ],
             ],
         ];
-        yield 'defined component & params' => [
+        yield 'defined params' => [
             'processor' => new Processor(
                 new ProcessorDefinition('test-component'),
                 [
