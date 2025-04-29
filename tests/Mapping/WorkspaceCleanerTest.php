@@ -292,6 +292,7 @@ class WorkspaceCleanerTest extends BaseDataLoaderTestCase
         self::assertInstanceOf(NewWorkspaceStagingProvider::class, $tableDataProvider);
         $credentials = $tableDataProvider->getCredentials();
         self::assertCount(1, $componentsApiClient->listConfigurationWorkspaces($workspaceListOptions));
+        self::assertArrayHasKey('password', $credentials);
 
         $workspaceCredentials = WorkspaceCredentials::fromArray([
             'id' => $tableDataProvider->getWorkspaceId(),
