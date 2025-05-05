@@ -14,11 +14,13 @@ use Keboola\JobQueue\JobConfiguration\Tests\BackendAssertsTrait;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseAzureProject;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseGCPProject;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseSnowflakeProject;
+use Keboola\KeyGenerator\PemKeyCertificateGenerator;
 use Keboola\OutputMapping\Staging\StrategyFactory as OutputStrategyFactory;
 use Keboola\StagingProvider\InputProviderInitializer;
 use Keboola\StagingProvider\OutputProviderInitializer;
-use Keboola\StagingProvider\Provider\AbstractWorkspaceProvider;
 use Keboola\StagingProvider\Provider\LocalStagingProvider;
+use Keboola\StagingProvider\Provider\SnowflakeKeypairGenerator;
+use Keboola\StagingProvider\Provider\WorkspaceProviderInterface;
 use Keboola\StorageApi\ClientException;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Options\ListFilesOptions;
@@ -356,7 +358,7 @@ abstract class BaseDataLoaderTestCase extends TestCase
         ?ClientWrapper $clientWrapper,
         ?string $configId,
         ComponentSpecification $component,
-        ?AbstractWorkspaceProvider $workspaceProvider = null,
+        ?WorkspaceProviderInterface $workspaceProvider = null,
         ?OutputStrategyFactory $outputStrategyFactory = null,
         ?InputStrategyFactory $inputStrategyFactory = null,
         LoggerInterface $logger = new NullLogger(),
@@ -400,16 +402,18 @@ abstract class BaseDataLoaderTestCase extends TestCase
         ?Backend $backendConfig = null,
         ?ClientWrapper $clientWrapper = null,
         LoggerInterface $logger = new NullLogger(),
-    ): AbstractWorkspaceProvider {
+    ): WorkspaceProviderInterface {
         assert($configId !== '');
         $clientWrapper ??= $this->clientWrapper;
 
         $componentsApi = new Components($clientWrapper->getBranchClient());
         $workspacesApi = new Workspaces($clientWrapper->getBranchClient());
+        $snowflakeKeyPairGenerator = new SnowflakeKeypairGenerator(new PemKeyCertificateGenerator());
 
         $workspaceProviderFactoryFactory = new WorkspaceProviderFactory(
             componentsApiClient: $componentsApi,
             workspacesApiClient: $workspacesApi,
+            snowflakeKeyPairGenerator: $snowflakeKeyPairGenerator,
             logger: $logger,
         );
 
@@ -425,7 +429,7 @@ abstract class BaseDataLoaderTestCase extends TestCase
     protected function createOutputStrategyFactory(
         ComponentSpecification $component,
         ClientWrapper $clientWrapper,
-        AbstractWorkspaceProvider $workspaceProvider,
+        WorkspaceProviderInterface $workspaceProvider,
         LoggerInterface $logger,
     ): OutputStrategyFactory {
         $outputStrategyFactory = new OutputStrategyFactory(
@@ -450,7 +454,7 @@ abstract class BaseDataLoaderTestCase extends TestCase
 
     protected function createInputStrategyFactory(
         ComponentSpecification $component,
-        AbstractWorkspaceProvider $workspaceProvider,
+        WorkspaceProviderInterface $workspaceProvider,
         ?ClientWrapper $clientWrapper = null,
         LoggerInterface $logger = new NullLogger(),
     ): InputStrategyFactory {

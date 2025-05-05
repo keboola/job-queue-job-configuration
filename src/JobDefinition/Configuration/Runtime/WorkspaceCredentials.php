@@ -6,47 +6,71 @@ namespace Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime;
 
 use InvalidArgumentException;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\WorkspaceCredentials\Type;
-use ValueError;
 
 readonly class WorkspaceCredentials
 {
     private function __construct(
+        /** @var non-empty-string */
         public string $id,
         public Type $type,
-        public string $password,
+        public ?string $password,
+        public ?string $privateKey,
     ) {
+        if (count(array_filter([$this->password, $this->privateKey])) !== 1) {
+            throw new InvalidArgumentException(
+                'Exactly one of "privateKey" and "password" must be configured in workspace_credentials',
+            );
+        }
     }
 
+    /**
+     * @param array{
+     *   id: non-empty-string,
+     *   type: value-of<Type>,
+     *   "#password"?: string|null,
+     *   "#privateKey"?: string|null,
+     * } $credentials
+     */
     public static function fromArray(array $credentials): self
     {
-        if (!isset($credentials['id']) || !isset($credentials['type']) || !isset($credentials['#password'])) {
-            throw new InvalidArgumentException(
-                'Missing required fields (id, type, #password) in workspace_credentials',
-            );
-        }
-
-        try {
-            $type = Type::from($credentials['type']);
-        } catch (ValueError $e) {
-            throw new InvalidArgumentException(
-                sprintf('Unsupported workspace type "%s"', $credentials['type']),
-                previous: $e,
-            );
-        }
-
         return new self(
             id: (string) $credentials['id'],
-            type: $type,
-            password: (string) $credentials['#password'],
+            type: Type::from($credentials['type']),
+            password: isset($credentials['#password']) ? ((string) $credentials['#password']) : null,
+            privateKey: isset($credentials['#privateKey']) ? ((string) $credentials['#privateKey']) : null,
         );
     }
 
     public function toArray(): array
     {
-        return [
+        $data = [
             'id' => $this->id,
             'type' => $this->type,
-            '#password' => $this->password,
         ];
+
+        if ($this->password !== null) {
+            $data['#password'] = $this->password;
+        }
+
+        if ($this->privateKey !== null) {
+            $data['#privateKey'] = $this->privateKey;
+        }
+
+        return $data;
+    }
+
+    public function getCredentials(): array
+    {
+        $credentials = [];
+
+        if ($this->password !== null) {
+            $credentials['password'] = $this->password;
+        }
+
+        if ($this->privateKey !== null) {
+            $credentials['privateKey'] = $this->privateKey;
+        }
+
+        return $credentials;
     }
 }

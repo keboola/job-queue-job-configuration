@@ -9,6 +9,8 @@ use Keboola\JobQueue\JobConfiguration\Exception\ApplicationException;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration as JobConfiguration;
 use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceProviderFactory;
+use Keboola\KeyGenerator\PemKeyCertificateGenerator;
+use Keboola\StagingProvider\Provider\SnowflakeKeypairGenerator;
 use Keboola\StorageApi\BranchAwareClient;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Options\Components\Configuration;
@@ -97,7 +99,7 @@ class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $credentials = $dataLoader->getWorkspaceCredentials();
         self::assertEquals(['container', 'connectionString'], array_keys($credentials));
         self::assertStringStartsWith('BlobEndpoint=https://', $credentials['connectionString']);
-        self::assertTrue($logger->hasNoticeThatContains('Created a new ephemeral workspace.'));
+        self::assertTrue($logger->hasNoticeThatContains('Creating a new ephemeral workspace.'));
 
         $this->getWorkspaceCleaner(
             clientWrapper: $clientWrapper,
@@ -196,7 +198,7 @@ class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         // cleanup after the test
         $workspacesApi = new Workspaces($this->clientWrapper->getBasicClient());
         $workspacesApi->deleteWorkspace($workspaces[0]['id'], [], true);
-        self::assertTrue($logger->hasInfoThatContains('Created a new persistent workspace'));
+        self::assertTrue($logger->hasInfoThatContains('Creating a new persistent workspace'));
     }
 
     public function testAbsWorkspaceConfigOneWorkspace(): void
@@ -349,9 +351,14 @@ class ABSPersistentOutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $clientWrapper->method('getBranchClient')->willReturn($client);
         $logger = new TestLogger();
         try {
+            $componentsApi = new Components($clientWrapper->getBasicClient());
+            $workspacesApi = new Workspaces($clientWrapper->getBasicClient());
+            $snowflakeKeyPairGenerator = new SnowflakeKeypairGenerator(new PemKeyCertificateGenerator());
+
             $workspaceFactory = new WorkspaceProviderFactory(
-                new Components($clientWrapper->getBranchClient()),
-                new Workspaces($clientWrapper->getBranchClient()),
+                $componentsApi,
+                $workspacesApi,
+                $snowflakeKeyPairGenerator,
                 $logger,
             );
             $workspaceFactory->getWorkspaceStaging(

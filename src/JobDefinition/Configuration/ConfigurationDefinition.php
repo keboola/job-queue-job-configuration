@@ -7,6 +7,7 @@ namespace Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration;
 use Keboola\InputMapping\Configuration\File as InputFile;
 use Keboola\InputMapping\Configuration\Table as InputTable;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Authorization\AuthorizationDefinition;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\WorkspaceCredentials\Type;
 use Keboola\OutputMapping\Configuration\File as OutputFile;
 use Keboola\OutputMapping\Configuration\Table as OutputTable;
 use Keboola\OutputMapping\Configuration\TableFile as OutputTableFile;
@@ -36,17 +37,29 @@ class ConfigurationDefinition implements ConfigurationInterface
                                 ->scalarNode('type')->end()
                                 ->scalarNode('context')->end()
                                 ->arrayNode('workspace_credentials')
+                                    ->ignoreExtraKeys(false)
                                     ->beforeNormalization()
                                         ->ifNull()
                                         ->thenUnset()
                                     ->end()
-                                    ->ignoreExtraKeys(false)
                                     ->children()
-                                        ->scalarNode('id')->isRequired()->end()
-                                        ->enumNode('type')->isRequired()
-                                            ->values(['snowflake'])
-                                            ->end()
+                                        ->scalarNode('id')
+                                            ->isRequired()
+                                            ->cannotBeEmpty()
+                                        ->end()
+                                        ->enumNode('type')
+                                            ->isRequired()
+                                            ->values(array_map(fn(Type $v) => $v->value, Type::cases()))
+                                        ->end()
                                         ->scalarNode('#password')->end()
+                                        ->scalarNode('#privateKey')->end()
+                                    ->end()
+                                    ->validate()
+                                        ->ifTrue(fn(array $v) => count(array_filter([
+                                            $v['#password'] ?? null,
+                                            $v['#privateKey'] ?? null,
+                                        ])) !== 1)
+                                        ->thenInvalid('Exactly one of "password" or "privateKey" must be configured.')
                                     ->end()
                                 ->end()
                             ->end()

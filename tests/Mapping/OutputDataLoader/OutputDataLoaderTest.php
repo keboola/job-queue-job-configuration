@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\OutputDataLoader;
 
-use Generator;
 use Keboola\Datatype\Definition\BaseType;
 use Keboola\Datatype\Definition\GenericStorage;
 use Keboola\Datatype\Definition\Snowflake;
@@ -21,10 +20,6 @@ use Keboola\JobQueue\JobConfiguration\Mapping\OutputDataLoader;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseSnowflakeProject;
 use Keboola\OutputMapping\Staging\StrategyFactory;
 use Keboola\OutputMapping\Writer\Table\MappingDestination;
-use Keboola\StorageApi\BranchAwareClient;
-use Keboola\StorageApi\Components;
-use Keboola\StorageApi\Options\Components\Configuration;
-use Keboola\StorageApi\Options\Components\ListConfigurationWorkspacesOptions;
 use Keboola\StorageApi\Workspaces;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\StorageApiToken;
@@ -270,11 +265,11 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         );
         $credentials = $dataLoader->getWorkspaceCredentials();
         self::assertEquals(
-            ['host', 'warehouse', 'database', 'schema', 'user', 'password', 'account'],
+            ['host', 'warehouse', 'database', 'schema', 'user', 'password', 'privateKey', 'account'],
             array_keys($credentials),
         );
         self::assertNotEmpty($credentials['user']);
-        self::assertNotNull($dataLoader->getWorkspaceBackendSize());
+        self::assertNotNull($dataLoader->getWorkspaceCredentials());
     }
 
     /**

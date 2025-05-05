@@ -7,7 +7,7 @@ namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\Backend;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\WorkspaceCredentials;
-use Keboola\StagingProvider\Provider\NewWorkspaceStagingProvider;
+use Keboola\StagingProvider\Provider\NewWorkspaceProvider;
 use Keboola\StorageApi\BranchAwareClient;
 use Keboola\StorageApi\Client as StorageApiClient;
 use Keboola\StorageApi\ClientException;
@@ -62,6 +62,7 @@ class WorkspaceCleanerTest extends BaseDataLoaderTestCase
         $clientWrapperMock = $this->createMock(ClientWrapper::class);
         $clientWrapperMock->method('getBasicClient')->willReturn($clientMock);
         $clientWrapperMock->method('getBranchClient')->willReturn($clientMock);
+        $clientWrapperMock->method('getToken')->willReturn($this->clientWrapper->getToken());
 
         self::assertCount(0, $componentsApiClient->listConfigurationWorkspaces($workspaceListOptions));
 
@@ -118,7 +119,7 @@ class WorkspaceCleanerTest extends BaseDataLoaderTestCase
 
         // this causes workspace creation (so that we can test its cleanup)
         $tableDataProvider = $inputStrategyFactory->getStrategyMap()['workspace-snowflake']->getTableDataProvider();
-        self::assertInstanceOf(NewWorkspaceStagingProvider::class, $tableDataProvider);
+        self::assertInstanceOf(NewWorkspaceProvider::class, $tableDataProvider);
         $tableDataProvider->getCredentials();
         self::assertCount(1, $componentsApiClient->listConfigurationWorkspaces($workspaceListOptions));
 
@@ -224,7 +225,7 @@ class WorkspaceCleanerTest extends BaseDataLoaderTestCase
 
         // this causes workspace creation (so that we can test its cleanup)
         $tableDataProvider = $inputStrategyFactory->getStrategyMap()['workspace-snowflake']->getTableDataProvider();
-        self::assertInstanceOf(NewWorkspaceStagingProvider::class, $tableDataProvider);
+        self::assertInstanceOf(NewWorkspaceProvider::class, $tableDataProvider);
         $tableDataProvider->getCredentials();
         self::assertCount(1, $componentsApiClient->listConfigurationWorkspaces($workspaceListOptions));
 
@@ -289,14 +290,19 @@ class WorkspaceCleanerTest extends BaseDataLoaderTestCase
         );
 
         $tableDataProvider = $inputStrategyFactory->getStrategyMap()['workspace-snowflake']->getTableDataProvider();
-        self::assertInstanceOf(NewWorkspaceStagingProvider::class, $tableDataProvider);
+        self::assertInstanceOf(NewWorkspaceProvider::class, $tableDataProvider);
         $credentials = $tableDataProvider->getCredentials();
         self::assertCount(1, $componentsApiClient->listConfigurationWorkspaces($workspaceListOptions));
         self::assertArrayHasKey('password', $credentials);
 
+        $workspaceId = $tableDataProvider->getWorkspaceId();
+        $workspaceType = $tableDataProvider->getBackendType();
+        self::assertNotEmpty($workspaceId);
+        self::assertSame('snowflake', $workspaceType);
+
         $workspaceCredentials = WorkspaceCredentials::fromArray([
-            'id' => $tableDataProvider->getWorkspaceId(),
-            'type' => $tableDataProvider->getBackendType(),
+            'id' => $workspaceId,
+            'type' => $workspaceType,
             '#password' => $credentials['password'],
         ]);
 

@@ -9,8 +9,10 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecifica
 use Keboola\JobQueue\JobConfiguration\Mapping\InputDataLoader;
 use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceProviderFactory;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\BaseDataLoaderTestCase;
+use Keboola\KeyGenerator\PemKeyCertificateGenerator;
 use Keboola\StagingProvider\InputProviderInitializer;
 use Keboola\StagingProvider\Provider\LocalStagingProvider;
+use Keboola\StagingProvider\Provider\SnowflakeKeypairGenerator;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Workspaces;
 use Keboola\StorageApiBranch\ClientWrapper;
@@ -39,10 +41,12 @@ abstract class BaseInputDataLoaderTestCase extends BaseDataLoaderTestCase
 
         $componentsApi = new Components($clientWrapper->getBasicClient());
         $workspacesApi = new Workspaces($clientWrapper->getBasicClient());
+        $snowflakeKeyPairGenerator = new SnowflakeKeypairGenerator(new PemKeyCertificateGenerator());
 
         $workspaceProviderFactoryFactory = new WorkspaceProviderFactory(
             componentsApiClient: $componentsApi,
             workspacesApiClient: $workspacesApi,
+            snowflakeKeyPairGenerator: $snowflakeKeyPairGenerator,
             logger: $logger,
         );
 

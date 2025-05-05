@@ -8,7 +8,7 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecifica
 use Keboola\JobQueue\JobConfiguration\Mapping\OutputDataLoader;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\BaseDataLoaderTestCase;
 use Keboola\OutputMapping\Staging\StrategyFactory as OutputStrategyFactory;
-use Keboola\StagingProvider\Provider\AbstractWorkspaceProvider;
+use Keboola\StagingProvider\Provider\WorkspaceProviderInterface;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -23,7 +23,7 @@ abstract class BaseOutputDataLoaderTestCase extends BaseDataLoaderTestCase
     protected function getOutputDataLoader(
         ComponentSpecification $component,
         ?ClientWrapper $clientWrapper = null,
-        ?AbstractWorkspaceProvider $workspaceProvider = null,
+        ?WorkspaceProviderInterface $workspaceProvider = null,
         ?OutputStrategyFactory $outputStrategyFactory = null,
         LoggerInterface $logger = new NullLogger(),
         ?string $configId = null,
