@@ -13,10 +13,7 @@ abstract class BaseDataLoader
     protected function validateComponentStagingSetting(ComponentSpecification $component): void
     {
         $workspaceTypes = [
-            AbstractStrategyFactory::WORKSPACE_ABS,
-            AbstractStrategyFactory::WORKSPACE_REDSHIFT,
             AbstractStrategyFactory::WORKSPACE_SNOWFLAKE,
-            AbstractStrategyFactory::WORKSPACE_SYNAPSE,
             AbstractStrategyFactory::WORKSPACE_BIGQUERY,
         ];
         if (in_array($component->getInputStagingStorage(), $workspaceTypes) &&

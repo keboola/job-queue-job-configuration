@@ -416,7 +416,7 @@ class ConfigurationTest extends TestCase
             ],
             'runtime' => [
                 'backend' => [
-                    'type' => 'redshift',
+                    'type' => 'bigquery',
                 ],
             ],
         ]);
@@ -441,6 +441,6 @@ class ConfigurationTest extends TestCase
                 ],
             ],
         ], $mergedConfiguration->processors->toArray());
-        self::assertSame('redshift', $mergedConfiguration->runtime?->backend?->type);
+        self::assertSame('bigquery', $mergedConfiguration->runtime?->backend?->type);
     }
 }
