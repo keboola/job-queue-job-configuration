@@ -73,7 +73,7 @@ class WorkspaceCleanerTest extends BaseDataLoaderTestCase
         );
 
         // immediately calling cleanWorkspace without using it means it was not initialized
-        $workspaceCleaner->cleanWorkspace($component, $configId);
+        $workspaceCleaner->cleanWorkspace();
 
         self::assertCount(0, $componentsApiClient->listConfigurationWorkspaces($workspaceListOptions));
     }
@@ -132,10 +132,7 @@ class WorkspaceCleanerTest extends BaseDataLoaderTestCase
             logger: $logger,
         );
 
-        $workspaceCleaner->cleanWorkspace(
-            $component,
-            $configId,
-        );
+        $workspaceCleaner->cleanWorkspace();
 
         self::assertCount(0, $componentsApiClient->listConfigurationWorkspaces($workspaceListOptions));
     }
@@ -238,10 +235,7 @@ class WorkspaceCleanerTest extends BaseDataLoaderTestCase
             logger: $logger,
         );
 
-        $workspaceCleaner->cleanWorkspace(
-            $component,
-            $configId,
-        );
+        $workspaceCleaner->cleanWorkspace();
 
         if ($shouldBeLogged) {
             self::assertTrue($logsHandler->hasErrorThatContains(
@@ -322,10 +316,7 @@ class WorkspaceCleanerTest extends BaseDataLoaderTestCase
             workspaceProvider: $workspaceProviderCurrent,
         );
 
-        $workspaceCleaner->cleanWorkspace(
-            $component,
-            $configId,
-        );
+        $workspaceCleaner->cleanWorkspace();
 
         // cleanWorkspace should not delete workspace if credentials were provided manually
         $existingWorkspaces = $componentsApiClient->listConfigurationWorkspaces($workspaceListOptions);

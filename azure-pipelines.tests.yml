@@ -16,6 +16,7 @@ jobs:
         TEST_STORAGE_API_TOKEN_MASTER: $(JOB_CONFIGURATION__STORAGE_API_TOKEN_MASTER__AWS)
         TEST_STORAGE_API_TOKEN_FEATURE_NATIVE_TYPES: $(JOB_CONFIGURATION__STORAGE_API_TOKEN_FEATURE_NATIVE_TYPES__AWS)
         TEST_STORAGE_API_TOKEN_FEATURE_NEW_NATIVE_TYPES: $(JOB_CONFIGURATION__STORAGE_API_TOKEN_FEATURE_NEW_NATIVE_TYPES__AWS)
+
   - template: ../../azure-pipelines/jobs/run-tests.yml
     parameters:
       displayName: Mapping general
@@ -29,6 +30,7 @@ jobs:
         TEST_STORAGE_API_TOKEN_FEATURE_NATIVE_TYPES: $(JOB_CONFIGURATION__STORAGE_API_TOKEN_FEATURE_NATIVE_TYPES__AWS)
         TEST_STORAGE_API_TOKEN_FEATURE_NEW_NATIVE_TYPES: $(JOB_CONFIGURATION__STORAGE_API_TOKEN_FEATURE_NEW_NATIVE_TYPES__AWS)
   - template: ../../azure-pipelines/jobs/run-tests.yml
+
     parameters:
       displayName: Mapping ABS
       serviceName: ci-job-configuration
@@ -39,6 +41,7 @@ jobs:
         TEST_STORAGE_API_TOKEN_AZURE: $(JOB_CONFIGURATION__STORAGE_API_TOKEN__AZURE)
         TEST_STORAGE_API_TOKEN_MASTER_AZURE: $(JOB_CONFIGURATION__STORAGE_API_TOKEN_MASTER__AZURE)
       backend: abs
+
   - template: ../../azure-pipelines/jobs/run-tests.yml
     parameters:
       displayName: Mapping BigQuery
@@ -50,6 +53,7 @@ jobs:
         TEST_STORAGE_API_TOKEN_GCP: $(JOB_CONFIGURATION__STORAGE_API_TOKEN__GCP)
         TEST_STORAGE_API_TOKEN_MASTER_GCP: $(JOB_CONFIGURATION__STORAGE_API_TOKEN_MASTER__GCP)
       backend: bigquery
+
   - template: ../../azure-pipelines/jobs/run-tests.yml
     parameters:
       displayName: Mapping GCS
@@ -61,6 +65,7 @@ jobs:
         TEST_STORAGE_API_TOKEN_GCP: $(JOB_CONFIGURATION__STORAGE_API_TOKEN__GCP)
         TEST_STORAGE_API_TOKEN_MASTER_GCP: $(JOB_CONFIGURATION__STORAGE_API_TOKEN_MASTER__GCP)
       backend: gcs
+
   - template: ../../azure-pipelines/jobs/run-tests.yml
     parameters:
       displayName: Mapping S3
@@ -74,14 +79,3 @@ jobs:
         TEST_STORAGE_API_TOKEN_FEATURE_NATIVE_TYPES: $(JOB_CONFIGURATION__STORAGE_API_TOKEN_FEATURE_NATIVE_TYPES__AWS)
         TEST_STORAGE_API_TOKEN_FEATURE_NEW_NATIVE_TYPES: $(JOB_CONFIGURATION__STORAGE_API_TOKEN_FEATURE_NEW_NATIVE_TYPES__AWS)
       backend: s3
-  - template: ../../azure-pipelines/jobs/run-tests.yml
-    parameters:
-      displayName: Mapping Redshift
-      serviceName: ci-job-configuration
-      testCommand: vendor/bin/phpunit --testsuite mapping-redshift
-      variables:
-        STORAGE_API_URL__REDSHIFT: $(STORAGE_API_URL__AWS)
-      secrets:
-        TEST_STORAGE_API_TOKEN_REDSHIFT: $(JOB_CONFIGURATION__STORAGE_API_TOKEN__REDSHIFT)
-        TEST_STORAGE_API_TOKEN_MASTER_REDSHIFT: $(JOB_CONFIGURATION__STORAGE_API_TOKEN_MASTER__REDSHIFT)
-      backend: redshift
