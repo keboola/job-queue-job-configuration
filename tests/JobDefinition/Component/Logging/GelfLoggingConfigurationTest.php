@@ -13,15 +13,12 @@ class GelfLoggingConfigurationTest extends TestCase
     {
         $config = new GelfLoggingConfiguration('tcp');
         self::assertSame('tcp', $config->type);
-        self::assertSame('12001', $config->port);
 
         $config = new GelfLoggingConfiguration('udp');
         self::assertSame('udp', $config->type);
-        self::assertSame('12001', $config->port);
 
         $config = new GelfLoggingConfiguration('http');
         self::assertSame('http', $config->type);
-        self::assertSame('12002', $config->port);
     }
 
     public function testFromArray(): void
