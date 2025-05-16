@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\Tests\JobDefinition\Component;
 
 use Keboola\CommonExceptions\ApplicationExceptionInterface;
+use Keboola\JobQueue\JobConfiguration\Exception\ComponentInvalidException;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\AllowedProcessorPosition;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecificationDefinition;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\Logging\LoggingConfigurationInterface;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\DataTypeSupport;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\UnitConverter;
 use PHPUnit\Framework\TestCase;
@@ -472,5 +474,53 @@ class ComponentSpecificationTest extends TestCase
             ],
         ];
         (new Processor())->processConfiguration(new ComponentSpecificationDefinition(), ['config' => $config]);
+    }
+
+    /** @dataProvider provideGetLoggingConfigurationTestData */
+    public function testGetLoggingConfiguration(
+        array $componentData,
+        string $expectedType,
+    ): void {
+        $componentSpec = new ComponentSpecification([
+            'id' => 'keboola.test-component',
+            'data' => array_merge([
+                'definition' => [
+                    'type' => 'aws-ecr',
+                    'uri' => 'keboola/test-component',
+                    'tag' => '0.2.2',
+                ],
+            ], $componentData),
+        ]);
+        $loggingConfig = $componentSpec->getLoggingConfiguration();
+
+        self::assertInstanceOf(LoggingConfigurationInterface::class, $loggingConfig);
+        self::assertSame($expectedType, $loggingConfig->toArray()['type']);
+    }
+
+    public static function provideGetLoggingConfigurationTestData(): iterable
+    {
+        yield 'no logging configured (default to standard)' => [
+            'componentData' => [],
+            'expectedType' => 'standard',
+        ];
+
+        yield 'standard logging explicitly configured' => [
+            'componentData' => [
+                'logging' => [
+                    'type' => 'standard',
+                ],
+            ],
+            'expectedType' => 'standard',
+        ];
+
+        yield 'gelf logging configured' => [
+            'componentData' => [
+                'logging' => [
+                    'type' => 'gelf',
+                    'gelf_server_type' => 'tcp',
+                ],
+            ],
+            'expectedType' => 'gelf',
+        ];
     }
 }
