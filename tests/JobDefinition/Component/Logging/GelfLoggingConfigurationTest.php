@@ -35,6 +35,15 @@ class GelfLoggingConfigurationTest extends TestCase
         self::assertSame('tcp', $config->type);
     }
 
+    public function testDefaultsFromArray(): void
+    {
+        $data = [];
+
+        $config = GelfLoggingConfiguration::fromArray($data);
+
+        self::assertSame('tcp', $config->type);
+    }
+
     public function testToArray(): void
     {
         $config = new GelfLoggingConfiguration('tcp');
