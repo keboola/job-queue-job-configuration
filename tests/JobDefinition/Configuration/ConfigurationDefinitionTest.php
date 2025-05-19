@@ -906,6 +906,47 @@ class ConfigurationDefinitionTest extends TestCase
         );
     }
 
+    public function testConfigurationWithProcessorTag(): void
+    {
+        // Test with tag
+        $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
+            'configuration' => [
+                'processors' => [
+                    'before' => [
+                        [
+                            'definition' => [
+                                'component' => 'test-component',
+                                'tag' => 'latest',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        self::assertSame(
+            'latest',
+            $config['processors']['before'][0]['definition']['tag'],
+        );
+
+        // Test without tag (should be optional)
+        $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
+            'configuration' => [
+                'processors' => [
+                    'after' => [
+                        [
+                            'definition' => [
+                                'component' => 'test-component',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        self::assertArrayNotHasKey('tag', $config['processors']['after'][0]['definition']);
+    }
+
     public static function provideInvalidProcessorDefinitionTestData(): iterable
     {
         foreach (['before', 'after'] as $type) {
