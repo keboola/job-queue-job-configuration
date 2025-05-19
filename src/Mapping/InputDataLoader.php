@@ -53,16 +53,9 @@ class InputDataLoader extends BaseDataLoader
             if (!$inputConfig->tables->isEmpty()) {
                 $this->logger->debug('Downloading source tables.');
 
-                /*
-                 * preserve is true only for ABS Workspaces which are persistent (shared across runs) (preserve = true).
-                 * Redshift workspaces are reusable, but still cleaned up before each run (preserve = false). Other
-                 * workspaces (Snowflake, Local) are ephemeral (thus the preserver flag is irrelevant for them).
-                 */
-                $preserveWorkspace = $component->getInputStagingStorage() === AbstractStrategyFactory::WORKSPACE_ABS;
-
                 $readerOptions = new ReaderOptions(
                     !$component->allowBranchMapping(),
-                    $preserveWorkspace,
+                    preserveWorkspace: false,
                 );
 
                 $inputTableResult = $reader->downloadTables(

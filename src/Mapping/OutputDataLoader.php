@@ -34,8 +34,6 @@ class OutputDataLoader extends BaseDataLoader
     public function storeOutput(
         ComponentSpecification $component,
         Configuration $jobConfiguration,
-        ?string $branchId,
-        ?string $runId,
         ?string $configId,
         ?string $configRowId,
         bool $isFailedJob = false,
@@ -46,6 +44,7 @@ class OutputDataLoader extends BaseDataLoader
 
         $inputStorageConfig = $jobConfiguration->storage->input;
         $outputStorageConfig = $jobConfiguration->storage->output;
+        $clientWrapper = $this->outputStrategyFactory->getClientWrapper();
 
         $defaultBucketName = $outputStorageConfig->defaultBucket ?? '';
         if ($defaultBucketName === '') {
@@ -64,11 +63,11 @@ class OutputDataLoader extends BaseDataLoader
             $commonSystemMetadata[SystemMetadata::SYSTEM_KEY_CONFIGURATION_ROW_ID] = $configRowId;
         }
         $tableSystemMetadata = $fileSystemMetadata = $commonSystemMetadata;
-        if ($branchId !== null) {
-            $tableSystemMetadata[SystemMetadata::SYSTEM_KEY_BRANCH_ID] = $branchId;
+        if ($clientWrapper->isDevelopmentBranch()) {
+            $tableSystemMetadata[SystemMetadata::SYSTEM_KEY_BRANCH_ID] = $clientWrapper->getBranchId();
         }
 
-        $fileSystemMetadata[SystemMetadata::SYSTEM_KEY_RUN_ID] = $runId;
+        $fileSystemMetadata[SystemMetadata::SYSTEM_KEY_RUN_ID] = $clientWrapper->getBranchClient()->getRunId();
 
         // Get default bucket
         if ($defaultBucketName) {
@@ -111,14 +110,14 @@ class OutputDataLoader extends BaseDataLoader
 
             $tableLoader = new TableLoader(
                 logger: $this->outputStrategyFactory->getLogger(),
-                clientWrapper: $this->outputStrategyFactory->getClientWrapper(),
+                clientWrapper: $clientWrapper,
                 strategyFactory: $this->outputStrategyFactory,
             );
 
             $mappingSettings = new OutputMappingSettings(
                 configuration: $uploadTablesOptions,
                 sourcePathPrefix: $this->dataOutDir . '/tables/',
-                storageApiToken: $this->outputStrategyFactory->getClientWrapper()->getToken(),
+                storageApiToken: $clientWrapper->getToken(),
                 isFailedJob: $isFailedJob,
                 dataTypeSupport: $this->getDataTypeSupport($component, $outputStorageConfig)->value,
             );

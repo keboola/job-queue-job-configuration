@@ -9,28 +9,134 @@ use PHPUnit\Framework\TestCase;
 
 class ProcessorDefinitionTest extends TestCase
 {
-    public function testConstructor(): void
+    public static function provideConstructorTestData(): iterable
     {
-        $definition = new ProcessorDefinition('test-component');
+        yield 'with explicit null tag' => [
+            'component' => 'test-component',
+            'tag' => null,
+            'expectedComponent' => 'test-component',
+            'expectedTag' => null,
+        ];
 
-        self::assertSame('test-component', $definition->component);
+        yield 'with tag' => [
+            'component' => 'test-component',
+            'tag' => 'latest',
+            'expectedComponent' => 'test-component',
+            'expectedTag' => 'latest',
+        ];
+
+        yield 'without tag parameter' => [
+            'component' => 'test-component',
+            'tag' => null,
+            'expectedComponent' => 'test-component',
+            'expectedTag' => null,
+            'skipTagParameter' => true,
+        ];
     }
 
-    public function testFromArray(): void
-    {
-        $definition = ProcessorDefinition::fromArray([
-            'component' => 'test-component',
-        ]);
+    /**
+     * @param non-empty-string $component
+     * @param null|non-empty-string $tag
+     * @dataProvider provideConstructorTestData
+     */
+    public function testConstructor(
+        string $component,
+        ?string $tag,
+        string $expectedComponent,
+        ?string $expectedTag,
+        bool $skipTagParameter = false,
+    ): void {
+        if ($skipTagParameter) {
+            $definition = new ProcessorDefinition($component);
+        } else {
+            $definition = new ProcessorDefinition($component, $tag);
+        }
 
-        self::assertSame('test-component', $definition->component);
+        self::assertSame($expectedComponent, $definition->component);
+        self::assertSame($expectedTag, $definition->tag);
     }
 
-    public function testToArray(): void
+    public static function provideFromArrayTestData(): iterable
     {
-        $definition = new ProcessorDefinition('test-component');
+        yield 'without tag' => [
+            'data' => [
+                'component' => 'test-component',
+            ],
+            'expectedComponent' => 'test-component',
+            'expectedTag' => null,
+        ];
 
-        self::assertSame([
+        yield 'with tag' => [
+            'data' => [
+                'component' => 'test-component',
+                'tag' => 'latest',
+            ],
+            'expectedComponent' => 'test-component',
+            'expectedTag' => 'latest',
+        ];
+
+        yield 'with empty tag' => [
+            'data' => [
+                'component' => 'test-component',
+                'tag' => '',
+            ],
+            'expectedComponent' => 'test-component',
+            'expectedTag' => null,
+        ];
+    }
+
+    /**
+     * @param array{
+     *     component: non-empty-string,
+     *     tag?: ?string,
+     * } $data
+     * @param non-empty-string $expectedComponent
+     * @param null|non-empty-string $expectedTag
+     * @dataProvider provideFromArrayTestData
+     */
+    public function testFromArray(
+        array $data,
+        string $expectedComponent,
+        ?string $expectedTag,
+    ): void {
+        $definition = ProcessorDefinition::fromArray($data);
+
+        self::assertSame($expectedComponent, $definition->component);
+        self::assertSame($expectedTag, $definition->tag);
+    }
+
+    public static function provideToArrayTestData(): iterable
+    {
+        yield 'without tag' => [
             'component' => 'test-component',
-        ], $definition->toArray());
+            'tag' => null,
+            'expected' => [
+                'component' => 'test-component',
+            ],
+        ];
+
+        yield 'with tag' => [
+            'component' => 'test-component',
+            'tag' => 'latest',
+            'expected' => [
+                'component' => 'test-component',
+                'tag' => 'latest',
+            ],
+        ];
+    }
+
+    /**
+     * @param non-empty-string $component
+     * @param null|non-empty-string $tag
+     * @dataProvider provideToArrayTestData
+     */
+    public function testToArray(
+        string $component,
+        ?string $tag,
+        array $expected,
+    ): void {
+        $definition = new ProcessorDefinition($component, $tag);
+
+        self::assertSame($expected, $definition->toArray());
     }
 }

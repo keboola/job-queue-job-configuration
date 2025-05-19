@@ -262,6 +262,81 @@ class ConfigurationDefinitionTest extends TestCase
         );
     }
 
+    public static function provideValidRuntimeProcessTimeoutConfigurationData(): iterable
+    {
+        yield 'valid integer value' => [
+            'processTimeout' => 3600,
+            'expectedValue' => 3600,
+        ];
+
+        yield 'null value (default)' => [
+            'processTimeout' => null,
+            'expectedValue' => null,
+        ];
+    }
+
+    /** @dataProvider provideValidRuntimeProcessTimeoutConfigurationData */
+    public function testValidRuntimeProcessTimeoutConfiguration(
+        null|int $processTimeout,
+        ?int $expectedValue,
+    ): void {
+        $config = [
+            'configuration' => [
+                'runtime' => [],
+            ],
+        ];
+
+        if ($processTimeout !== null) {
+            $config['configuration']['runtime']['process_timeout'] = $processTimeout;
+        }
+
+        $result = (new Processor())->processConfiguration(new ConfigurationDefinition(), $config);
+
+        self::assertSame($expectedValue, $result['runtime']['process_timeout']);
+    }
+
+    public static function provideInvalidRuntimeProcessTimeoutConfigurationData(): iterable
+    {
+        yield 'non-integer value' => [
+            'processTimeout' => 'invalid',
+            'exceptionMessage' => 'must be "null" or "int"',
+        ];
+
+        yield 'float value' => [
+            'processTimeout' => 3600.5,
+            'exceptionMessage' => 'must be "null" or "int"',
+        ];
+
+        yield 'negative value' => [
+            'processTimeout' => -1,
+            'exceptionMessage' => 'must be greater than 0',
+        ];
+
+        yield 'zero value' => [
+            'processTimeout' => 0,
+            'exceptionMessage' => 'must be greater than 0',
+        ];
+    }
+
+    /** @dataProvider provideInvalidRuntimeProcessTimeoutConfigurationData */
+    public function testInvalidRuntimeProcessTimeoutConfiguration(
+        mixed $processTimeout,
+        string $exceptionMessage,
+    ): void {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage($exceptionMessage);
+
+        $config = [
+            'configuration' => [
+                'runtime' => [
+                    'process_timeout' => $processTimeout,
+                ],
+            ],
+        ];
+
+        (new Processor())->processConfiguration(new ConfigurationDefinition(), $config);
+    }
+
     public function testConfigurationWithTableFiles(): void
     {
         (new Processor())->processConfiguration(new ConfigurationDefinition(), [
@@ -904,6 +979,47 @@ class ConfigurationDefinitionTest extends TestCase
             ['NULL', 'N/A'],
             $config['storage']['output']['treat_values_as_null'],
         );
+    }
+
+    public function testConfigurationWithProcessorTag(): void
+    {
+        // Test with tag
+        $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
+            'configuration' => [
+                'processors' => [
+                    'before' => [
+                        [
+                            'definition' => [
+                                'component' => 'test-component',
+                                'tag' => 'latest',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        self::assertSame(
+            'latest',
+            $config['processors']['before'][0]['definition']['tag'],
+        );
+
+        // Test without tag (should be optional)
+        $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
+            'configuration' => [
+                'processors' => [
+                    'after' => [
+                        [
+                            'definition' => [
+                                'component' => 'test-component',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        self::assertArrayNotHasKey('tag', $config['processors']['after'][0]['definition']);
     }
 
     public static function provideInvalidProcessorDefinitionTestData(): iterable

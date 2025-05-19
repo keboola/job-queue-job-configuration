@@ -57,8 +57,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             $component,
             new JobConfiguration(),
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -107,8 +105,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
                     ),
                 ),
             ),
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -142,8 +138,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             ),
             null,
             null,
-            null,
-            null,
         );
     }
 
@@ -175,8 +169,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $dataLoader->storeOutput(
             $component,
             new JobConfiguration(),
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -185,50 +177,10 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
     public static function invalidStagingProvider(): array
     {
         return [
-            'snowflake-redshift' => [
+            'snowflake-bigquery' => [
                 'workspace-snowflake',
-                'workspace-redshift',
-                'Component staging setting mismatch - input: "workspace-snowflake", output: "workspace-redshift".',
-            ],
-            'redshift-snowflake' => [
-                'workspace-redshift',
-                'workspace-snowflake',
-                'Component staging setting mismatch - input: "workspace-redshift", output: "workspace-snowflake".',
-            ],
-            'snowflake-synapse' => [
-                'workspace-snowflake',
-                'workspace-synapse',
-                'Component staging setting mismatch - input: "workspace-snowflake", output: "workspace-synapse".',
-            ],
-            'redshift-synapse' => [
-                'workspace-redshift',
-                'workspace-synapse',
-                'Component staging setting mismatch - input: "workspace-redshift", output: "workspace-synapse".',
-            ],
-            'synapse-snowflake' => [
-                'workspace-synapse',
-                'workspace-snowflake',
-                'Component staging setting mismatch - input: "workspace-synapse", output: "workspace-snowflake".',
-            ],
-            'synapse-redshift' => [
-                'workspace-synapse',
-                'workspace-redshift',
-                'Component staging setting mismatch - input: "workspace-synapse", output: "workspace-redshift".',
-            ],
-            'abs-snowflake' => [
-                'workspace-abs',
-                'workspace-snowflake',
-                'Component staging setting mismatch - input: "workspace-abs", output: "workspace-snowflake".',
-            ],
-            'abs-redshift' => [
-                'workspace-abs',
-                'workspace-redshift',
-                'Component staging setting mismatch - input: "workspace-abs", output: "workspace-redshift".',
-            ],
-            'abs-synapse' => [
-                'workspace-abs',
-                'workspace-synapse',
-                'Component staging setting mismatch - input: "workspace-abs", output: "workspace-synapse".',
+                'workspace-bigquery',
+                'Component staging setting mismatch - input: "workspace-snowflake", output: "workspace-bigquery".',
             ],
             'bigquery-snowflake' => [
                 'workspace-bigquery',
@@ -258,8 +210,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $dataLoader->storeOutput(
             $component,
             new JobConfiguration(),
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -305,8 +255,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $dataLoader->storeOutput(
             $component,
             $jobConfiguration,
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -327,7 +275,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             clientWrapper: $this->clientWrapper,
             configId: null,
             component: $component,
-        )->cleanWorkspace($component, null);
+        )->cleanWorkspace();
     }
 
     public static function readonlyFlagProvider(): iterable
@@ -392,8 +340,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             $component,
             $jobConfiguration,
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -530,8 +476,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             $component,
             $jobConfiguration,
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -626,8 +570,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             $component,
             $jobConfiguration,
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -778,8 +720,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             $component,
             $jobConfiguration,
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -954,8 +894,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             $component,
             $jobConfiguration,
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -1086,8 +1024,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             $component,
             $jobConfiguration,
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -1271,8 +1207,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             component: $component,
             jobConfiguration: $config,
-            branchId: null,
-            runId: null,
             configId: null,
             configRowId: null,
         );
@@ -1383,8 +1317,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             component: $component,
             jobConfiguration: $config,
-            branchId: null,
-            runId: null,
             configId: null,
             configRowId: null,
         );

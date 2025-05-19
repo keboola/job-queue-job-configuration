@@ -24,9 +24,9 @@
         "php": "^8.2",
         "colinodell/psr-testlogger": "^1.3",
         "keboola/common-exceptions": "^1.2",
-        "keboola/input-mapping": "^19.3",
-        "keboola/output-mapping": "^24.42",
-        "keboola/staging-provider": "^10.0",
+        "keboola/input-mapping": "^20.0",
+        "keboola/output-mapping": "^25.0",
+        "keboola/staging-provider": "^11.0",
         "keboola/storage-api-client": "^18.1",
         "psr/log": "^3.0",
         "symfony/config": "^6.4|^7.0"

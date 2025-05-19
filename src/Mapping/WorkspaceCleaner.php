@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\Mapping;
 
-use Keboola\InputMapping\Staging\AbstractStrategyFactory;
 use Keboola\InputMapping\Staging\StrategyFactory as InputStrategyFactory;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\OutputMapping\Staging\StrategyFactory as OutputStrategyFactory;
@@ -23,7 +22,7 @@ class WorkspaceCleaner
     ) {
     }
 
-    public function cleanWorkspace(ComponentSpecification $component, ?string $configId): void
+    public function cleanWorkspace(): void
     {
         $cleanedProviders = [];
         $maps = array_merge(
@@ -36,18 +35,6 @@ class WorkspaceCleaner
                     continue;
                 }
                 if (in_array($stagingProvider, $cleanedProviders, true)) {
-                    continue;
-                }
-                /* don't clean ABS workspaces or Redshift workspaces which are reusable if created for a config.
-
-                    The whole condition and the isReusableWorkspace method can probably be completely removed,
-                    because now it is distinguished between NewWorkspaceStagingProvider (cleanup) and
-                    ExistingWorkspaceStagingProvider (no cleanup).
-
-                    However, since ABS and Redshift workspaces are not used in real life and badly tested, I don't
-                    want to remove it now.
-                 */
-                if ($configId && $this->isReusableWorkspace($component)) {
                     continue;
                 }
 
@@ -65,15 +52,5 @@ class WorkspaceCleaner
                 }
             }
         }
-    }
-
-    private function isReusableWorkspace(ComponentSpecification $component): bool
-    {
-        return
-            $component->getInputStagingStorage() === AbstractStrategyFactory::WORKSPACE_ABS ||
-            $component->getInputStagingStorage() === AbstractStrategyFactory::WORKSPACE_REDSHIFT ||
-            $component->getOutputStagingStorage() === AbstractStrategyFactory::WORKSPACE_ABS ||
-            $component->getOutputStagingStorage() === AbstractStrategyFactory::WORKSPACE_REDSHIFT
-        ;
     }
 }

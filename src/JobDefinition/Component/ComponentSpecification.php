@@ -165,7 +165,7 @@ class ComponentSpecification
 
     public function getLoggingConfiguration(): LoggingConfigurationInterface
     {
-        $logging = $this->definition['data']['logging'] ?? [];
+        $logging = $this->data['logging'] ?? [];
 
         return match ($logging['type'] ?? 'standard') {
             'standard' => StandardLoggingConfiguration::fromArray($logging),

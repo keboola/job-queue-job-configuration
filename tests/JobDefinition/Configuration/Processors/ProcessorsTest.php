@@ -11,58 +11,67 @@ use PHPUnit\Framework\TestCase;
 
 class ProcessorsTest extends TestCase
 {
-    public function testEmptyConstructor(): void
+    public static function provideConstructorTestData(): iterable
     {
-        $processors = new Processors();
+        yield 'empty constructor' => [
+            'before' => [],
+            'after' => [],
+            'expectedBefore' => [],
+            'expectedAfter' => [],
+        ];
 
-        self::assertSame([], $processors->before);
-        self::assertSame([], $processors->after);
+        yield 'with processors' => [
+            'before' => [
+                new Processor(
+                    new ProcessorDefinition('component-before'),
+                    [
+                        'some-param' => 'some-value',
+                    ],
+                ),
+            ],
+            'after' => [
+                new Processor(
+                    new ProcessorDefinition('component-after', 'latest'),
+                    [
+                        'some-param' => 'some-value',
+                    ],
+                ),
+            ],
+            'expectedBefore' => [
+                new Processor(
+                    new ProcessorDefinition('component-before'),
+                    [
+                        'some-param' => 'some-value',
+                    ],
+                ),
+            ],
+            'expectedAfter' => [
+                new Processor(
+                    new ProcessorDefinition('component-after', 'latest'),
+                    [
+                        'some-param' => 'some-value',
+                    ],
+                ),
+            ],
+        ];
     }
 
-    public function testConstructor(): void
-    {
+    /**
+     * @dataProvider provideConstructorTestData
+     */
+    public function testConstructor(
+        array $before,
+        array $after,
+        array $expectedBefore,
+        array $expectedAfter,
+    ): void {
         $processors = new Processors(
-            before: [
-                new Processor(
-                    new ProcessorDefinition('component-before'),
-                    [
-                        'some-param' => 'some-value',
-                    ],
-                ),
-            ],
-            after: [
-                new Processor(
-                    new ProcessorDefinition('component-after'),
-                    [
-                        'some-param' => 'some-value',
-                    ],
-                ),
-            ],
+            before: $before,
+            after: $after,
         );
 
-        self::assertEquals(
-            [
-                new Processor(
-                    new ProcessorDefinition('component-before'),
-                    [
-                        'some-param' => 'some-value',
-                    ],
-                ),
-            ],
-            $processors->before,
-        );
-
-        self::assertEquals(
-            [
-                new Processor(
-                    new ProcessorDefinition('component-after'),
-                    [
-                        'some-param' => 'some-value',
-                    ],
-                ),
-            ],
-            $processors->after,
-        );
+        self::assertEquals($expectedBefore, $processors->before);
+        self::assertEquals($expectedAfter, $processors->after);
     }
 
     public static function provideFromArrayTestData(): iterable
@@ -85,6 +94,7 @@ class ProcessorsTest extends TestCase
                     [
                         'definition' => [
                             'component' => 'second-component-before',
+                            'tag' => 'latest',
                         ],
                     ],
                 ],
@@ -105,7 +115,7 @@ class ProcessorsTest extends TestCase
                         ],
                     ),
                     new Processor(
-                        new ProcessorDefinition('second-component-before'),
+                        new ProcessorDefinition('second-component-before', 'latest'),
                     ),
                 ],
                 after: [
@@ -125,58 +135,66 @@ class ProcessorsTest extends TestCase
         self::assertEquals($expected, $processors);
     }
 
-    public function testToArray(): void
+    public static function provideToArrayTestData(): iterable
     {
-        $processors = new Processors(
-            before: [
-                new Processor(
-                    new ProcessorDefinition('component-before'),
+        yield 'with processors' => [
+            'processors' => new Processors(
+                before: [
+                    new Processor(
+                        new ProcessorDefinition('component-before', null),
+                        [
+                            'some-param' => 'some-value',
+                        ],
+                    ),
+                ],
+                after: [
+                    new Processor(
+                        new ProcessorDefinition('component-after', 'latest'),
+                        [
+                            'some-param' => 'some-value',
+                        ],
+                    ),
+                ],
+            ),
+            'expected' => [
+                'before' => [
                     [
-                        'some-param' => 'some-value',
+                        'definition' => [
+                            'component' => 'component-before',
+                        ],
+                        'parameters' => [
+                            'some-param' => 'some-value',
+                        ],
                     ],
-                ),
-            ],
-            after: [
-                new Processor(
-                    new ProcessorDefinition('component-after'),
+                ],
+                'after' => [
                     [
-                        'some-param' => 'some-value',
+                        'definition' => [
+                            'component' => 'component-after',
+                            'tag' => 'latest',
+                        ],
+                        'parameters' => [
+                            'some-param' => 'some-value',
+                        ],
                     ],
-                ),
+                ],
             ],
-        );
+        ];
 
-        self::assertSame([
-            'before' => [
-                [
-                    'definition' => [
-                        'component' => 'component-before',
-                    ],
-                    'parameters' => [
-                        'some-param' => 'some-value',
-                    ],
-                ],
-            ],
-            'after' => [
-                [
-                    'definition' => [
-                        'component' => 'component-after',
-                    ],
-                    'parameters' => [
-                        'some-param' => 'some-value',
-                    ],
-                ],
-            ],
-        ], $processors->toArray());
+        yield 'with no processors' => [
+            'processors' => new Processors(
+                before: [],
+                after: [],
+            ),
+            'expected' => [],
+        ];
     }
 
-    public function testToArrayWithNoProcessors(): void
+    /**
+     * @dataProvider provideToArrayTestData
+     */
+    public function testToArray(Processors $processors, array $expected): void
     {
-        $processors = new Processors(
-            before: [],
-            after: [],
-        );
-
-        self::assertSame([], $processors->toArray());
+        self::assertSame($expected, $processors->toArray());
     }
 }
