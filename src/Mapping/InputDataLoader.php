@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\Mapping;
 
-use Generator;
 use Keboola\InputMapping\Exception\InvalidInputException;
 use Keboola\InputMapping\Reader;
-use Keboola\InputMapping\Staging\AbstractStagingDefinition;
-use Keboola\InputMapping\Staging\AbstractStrategyFactory;
-use Keboola\InputMapping\Staging\ProviderInterface;
 use Keboola\InputMapping\Staging\StrategyFactory as InputStrategyFactory;
 use Keboola\InputMapping\State\InputFileStateList;
 use Keboola\InputMapping\State\InputTableStateList;
@@ -20,13 +16,14 @@ use Keboola\JobQueue\JobConfiguration\Exception\UserException;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\State\State;
-use Keboola\StagingProvider\Provider\WorkspaceProviderInterface;
 use Keboola\StorageApi\ClientException;
+use Keboola\StorageApiBranch\ClientWrapper;
 use Psr\Log\LoggerInterface;
 
 class InputDataLoader extends BaseDataLoader
 {
     public function __construct(
+        private readonly ClientWrapper $clientWrapper,
         private readonly InputStrategyFactory $inputStrategyFactory,
         private readonly LoggerInterface $logger,
         private readonly string $dataInDir,
@@ -48,7 +45,11 @@ class InputDataLoader extends BaseDataLoader
         $inputConfig = $jobConfiguration->storage->input;
         $inputState = $jobState->storage->input;
 
-        $reader = new Reader($this->inputStrategyFactory);
+        $reader = new Reader(
+            $this->clientWrapper,
+            $this->logger,
+            $this->inputStrategyFactory,
+        );
         try {
             if (!$inputConfig->tables->isEmpty()) {
                 $this->logger->debug('Downloading source tables.');
@@ -62,7 +63,6 @@ class InputDataLoader extends BaseDataLoader
                     new InputTableOptionsList($inputConfig->tables->toArray()),
                     new InputTableStateList($inputState->tables->toArray()),
                     $this->dataInDir . '/tables/',
-                    $component->getInputStagingStorage(),
                     $readerOptions,
                 );
             }
@@ -72,7 +72,6 @@ class InputDataLoader extends BaseDataLoader
                 $inputFileStateList = $reader->downloadFiles(
                     $inputConfig->files->toArray(),
                     $this->dataInDir . '/files/',
-                    $component->getInputStagingStorage(),
                     new InputFileStateList($inputState->files->toArray()),
                 );
             }
@@ -83,31 +82,5 @@ class InputDataLoader extends BaseDataLoader
         }
 
         return new LoadInputDataResult($inputTableResult, $inputFileStateList);
-    }
-
-    public function getWorkspaceCredentials(): array
-    {
-        // this returns the first workspace found, which is ok so far because there can only be one
-        // (ensured in validateStagingSetting()) working only with inputStrategyFactory, but
-        // the workspace providers are shared between input and output, so it's "ok"
-        foreach ($this->inputStrategyFactory->getStrategyMap() as $stagingDefinition) {
-            foreach ($this->getStagingProviders($stagingDefinition) as $stagingProvider) {
-                if (!$stagingProvider instanceof WorkspaceProviderInterface) {
-                    continue;
-                }
-
-                return $stagingProvider->getCredentials();
-            }
-        }
-        return [];
-    }
-
-    /** @return Generator<ProviderInterface|null> */
-    private function getStagingProviders(AbstractStagingDefinition $stagingDefinition): Generator
-    {
-        yield $stagingDefinition->getFileDataProvider();
-        yield $stagingDefinition->getFileMetadataProvider();
-        yield $stagingDefinition->getTableDataProvider();
-        yield $stagingDefinition->getTableMetadataProvider();
     }
 }

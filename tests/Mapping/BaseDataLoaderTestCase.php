@@ -7,24 +7,15 @@ namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping;
 use InvalidArgumentException;
 use Keboola\InputMapping\Staging\StrategyFactory as InputStrategyFactory;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
-use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\Backend;
-use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceCleaner;
-use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceProviderFactory;
 use Keboola\JobQueue\JobConfiguration\Tests\BackendAssertsTrait;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseAzureProject;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseGCPProject;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseSnowflakeProject;
-use Keboola\KeyGenerator\PemKeyCertificateGenerator;
 use Keboola\OutputMapping\Staging\StrategyFactory as OutputStrategyFactory;
-use Keboola\StagingProvider\InputProviderInitializer;
-use Keboola\StagingProvider\OutputProviderInitializer;
-use Keboola\StagingProvider\Provider\LocalStagingProvider;
-use Keboola\StagingProvider\Provider\SnowflakeKeypairGenerator;
-use Keboola\StagingProvider\Provider\WorkspaceProviderInterface;
+use Keboola\StagingProvider\Staging\File\FileFormat;
+use Keboola\StagingProvider\Staging\StagingProvider;
 use Keboola\StorageApi\ClientException;
-use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Options\ListFilesOptions;
-use Keboola\StorageApi\Workspaces;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\Temp\Temp;
@@ -339,129 +330,33 @@ abstract class BaseDataLoaderTestCase extends TestCase
         }
     }
 
-    protected function getWorkspaceCleaner(
-        ?ClientWrapper $clientWrapper,
-        ?string $configId,
-        ComponentSpecification $component,
-        ?WorkspaceProviderInterface $workspaceProvider = null,
-        ?OutputStrategyFactory $outputStrategyFactory = null,
-        ?InputStrategyFactory $inputStrategyFactory = null,
-        LoggerInterface $logger = new NullLogger(),
-    ): WorkspaceCleaner {
-        $clientWrapper = $clientWrapper ?? $this->clientWrapper;
-
-        $workspaceProvider ??= $this->createWorkspaceProvider(
-            $component,
-            $configId,
-            false,
-            null,
-            $clientWrapper,
-            $logger,
-        );
-
-        $outputStrategyFactory ??= $this->createOutputStrategyFactory(
-            $component,
-            $clientWrapper,
-            $workspaceProvider,
-            $logger,
-        );
-
-        $inputStrategyFactory ??= $this->createInputStrategyFactory(
-            $component,
-            $workspaceProvider,
-            $clientWrapper,
-            $logger,
-        );
-
-        return new WorkspaceCleaner(
-            outputStrategyFactory: $outputStrategyFactory,
-            inputStrategyFactory: $inputStrategyFactory,
-            logger: $logger,
-        );
-    }
-
-    protected function createWorkspaceProvider(
-        ComponentSpecification $component,
-        ?string $configId,
-        ?bool $readOnlyWorkspace = null,
-        ?Backend $backendConfig = null,
+    protected function createOutputStrategyFactory(
+        StagingProvider $stagingProvider,
         ?ClientWrapper $clientWrapper = null,
         LoggerInterface $logger = new NullLogger(),
-    ): WorkspaceProviderInterface {
-        assert($configId !== '');
+    ): OutputStrategyFactory {
         $clientWrapper ??= $this->clientWrapper;
 
-        $componentsApi = new Components($clientWrapper->getBranchClient());
-        $workspacesApi = new Workspaces($clientWrapper->getBranchClient());
-        $snowflakeKeyPairGenerator = new SnowflakeKeypairGenerator(new PemKeyCertificateGenerator());
-
-        $workspaceProviderFactoryFactory = new WorkspaceProviderFactory(
-            componentsApiClient: $componentsApi,
-            workspacesApiClient: $workspacesApi,
-            snowflakeKeyPairGenerator: $snowflakeKeyPairGenerator,
-            logger: $logger,
-        );
-
-        return $workspaceProviderFactoryFactory->getWorkspaceStaging(
-            stagingStorage: $component->getInputStagingStorage(),
-            component: $component,
-            configId: $configId,
-            backendConfig: $backendConfig,
-            useReadonlyRole: $readOnlyWorkspace,
-        );
-    }
-
-    protected function createOutputStrategyFactory(
-        ComponentSpecification $component,
-        ClientWrapper $clientWrapper,
-        WorkspaceProviderInterface $workspaceProvider,
-        LoggerInterface $logger,
-    ): OutputStrategyFactory {
-        $outputStrategyFactory = new OutputStrategyFactory(
+        return new OutputStrategyFactory(
+            stagingProvider: $stagingProvider,
             clientWrapper: $clientWrapper,
             logger: $logger,
-            format: 'json',
+            format: FileFormat::Json,
         );
-
-        $outputProviderInitializer = new OutputProviderInitializer(
-            stagingFactory: $outputStrategyFactory,
-            workspaceStagingProvider: $workspaceProvider,
-            localStagingProvider: new LocalStagingProvider($this->getWorkingDirPath()),
-        );
-
-        $outputProviderInitializer->initializeProviders(
-            stagingType: $component->getOutputStagingStorage(),
-            tokenInfo: $clientWrapper->getToken()->getTokenInfo(),
-        );
-
-        return $outputStrategyFactory;
     }
 
     protected function createInputStrategyFactory(
-        ComponentSpecification $component,
-        WorkspaceProviderInterface $workspaceProvider,
+        StagingProvider $stagingProvider,
         ?ClientWrapper $clientWrapper = null,
         LoggerInterface $logger = new NullLogger(),
     ): InputStrategyFactory {
         $clientWrapper ??= $this->clientWrapper;
 
-        $inputStrategyFactory = new InputStrategyFactory(
-            clientWrapper: $this->clientWrapper,
+        return new InputStrategyFactory(
+            stagingProvider: $stagingProvider,
+            clientWrapper: $clientWrapper,
             logger: $logger,
-            format: 'json',
+            format: FileFormat::Json,
         );
-
-        $inputProviderInitializer = new InputProviderInitializer(
-            stagingFactory: $inputStrategyFactory,
-            workspaceStagingProvider: $workspaceProvider,
-            localStagingProvider: new LocalStagingProvider($this->getWorkingDirPath()),
-        );
-
-        $inputProviderInitializer->initializeProviders(
-            stagingType: $component->getInputStagingStorage(),
-            tokenInfo: $clientWrapper->getToken()->getTokenInfo(),
-        );
-
-        return $inputStrategyFactory;
     }
 }

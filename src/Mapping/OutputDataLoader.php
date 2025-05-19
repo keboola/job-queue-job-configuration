@@ -17,14 +17,13 @@ use Keboola\OutputMapping\Staging\StrategyFactory as OutputStrategyFactory;
 use Keboola\OutputMapping\SystemMetadata;
 use Keboola\OutputMapping\TableLoader;
 use Keboola\OutputMapping\Writer\FileWriter;
-use Keboola\StagingProvider\Provider\WorkspaceProviderInterface;
+use Keboola\StorageApiBranch\ClientWrapper;
 use Psr\Log\LoggerInterface;
 
 class OutputDataLoader extends BaseDataLoader
 {
-    use StagingProviderAwareTrait;
-
     public function __construct(
+        private readonly ClientWrapper $clientWrapper,
         private readonly OutputStrategyFactory $outputStrategyFactory,
         private readonly LoggerInterface $logger,
         private readonly string $dataOutDir,
@@ -44,7 +43,7 @@ class OutputDataLoader extends BaseDataLoader
 
         $inputStorageConfig = $jobConfiguration->storage->input;
         $outputStorageConfig = $jobConfiguration->storage->output;
-        $clientWrapper = $this->outputStrategyFactory->getClientWrapper();
+        $clientWrapper = $this->clientWrapper;
 
         $defaultBucketName = $outputStorageConfig->defaultBucket ?? '';
         if ($defaultBucketName === '') {
@@ -81,12 +80,15 @@ class OutputDataLoader extends BaseDataLoader
         }
 
         try {
-            $fileWriter = new FileWriter($this->outputStrategyFactory);
+            $fileWriter = new FileWriter(
+                $clientWrapper,
+                $this->logger,
+                $this->outputStrategyFactory,
+            );
             $fileWriter->uploadFiles(
                 $this->dataOutDir . '/files/',
                 ['mapping' => $outputStorageConfig->files->toArray()],
                 $fileSystemMetadata,
-                $component->getOutputStagingStorage(),
                 [],
                 $isFailedJob,
             );
@@ -95,7 +97,6 @@ class OutputDataLoader extends BaseDataLoader
                     $this->dataOutDir . '/tables/',
                     [],
                     $fileSystemMetadata,
-                    $component->getOutputStagingStorage(),
                     $outputStorageConfig->tableFiles->toArray(),
                     $isFailedJob,
                 );
@@ -109,7 +110,7 @@ class OutputDataLoader extends BaseDataLoader
             }
 
             $tableLoader = new TableLoader(
-                logger: $this->outputStrategyFactory->getLogger(),
+                logger: $this->logger,
                 clientWrapper: $clientWrapper,
                 strategyFactory: $this->outputStrategyFactory,
             );
@@ -123,7 +124,6 @@ class OutputDataLoader extends BaseDataLoader
             );
 
             $tableQueue = $tableLoader->uploadTables(
-                outputStaging: $component->getOutputStagingStorage(),
                 configuration: $mappingSettings,
                 systemMetadata: new SystemMetadata($tableSystemMetadata),
             );
@@ -158,44 +158,9 @@ class OutputDataLoader extends BaseDataLoader
 
     private function getDataTypeSupport(ComponentSpecification $component, Output $outputStorageConfig): DataTypeSupport
     {
-        if (!$this->outputStrategyFactory->getClientWrapper()->getToken()->hasFeature('new-native-types')) {
+        if (!$this->clientWrapper->getToken()->hasFeature('new-native-types')) {
             return DataTypeSupport::NONE;
         }
         return $outputStorageConfig->dataTypeSupport ?? $component->getDataTypesSupport();
-    }
-
-    public function getWorkspaceBackendSize(): ?string
-    {
-        // this returns the first workspace found, which is ok so far because there can only be one
-        // (ensured in validateStagingSetting()) working only with inputStrategyFactory, but
-        // the workspace providers are shared between input and output, so it's "ok"
-        foreach ($this->outputStrategyFactory->getStrategyMap() as $stagingDefinition) {
-            foreach ($this->getStagingProviders($stagingDefinition) as $stagingProvider) {
-                if (!$stagingProvider instanceof WorkspaceProviderInterface) {
-                    continue;
-                }
-
-                return $stagingProvider->getBackendSize();
-            }
-        }
-
-        return null;
-    }
-
-    public function getWorkspaceCredentials(): array
-    {
-        // this returns the first workspace found, which is ok so far because there can only be one
-        // (ensured in validateStagingSetting()) working only with inputStrategyFactory, but
-        // the workspace providers are shared between input and output, so it's "ok"
-        foreach ($this->outputStrategyFactory->getStrategyMap() as $stagingDefinition) {
-            foreach ($this->getStagingProviders($stagingDefinition) as $stagingProvider) {
-                if (!$stagingProvider instanceof WorkspaceProviderInterface) {
-                    continue;
-                }
-
-                return $stagingProvider->getCredentials();
-            }
-        }
-        return [];
     }
 }

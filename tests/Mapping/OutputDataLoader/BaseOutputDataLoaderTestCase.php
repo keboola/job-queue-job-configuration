@@ -8,7 +8,6 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecifica
 use Keboola\JobQueue\JobConfiguration\Mapping\OutputDataLoader;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\BaseDataLoaderTestCase;
 use Keboola\OutputMapping\Staging\StrategyFactory as OutputStrategyFactory;
-use Keboola\StagingProvider\Provider\WorkspaceProviderInterface;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -23,7 +22,6 @@ abstract class BaseOutputDataLoaderTestCase extends BaseDataLoaderTestCase
     protected function getOutputDataLoader(
         ComponentSpecification $component,
         ?ClientWrapper $clientWrapper = null,
-        ?WorkspaceProviderInterface $workspaceProvider = null,
         ?OutputStrategyFactory $outputStrategyFactory = null,
         LoggerInterface $logger = new NullLogger(),
         ?string $configId = null,
@@ -31,22 +29,14 @@ abstract class BaseOutputDataLoaderTestCase extends BaseDataLoaderTestCase
     ): OutputDataLoader {
         $clientWrapper = $clientWrapper ?? $this->clientWrapper;
 
-        $workspaceProvider ??= $this->createWorkspaceProvider(
-            component: $component,
-            configId: $configId,
-            readOnlyWorkspace: $readOnlyWorkspace,
-            clientWrapper: $clientWrapper,
-            logger: $logger,
-        );
-
         $outputStrategyFactory ??= $this->createOutputStrategyFactory(
             component: $component,
             clientWrapper: $clientWrapper,
-            workspaceProvider: $workspaceProvider,
             logger: $logger,
         );
 
         return new OutputDataLoader(
+            clientWrapper: $clientWrapper,
             outputStrategyFactory: $outputStrategyFactory,
             logger: $logger,
             dataOutDir: '/data/out',
