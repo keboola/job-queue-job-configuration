@@ -57,8 +57,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             $component,
             new JobConfiguration(),
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -107,8 +105,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
                     ),
                 ),
             ),
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -142,8 +138,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             ),
             null,
             null,
-            null,
-            null,
         );
     }
 
@@ -175,8 +169,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $dataLoader->storeOutput(
             $component,
             new JobConfiguration(),
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -218,8 +210,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $dataLoader->storeOutput(
             $component,
             new JobConfiguration(),
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -265,8 +255,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $dataLoader->storeOutput(
             $component,
             $jobConfiguration,
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -352,8 +340,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             $component,
             $jobConfiguration,
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -490,8 +476,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             $component,
             $jobConfiguration,
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -586,8 +570,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             $component,
             $jobConfiguration,
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -738,8 +720,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             $component,
             $jobConfiguration,
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -914,8 +894,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             $component,
             $jobConfiguration,
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -1046,8 +1024,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             $component,
             $jobConfiguration,
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -1231,8 +1207,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             component: $component,
             jobConfiguration: $config,
-            branchId: null,
-            runId: null,
             configId: null,
             configRowId: null,
         );
@@ -1343,8 +1317,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             component: $component,
             jobConfiguration: $config,
-            branchId: null,
-            runId: null,
             configId: null,
             configRowId: null,
         );

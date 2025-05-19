@@ -67,8 +67,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             $component,
             new JobConfiguration(),
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -103,8 +101,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             $component,
             new JobConfiguration(),
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -161,8 +157,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             $component,
             new JobConfiguration(),
-            (string) $branchId,
-            null,
             'testConfig',
             null,
         );
@@ -221,8 +215,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             $component,
             new JobConfiguration(),
-            null,
-            null,
             'testConfig',
             'testRow',
         );
@@ -259,8 +251,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             $component,
             new JobConfiguration(),
-            null,
-            null,
             'testConfig',
             'testRow',
         );
@@ -345,8 +335,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             $component,
             $jobConfiguration,
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -431,8 +419,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             $component,
             new JobConfiguration(),
-            null,
-            null,
             'testConfig',
             null,
         );
@@ -531,8 +517,6 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $tableQueue = $dataLoader->storeOutput(
             $component,
             $jobConfiguration,
-            null,
-            null,
             'testConfig',
             null,
         );
