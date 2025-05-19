@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\JobDefinition\Component;
 
-use Keboola\InputMapping\Staging\AbstractStrategyFactory;
 use Keboola\JobQueue\JobConfiguration\Exception\ComponentInvalidException;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\Logging\GelfLoggingConfiguration;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\Logging\LoggingConfigurationInterface;
@@ -242,7 +241,7 @@ class ComponentSpecification
      */
     public function getInputStagingStorage(): string
     {
-        return $this->getStagingStorage()['input'] ?? AbstractStrategyFactory::LOCAL;
+        return $this->getStagingStorage()['input'] ?? 'local';
     }
 
     /**
@@ -250,7 +249,7 @@ class ComponentSpecification
      */
     public function getOutputStagingStorage(): string
     {
-        return $this->getStagingStorage()['output'] ?? AbstractStrategyFactory::LOCAL;
+        return $this->getStagingStorage()['output'] ?? 'local';
     }
 
     public function isApplicationErrorDisabled(): bool
