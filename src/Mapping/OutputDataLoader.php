@@ -20,34 +20,32 @@ use Keboola\OutputMapping\Writer\FileWriter;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Psr\Log\LoggerInterface;
 
-class OutputDataLoader extends BaseDataLoader
+class OutputDataLoader
 {
     public function __construct(
-        private readonly ClientWrapper $clientWrapper,
         private readonly OutputStrategyFactory $outputStrategyFactory,
+        private readonly ClientWrapper $clientWrapper,
+        private readonly ComponentSpecification $component,
+        private readonly Configuration $configuration,
+        private readonly ?string $configId,
+        private readonly ?string $configRowId,
         private readonly LoggerInterface $logger,
         private readonly string $dataOutDir,
     ) {
     }
 
     public function storeOutput(
-        ComponentSpecification $component,
-        Configuration $jobConfiguration,
-        ?string $configId,
-        ?string $configRowId,
         bool $isFailedJob = false,
     ): ?LoadTableQueue {
-        $this->validateComponentStagingSetting($component);
-
         $this->logger->debug('Storing results.');
 
-        $inputStorageConfig = $jobConfiguration->storage->input;
-        $outputStorageConfig = $jobConfiguration->storage->output;
+        $inputStorageConfig = $this->configuration->storage->input;
+        $outputStorageConfig = $this->configuration->storage->output;
         $clientWrapper = $this->clientWrapper;
 
         $defaultBucketName = $outputStorageConfig->defaultBucket ?? '';
         if ($defaultBucketName === '') {
-            $defaultBucketName = $this->getDefaultBucket($component, $configId);
+            $defaultBucketName = $this->getDefaultBucket($this->component, $this->configId);
         }
 
         $this->logger->debug('Uploading output tables and files.');
@@ -55,11 +53,11 @@ class OutputDataLoader extends BaseDataLoader
         $uploadTablesOptions = ['mapping' => $outputStorageConfig->tables->toArray()];
 
         $commonSystemMetadata = [
-            SystemMetadata::SYSTEM_KEY_COMPONENT_ID => $component->getId(),
-            SystemMetadata::SYSTEM_KEY_CONFIGURATION_ID => $configId,
+            SystemMetadata::SYSTEM_KEY_COMPONENT_ID => $this->component->getId(),
+            SystemMetadata::SYSTEM_KEY_CONFIGURATION_ID => $this->configId,
         ];
-        if ($configRowId) {
-            $commonSystemMetadata[SystemMetadata::SYSTEM_KEY_CONFIGURATION_ROW_ID] = $configRowId;
+        if ($this->configRowId) {
+            $commonSystemMetadata[SystemMetadata::SYSTEM_KEY_CONFIGURATION_ROW_ID] = $this->configRowId;
         }
         $tableSystemMetadata = $fileSystemMetadata = $commonSystemMetadata;
         if ($clientWrapper->isDevelopmentBranch()) {
@@ -74,7 +72,7 @@ class OutputDataLoader extends BaseDataLoader
             $this->logger->debug('Default bucket ' . $uploadTablesOptions['bucket']);
         }
 
-        $treatValuesAsNull = $jobConfiguration->storage->output->treatValuesAsNull;
+        $treatValuesAsNull = $this->configuration->storage->output->treatValuesAsNull;
         if ($treatValuesAsNull !== null) {
             $uploadTablesOptions['treat_values_as_null'] = $treatValuesAsNull;
         }
@@ -92,7 +90,7 @@ class OutputDataLoader extends BaseDataLoader
                 [],
                 $isFailedJob,
             );
-            if ($this->useFileStorageOnly($component, $jobConfiguration->runtime)) {
+            if ($this->useFileStorageOnly($this->component, $this->configuration->runtime)) {
                 $fileWriter->uploadFiles(
                     $this->dataOutDir . '/tables/',
                     [],
@@ -120,7 +118,7 @@ class OutputDataLoader extends BaseDataLoader
                 sourcePathPrefix: $this->dataOutDir . '/tables/',
                 storageApiToken: $clientWrapper->getToken(),
                 isFailedJob: $isFailedJob,
-                dataTypeSupport: $this->getDataTypeSupport($component, $outputStorageConfig)->value,
+                dataTypeSupport: $this->getDataTypeSupport($this->component, $outputStorageConfig)->value,
             );
 
             $tableQueue = $tableLoader->uploadTables(

@@ -20,30 +20,28 @@ use Keboola\StorageApi\ClientException;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Psr\Log\LoggerInterface;
 
-class InputDataLoader extends BaseDataLoader
+class InputDataLoader
 {
     public function __construct(
-        private readonly ClientWrapper $clientWrapper,
         private readonly InputStrategyFactory $inputStrategyFactory,
+        private readonly ClientWrapper $clientWrapper,
+        private readonly ComponentSpecification $component,
+        private readonly Configuration $jobConfiguration,
+        private readonly State $jobState,
         private readonly LoggerInterface $logger,
         private readonly string $dataInDir,
     ) {
     }
 
-    public function loadInputData(
-        ComponentSpecification $component,
-        Configuration $jobConfiguration,
-        State $jobState,
-    ): LoadInputDataResult {
-        $this->validateComponentStagingSetting($component);
-
+    public function loadInputData(): LoadInputDataResult
+    {
         $inputTableResult = new InputTableResult();
         $inputTableResult->setInputTableStateList(new InputTableStateList([]));
 
         $inputFileStateList = new InputFileStateList([]);
 
-        $inputConfig = $jobConfiguration->storage->input;
-        $inputState = $jobState->storage->input;
+        $inputConfig = $this->jobConfiguration->storage->input;
+        $inputState = $this->jobState->storage->input;
 
         $reader = new Reader(
             $this->clientWrapper,
@@ -55,7 +53,7 @@ class InputDataLoader extends BaseDataLoader
                 $this->logger->debug('Downloading source tables.');
 
                 $readerOptions = new ReaderOptions(
-                    !$component->allowBranchMapping(),
+                    !$this->component->allowBranchMapping(),
                     preserveWorkspace: false,
                 );
 
