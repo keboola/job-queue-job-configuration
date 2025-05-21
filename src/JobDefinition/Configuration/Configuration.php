@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration;
 
-use Keboola\JobQueue\JobConfiguration\Exception\ApplicationException;
+use Keboola\JobQueue\JobConfiguration\Exception\InvalidDataException;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 
@@ -32,7 +32,11 @@ readonly class Configuration
         try {
             $data = (new Processor())->processConfiguration(new ConfigurationDefinition(), ['configuration' => $data]);
         } catch (InvalidConfigurationException $e) {
-            throw new ApplicationException(sprintf('Job configuration is not valid: %s', $e->getMessage()), $data, $e);
+            throw new InvalidDataException(
+                sprintf('Job configuration data is not valid: %s', $e->getMessage()),
+                $data,
+                $e,
+            );
         }
 
         return new self(

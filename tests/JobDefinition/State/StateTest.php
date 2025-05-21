@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\Tests\JobDefinition\State;
 
 use Keboola\CommonExceptions\ApplicationExceptionInterface;
+use Keboola\JobQueue\JobConfiguration\Exception\InvalidDataException;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\State\State;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\State\Storage\Files\File;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\State\Storage\Files\FilesList;
@@ -102,14 +103,24 @@ class StateTest extends TestCase
 
     public function testFromArrayWithInvalidData(): void
     {
-        $this->expectException(ApplicationExceptionInterface::class);
-        $this->expectExceptionMessage(
-            'Job state is not valid: Unrecognized option "foo" under "state". Available options are',
-        );
+        try {
+            State::fromArray([
+                'foo' => 'bar',
+            ]);
 
-        State::fromArray([
-            'foo' => 'bar',
-        ]);
+            self::fail('Expected exception');
+        } catch (InvalidDataException $e) {
+            self::assertStringContainsString(
+                'Job state data is not valid: Unrecognized option "foo" under "state". ',
+                $e->getMessage(),
+            );
+            self::assertSame(
+                [
+                    'foo' => 'bar',
+                ],
+                $e->getContext(),
+            );
+        }
     }
 
     public function testToArray(): void

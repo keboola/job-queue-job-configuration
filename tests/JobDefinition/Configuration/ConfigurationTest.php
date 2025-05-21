@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\Tests\JobDefinition\Configuration;
 
-use Keboola\CommonExceptions\ApplicationExceptionInterface;
+use Keboola\JobQueue\JobConfiguration\Exception\InvalidDataException;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Processors\Processor;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Processors\ProcessorDefinition;
@@ -168,14 +168,24 @@ class ConfigurationTest extends TestCase
 
     public function testFromArrayWithInvalidData(): void
     {
-        $this->expectException(ApplicationExceptionInterface::class);
-        $this->expectExceptionMessage(
-            'Job configuration is not valid: Unrecognized option "foo" under "configuration". Available options are',
-        );
+        try {
+            Configuration::fromArray([
+                'foo' => 'bar',
+            ]);
 
-        Configuration::fromArray([
-            'foo' => 'bar',
-        ]);
+            self::fail('Expected exception');
+        } catch (InvalidDataException $e) {
+            self::assertStringContainsString(
+                'Job configuration data is not valid: Unrecognized option "foo" under "configuration". ',
+                $e->getMessage(),
+            );
+            self::assertSame(
+                [
+                    'foo' => 'bar',
+                ],
+                $e->getContext(),
+            );
+        }
     }
 
     public static function provideToArrayData(): iterable
