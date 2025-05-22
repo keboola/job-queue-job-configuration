@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keboola\JobQueue\JobConfiguration\Mapping;
+namespace Keboola\JobQueue\JobConfiguration\Mapping\DataLoader;
 
 use Keboola\JobQueue\JobConfiguration\Exception\UserException;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
