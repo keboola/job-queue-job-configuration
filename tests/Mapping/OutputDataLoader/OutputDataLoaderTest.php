@@ -4,23 +4,20 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\OutputDataLoader;
 
+use Keboola\CommonExceptions\UserExceptionInterface;
 use Keboola\Datatype\Definition\BaseType;
 use Keboola\Datatype\Definition\GenericStorage;
 use Keboola\Datatype\Definition\Snowflake;
-use Keboola\JobQueue\JobConfiguration\Exception\ApplicationException;
-use Keboola\JobQueue\JobConfiguration\Exception\UserException;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration as JobConfiguration;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\DataTypeSupport;
-use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Input;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Output;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Storage;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TablesList;
-use Keboola\JobQueue\JobConfiguration\Mapping\OutputDataLoader;
+use Keboola\JobQueue\JobConfiguration\Mapping\DataLoader\OutputDataLoader;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseSnowflakeProject;
 use Keboola\OutputMapping\Staging\StrategyFactory;
 use Keboola\OutputMapping\Writer\Table\MappingDestination;
-use Keboola\StorageApi\Workspaces;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\StorageApiToken;
 use Psr\Log\NullLogger;
@@ -53,13 +50,11 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             configId: 'testConfig',
         );
 
-        $dataLoader = $this->getOutputDataLoader($component);
-        $tableQueue = $dataLoader->storeOutput(
-            $component,
-            new JobConfiguration(),
-            'testConfig',
-            null,
+        $dataLoader = $this->getOutputDataLoader(
+            config: new JobConfiguration(),
+            component: $component,
         );
+        $tableQueue = $dataLoader->storeOutput();
         self::assertNotNull($tableQueue);
 
         $tableQueue->waitForAll();
@@ -71,8 +66,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         self::assertTrue(
             $this->clientWrapper->getBasicClient()->tableExists($bucketId . '.sliced'),
         );
-        self::assertEquals([], $dataLoader->getWorkspaceCredentials());
-        self::assertNull($dataLoader->getWorkspaceBackendSize());
     }
 
     public function testExecutorDefaultBucketOverride(): void
@@ -94,10 +87,8 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             $this->getDataDirPath() . '/out/tables/sliced.csv.manifest',
             (string) json_encode(['destination' => 'sliced']),
         );
-        $dataLoader = $this->getOutputDataLoader($component);
-        $tableQueue = $dataLoader->storeOutput(
-            $component,
-            new JobConfiguration(
+        $dataLoader = $this->getOutputDataLoader(
+            config: new JobConfiguration(
                 parameters: [],
                 storage: new Storage(
                     output: new Output(
@@ -105,9 +96,9 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
                     ),
                 ),
             ),
-            'testConfig',
-            null,
+            component: $component,
         );
+        $tableQueue = $dataLoader->storeOutput();
         self::assertNotNull($tableQueue);
 
         $tableQueue->waitForAll();
@@ -115,173 +106,20 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             $component->getDefaultBucketName('testConfig') . '.sliced',
         ));
         self::assertTrue($this->clientWrapper->getBasicClient()->tableExists($bucketId . '.sliced'));
-        self::assertEquals([], $dataLoader->getWorkspaceCredentials());
-        self::assertNull($dataLoader->getWorkspaceBackendSize());
     }
 
     public function testNoConfigDefaultBucketException(): void
     {
-        $this->expectException(UserException::class);
-        $this->expectExceptionMessage('Configuration ID not set');
-        $component = $this->getComponentWithDefaultBucket();
-        self::dropDefaultBucket(
-            clientWrapper: $this->clientWrapper,
-            component: $component,
-            configId: 'testConfig',
-        );
-        $dataLoader = $this->getOutputDataLoader($component);
-        $dataLoader->storeOutput(
-            $component,
-            new JobConfiguration(
-                parameters: [],
-                storage: new Storage(),
-            ),
-            null,
-            null,
-        );
-    }
-
-    public function testExecutorInvalidOutputMapping(): void
-    {
-        $this->markTestSkipped('Will be implemented in separate PR, see Jira issue PST-2213');
-    }
-
-    /** @dataProvider invalidStagingProvider */
-    public function testWorkspaceInvalid(string $input, string $output, string $error): void
-    {
-        $component = new ComponentSpecification([
-            'id' => 'docker-demo',
-            'data' => [
-                'definition' => [
-                    'type' => 'dockerhub',
-                    'uri' => 'keboola/docker-demo',
-                    'tag' => 'master',
-                ],
-                'staging-storage' => [
-                    'input' => $input,
-                    'output' => $output,
-                ],
-            ],
-        ]);
-        $this->expectException(ApplicationException::class);
-        $this->expectExceptionMessage($error);
-        $dataLoader = $this->getOutputDataLoader($component);
-        $dataLoader->storeOutput(
-            $component,
-            new JobConfiguration(),
-            'testConfig',
-            null,
-        );
-    }
-
-    public static function invalidStagingProvider(): array
-    {
-        return [
-            'snowflake-bigquery' => [
-                'workspace-snowflake',
-                'workspace-bigquery',
-                'Component staging setting mismatch - input: "workspace-snowflake", output: "workspace-bigquery".',
-            ],
-            'bigquery-snowflake' => [
-                'workspace-bigquery',
-                'workspace-snowflake',
-                'Component staging setting mismatch - input: "workspace-bigquery", output: "workspace-snowflake".',
-            ],
-        ];
-    }
-
-    public function testWorkspace(): void
-    {
-        $component = new ComponentSpecification([
-            'id' => 'docker-demo',
-            'data' => [
-                'definition' => [
-                    'type' => 'dockerhub',
-                    'uri' => 'keboola/docker-demo',
-                    'tag' => 'master',
-                ],
-                'staging-storage' => [
-                    'input' => 'workspace-snowflake',
-                    'output' => 'workspace-snowflake',
-                ],
-            ],
-        ]);
-        $dataLoader = $this->getOutputDataLoader($component);
-        $dataLoader->storeOutput(
-            $component,
-            new JobConfiguration(),
-            'testConfig',
-            null,
-        );
-        $credentials = $dataLoader->getWorkspaceCredentials();
-        self::assertEquals(
-            ['host', 'warehouse', 'database', 'schema', 'user', 'password', 'privateKey', 'account'],
-            array_keys($credentials),
-        );
-        self::assertNotEmpty($credentials['user']);
-        self::assertNotNull($dataLoader->getWorkspaceCredentials());
-    }
-
-    /**
-     * @dataProvider readonlyFlagProvider
-     */
-    public function testWorkspaceReadOnly(bool $readOnlyWorkspace): void
-    {
-        $component = new ComponentSpecification([
-            'id' => 'docker-demo',
-            'data' => [
-                'definition' => [
-                    'type' => 'dockerhub',
-                    'uri' => 'keboola/docker-demo',
-                    'tag' => 'master',
-                ],
-                'staging-storage' => [
-                    'input' => 'workspace-snowflake',
-                    'output' => 'workspace-snowflake',
-                ],
-            ],
-        ]);
-        $jobConfiguration = new JobConfiguration(
-            storage: new Storage(
-                input: new Input(
-                    readOnlyStorageAccess: $readOnlyWorkspace,
-                ),
-            ),
-        );
         $dataLoader = $this->getOutputDataLoader(
-            component: $component,
-            readOnlyWorkspace: $readOnlyWorkspace,
-        );
-        $dataLoader->storeOutput(
-            $component,
-            $jobConfiguration,
-            'testConfig',
-            null,
-        );
-        $credentials = $dataLoader->getWorkspaceCredentials();
-
-        $schemaName = $credentials['schema'];
-        $workspacesApi = new Workspaces($this->clientWrapper->getBasicClient());
-        $workspaces = $workspacesApi->listWorkspaces();
-        $readonlyWorkspace = null;
-        foreach ($workspaces as $workspace) {
-            if (($workspace['connection']['schema'] ?? null) === $schemaName) {
-                $readonlyWorkspace = $workspace;
-            }
-        }
-        self::assertNotNull($readonlyWorkspace);
-        self::assertSame($readOnlyWorkspace, $readonlyWorkspace['readOnlyStorageAccess']);
-        $this->getWorkspaceCleaner(
-            clientWrapper: $this->clientWrapper,
+            config: new JobConfiguration(),
+            component: $this->getComponentWithDefaultBucket(),
             configId: null,
-            component: $component,
-        )->cleanWorkspace();
-    }
+        );
 
-    public static function readonlyFlagProvider(): iterable
-    {
-        yield 'readonly on' => [true];
-        yield 'readonly off' => [false];
+        $this->expectException(UserExceptionInterface::class);
+        $this->expectExceptionMessage('Configuration ID not set');
+
+        $dataLoader->storeOutput();
     }
 
     #[UseSnowflakeProject(nativeTypes: 'native-types')]
@@ -336,13 +174,12 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
                 ),
             ),
         );
-        $dataLoader = $this->getOutputDataLoader($component, $this->clientWrapper);
-        $tableQueue = $dataLoader->storeOutput(
-            $component,
-            $jobConfiguration,
-            'testConfig',
-            null,
+
+        $dataLoader = $this->getOutputDataLoader(
+            config: $jobConfiguration,
+            component: $component,
         );
+        $tableQueue = $dataLoader->storeOutput();
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
@@ -472,13 +309,12 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
                 ),
             ),
         );
-        $dataLoader = $this->getOutputDataLoader($component, $this->clientWrapper);
-        $tableQueue = $dataLoader->storeOutput(
-            $component,
-            $jobConfiguration,
-            'testConfig',
-            null,
+
+        $dataLoader = $this->getOutputDataLoader(
+            config: $jobConfiguration,
+            component: $component,
         );
+        $tableQueue = $dataLoader->storeOutput();
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
@@ -566,13 +402,11 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             ),
         );
 
-        $dataLoader = $this->getOutputDataLoader($component, $this->clientWrapper);
-        $tableQueue = $dataLoader->storeOutput(
-            $component,
-            $jobConfiguration,
-            'testConfig',
-            null,
+        $dataLoader = $this->getOutputDataLoader(
+            config: $jobConfiguration,
+            component: $component,
         );
+        $tableQueue = $dataLoader->storeOutput();
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
@@ -716,13 +550,12 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
                 ),
             ),
         );
-        $dataLoader = $this->getOutputDataLoader($component, $this->clientWrapper);
-        $tableQueue = $dataLoader->storeOutput(
-            $component,
-            $jobConfiguration,
-            'testConfig',
-            null,
+
+        $dataLoader = $this->getOutputDataLoader(
+            config: $jobConfiguration,
+            component: $component,
         );
+        $tableQueue = $dataLoader->storeOutput();
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
@@ -890,13 +723,12 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
                 ),
             ),
         );
-        $dataLoader = $this->getOutputDataLoader($component, $this->clientWrapper);
-        $tableQueue = $dataLoader->storeOutput(
-            $component,
-            $jobConfiguration,
-            'testConfig',
-            null,
+
+        $dataLoader = $this->getOutputDataLoader(
+            config: $jobConfiguration,
+            component: $component,
         );
+        $tableQueue = $dataLoader->storeOutput();
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
@@ -1020,13 +852,12 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
                 ),
             ),
         );
-        $dataLoader = $this->getOutputDataLoader($component, $this->clientWrapper);
-        $tableQueue = $dataLoader->storeOutput(
-            $component,
-            $jobConfiguration,
-            'testConfig',
-            null,
+
+        $dataLoader = $this->getOutputDataLoader(
+            config: $jobConfiguration,
+            component: $component,
         );
+        $tableQueue = $dataLoader->storeOutput();
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
@@ -1034,9 +865,7 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         self::assertTrue($tableDetails['isTyped']);
     }
 
-    /**
-     * @dataProvider dataTypeSupportProvider
-     */
+    /** @dataProvider dataTypeSupportProvider */
     public function testDataTypeSupport(
         bool $hasFeature,
         ?DataTypeSupport $componentType,
@@ -1070,10 +899,16 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $clientWrapperMock = $this->createMock(ClientWrapper::class);
         $clientWrapperMock->method('getToken')->willReturn($tokenMock);
 
-        $outputStrategyFactoryMock = $this->createMock(StrategyFactory::class);
-        $outputStrategyFactoryMock->method('getClientWrapper')->willReturn($clientWrapperMock);
-
-        $outputDataLoader = new OutputDataLoader($outputStrategyFactoryMock, new NullLogger, '/data/out');
+        $outputDataLoader = new OutputDataLoader(
+            $this->createMock(StrategyFactory::class),
+            $clientWrapperMock,
+            $component,
+            new JobConfiguration(),
+            null,
+            null,
+            new NullLogger,
+            '/data/out',
+        );
 
         // Make getDataTypeSupport method accessible
         $reflector = new ReflectionClass(OutputDataLoader::class);
@@ -1202,14 +1037,12 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             ],
         );
 
-        $dataLoader = $this->getOutputDataLoader($component);
-
-        $tableQueue = $dataLoader->storeOutput(
+        $dataLoader = $this->getOutputDataLoader(
+            config: $config,
             component: $component,
-            jobConfiguration: $config,
             configId: null,
-            configRowId: null,
         );
+        $tableQueue = $dataLoader->storeOutput();
 
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
@@ -1312,14 +1145,13 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             ],
         );
 
-        $dataLoader = $this->getOutputDataLoader($component);
-
-        $tableQueue = $dataLoader->storeOutput(
+        $dataLoader = $this->getOutputDataLoader(
+            config: $config,
             component: $component,
-            jobConfiguration: $config,
-            configId: null,
-            configRowId: null,
         );
+        ;
+
+        $tableQueue = $dataLoader->storeOutput();
 
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();

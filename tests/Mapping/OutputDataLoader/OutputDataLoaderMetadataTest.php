@@ -63,13 +63,11 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
             configId: 'testConfig',
         );
 
-        $dataLoader = $this->getOutputDataLoader($component);
-        $tableQueue = $dataLoader->storeOutput(
-            $component,
-            new JobConfiguration(),
-            'testConfig',
-            null,
+        $dataLoader = $this->getOutputDataLoader(
+            config: new JobConfiguration(),
+            component: $component,
         );
+        $tableQueue = $dataLoader->storeOutput();
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
@@ -98,12 +96,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
 
         // let's run the data loader again.
         // This time the tables should receive 'update' metadata
-        $tableQueue = $dataLoader->storeOutput(
-            $component,
-            new JobConfiguration(),
-            'testConfig',
-            null,
-        );
+        $tableQueue = $dataLoader->storeOutput();
 
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
@@ -153,13 +146,12 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
             $clientWrapper->getBasicClient()->dropBucket($bucketId);
         }
 
-        $dataLoader = $this->getOutputDataLoader($component, $clientWrapper);
-        $tableQueue = $dataLoader->storeOutput(
-            $component,
-            new JobConfiguration(),
-            'testConfig',
-            null,
+        $dataLoader = $this->getOutputDataLoader(
+            config: new JobConfiguration(),
+            component: $component,
+            clientWrapper: $clientWrapper,
         );
+        $tableQueue = $dataLoader->storeOutput();
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
@@ -211,13 +203,12 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
             configId: 'testConfig',
         );
 
-        $dataLoader = $this->getOutputDataLoader($component);
-        $tableQueue = $dataLoader->storeOutput(
-            $component,
-            new JobConfiguration(),
-            'testConfig',
-            'testRow',
+        $dataLoader = $this->getOutputDataLoader(
+            config: new JobConfiguration(),
+            component: $component,
+            configRowId: 'testRow',
         );
+        $tableQueue = $dataLoader->storeOutput();
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
@@ -248,12 +239,7 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
 
         // let's run the data loader again.
         // This time the tables should receive 'update' metadata
-        $tableQueue = $dataLoader->storeOutput(
-            $component,
-            new JobConfiguration(),
-            'testConfig',
-            'testRow',
-        );
+        $tableQueue = $dataLoader->storeOutput();
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
@@ -331,13 +317,11 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
             component: $component,
             configId: 'testConfig',
         );
-        $dataLoader = $this->getOutputDataLoader($component);
-        $tableQueue = $dataLoader->storeOutput(
-            $component,
-            $jobConfiguration,
-            'testConfig',
-            null,
+        $dataLoader = $this->getOutputDataLoader(
+            config: $jobConfiguration,
+            component: $component,
         );
+        $tableQueue = $dataLoader->storeOutput();
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
         $tableMetadata = $this->metadata->listTableMetadata($bucketId . '.out');
@@ -415,13 +399,11 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
             component: $component,
             configId: 'testConfig',
         );
-        $dataLoader = $this->getOutputDataLoader($component);
-        $tableQueue = $dataLoader->storeOutput(
-            $component,
-            new JobConfiguration(),
-            'testConfig',
-            null,
+        $dataLoader = $this->getOutputDataLoader(
+            config: new JobConfiguration(),
+            component: $component,
         );
+        $tableQueue = $dataLoader->storeOutput();
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
 
@@ -513,13 +495,11 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
             configId: 'testConfig',
         );
 
-        $dataLoader = $this->getOutputDataLoader($component);
-        $tableQueue = $dataLoader->storeOutput(
-            $component,
-            $jobConfiguration,
-            'testConfig',
-            null,
+        $dataLoader = $this->getOutputDataLoader(
+            config: $jobConfiguration,
+            component: $component,
         );
+        $tableQueue = $dataLoader->storeOutput();
         self::assertNotNull($tableQueue);
         $tableQueue->waitForAll();
         $tableMetadata = $this->metadata->listTableMetadata($bucketId . '.sliced');

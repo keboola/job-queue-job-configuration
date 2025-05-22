@@ -44,11 +44,6 @@ class S3InputDataLoaderTest extends BaseInputDataLoaderTestCase
         ]);
     }
 
-    public function testStoreArchive(): void
-    {
-        $this->markTestSkipped('Will be implemented in separate PR, see Jira issue PST-2182');
-    }
-
     public function testLoadInputDataS3(): void
     {
         $bucketId = $this->clientWrapper->getBasicClient()->createBucket($this->getResourceName(), 'in');
@@ -76,23 +71,19 @@ class S3InputDataLoaderTest extends BaseInputDataLoaderTestCase
             new CsvFile($filePath),
         );
 
-        $component = $this->getS3StagingComponent();
-        $dataLoader = $this->getInputDataLoader($component, $this->clientWrapper);
-        $dataLoader->loadInputData(
-            component: $component,
-            jobConfiguration: $jobConfiguration,
-            jobState: new State(),
+        $dataLoader = $this->getInputDataLoader(
+            component: $this->getS3StagingComponent(),
+            config: $jobConfiguration,
+            clientWrapper: $this->clientWrapper,
         );
+        $dataLoader->loadInputData();
 
-        $manifest = json_decode(
-            // @phpstan-ignore-next-line
-            file_get_contents(
-                $this->getDataDirPath() . "/in/tables/$bucketId.test.manifest",
-            ),
-            true,
-        );
+        $manifestFilePath = sprintf('%s/in/tables/%s.test.manifest', $this->getDataDirPath(), $bucketId);
+        self::assertFileExists($manifestFilePath);
 
+        $manifest = json_decode((string) file_get_contents($manifestFilePath), true);
         self::assertIsArray($manifest);
+
         $this->assertS3info($manifest);
     }
 

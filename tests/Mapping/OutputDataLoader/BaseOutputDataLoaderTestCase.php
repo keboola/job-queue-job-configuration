@@ -5,9 +5,16 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\OutputDataLoader;
 
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
-use Keboola\JobQueue\JobConfiguration\Mapping\OutputDataLoader;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
+use Keboola\JobQueue\JobConfiguration\Mapping\DataLoader\OutputDataLoader;
+use Keboola\JobQueue\JobConfiguration\Mapping\DataLoader\OutputDataLoaderFactory;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\BaseDataLoaderTestCase;
+use Keboola\KeyGenerator\PemKeyCertificateGenerator;
 use Keboola\OutputMapping\Staging\StrategyFactory as OutputStrategyFactory;
+use Keboola\StagingProvider\Workspace\SnowflakeKeypairGenerator;
+use Keboola\StagingProvider\Workspace\WorkspaceProvider;
+use Keboola\StorageApi\Components;
+use Keboola\StorageApi\Workspaces;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -20,26 +27,33 @@ abstract class BaseOutputDataLoaderTestCase extends BaseDataLoaderTestCase
     }
 
     protected function getOutputDataLoader(
+        Configuration $config,
         ComponentSpecification $component,
         ?ClientWrapper $clientWrapper = null,
-        ?OutputStrategyFactory $outputStrategyFactory = null,
-        LoggerInterface $logger = new NullLogger(),
-        ?string $configId = null,
-        ?bool $readOnlyWorkspace = null,
+        ?string $configId = 'testConfig',
+        ?string $configRowId = null,
     ): OutputDataLoader {
-        $clientWrapper = $clientWrapper ?? $this->clientWrapper;
+        $clientWrapper ??= $this->clientWrapper;
 
-        $outputStrategyFactory ??= $this->createOutputStrategyFactory(
-            component: $component,
-            clientWrapper: $clientWrapper,
-            logger: $logger,
+        $workspaceProvider = new WorkspaceProvider(
+            new Workspaces($clientWrapper->getBasicClient()),
+            new Components($clientWrapper->getBasicClient()),
+            new SnowflakeKeypairGenerator(new PemKeyCertificateGenerator()),
         );
 
-        return new OutputDataLoader(
-            clientWrapper: $clientWrapper,
-            outputStrategyFactory: $outputStrategyFactory,
-            logger: $logger,
-            dataOutDir: '/data/out',
+        $dataLoaderFactory = new OutputDataLoaderFactory(
+            $workspaceProvider,
+            new NullLogger(),
+            $this->getDataDirPath(),
+        );
+
+        return $dataLoaderFactory->createOutputDataLoader(
+            $clientWrapper,
+            $component,
+            $config,
+            $configId,
+            $configRowId,
+            stagingWorkspaceId: null, // TODO
         );
     }
 }

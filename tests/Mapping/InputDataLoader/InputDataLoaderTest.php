@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\InputDataLoader;
 
+use Keboola\CommonExceptions\ApplicationExceptionInterface;
 use Keboola\Csv\CsvFile;
 use Keboola\InputMapping\State\InputFileStateList;
 use Keboola\InputMapping\Table\Result;
@@ -65,17 +66,17 @@ class InputDataLoaderTest extends BaseInputDataLoaderTestCase
                 ),
             ),
         );
-        $dataLoader = $this->getInputDataLoader($component);
+        $dataLoader = $this->getInputDataLoader(
+            component: $component,
+            config: $jobConfiguration,
+        );
+
         $this->expectException(UserException::class);
         $this->expectExceptionMessage(
             "The buckets \"$bucketId\" come from a development " .
             'branch and must not be used directly in input mapping.',
         );
-        $dataLoader->loadInputData(
-            component: $component,
-            jobConfiguration: $jobConfiguration,
-            jobState: new State(),
-        );
+        $dataLoader->loadInputData();
     }
 
     public function testBranchMappingEnabled(): void
@@ -127,12 +128,11 @@ class InputDataLoaderTest extends BaseInputDataLoaderTestCase
                 ),
             ),
         );
-        $dataLoader = $this->getInputDataLoader($component);
-        $storageState = $dataLoader->loadInputData(
+        $dataLoader = $this->getInputDataLoader(
             component: $component,
-            jobConfiguration: $jobConfiguration,
-            jobState: new State(),
+            config: $jobConfiguration,
         );
+        $storageState = $dataLoader->loadInputData();
         self::assertInstanceOf(Result::class, $storageState->inputTableResult);
         self::assertInstanceOf(InputFileStateList::class, $storageState->inputFileStateList);
     }

@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\InputDataLoader;
 
 use Keboola\Csv\CsvFile;
-use Keboola\InputMapping\Staging\AbstractStrategyFactory;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration as JobConfiguration;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Input;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Storage;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TablesList;
-use Keboola\JobQueue\JobConfiguration\JobDefinition\State\State;
 use Keboola\StorageApi\ClientException;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Options\Components\Configuration;
@@ -102,17 +100,21 @@ class BigQueryInputDataLoaderTest extends BaseInputDataLoaderTestCase
             ],
         );
 
+        $stagingWorkspace = $this->getStagingWorkspaceFacade(
+            $this->clientWrapper->getToken(),
+            $component,
+            $jobConfiguration,
+            $configId,
+        );
+
         $dataLoader = $this->getInputDataLoader(
             component: $component,
-            clientWrapper: $this->clientWrapper,
-            configId: $configId,
+            config: $jobConfiguration,
+            stagingWorkspaceId: $stagingWorkspace->getWorkspaceId(),
         );
-        $dataLoader->loadInputData(
-            component: $component,
-            jobConfiguration: $jobConfiguration,
-            jobState: new State(),
-        );
-        $credentials = $dataLoader->getWorkspaceCredentials();
+        $dataLoader->loadInputData();
+
+        $credentials = $stagingWorkspace->getCredentials();
         self::assertEquals(['schema', 'region', 'credentials'], array_keys($credentials));
         self::assertNotEmpty($credentials['credentials']);
 

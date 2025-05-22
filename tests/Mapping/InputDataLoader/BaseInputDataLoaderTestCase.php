@@ -4,18 +4,23 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\InputDataLoader;
 
-use Keboola\InputMapping\Staging\StrategyFactory;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
-use Keboola\JobQueue\JobConfiguration\Mapping\InputDataLoader;
-use Keboola\JobQueue\JobConfiguration\Mapping\WorkspaceProviderFactory;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\State\State;
+use Keboola\JobQueue\JobConfiguration\Mapping\DataLoader\InputDataLoader;
+use Keboola\JobQueue\JobConfiguration\Mapping\DataLoader\InputDataLoaderFactory;
+use Keboola\JobQueue\JobConfiguration\Mapping\StagingWorkspace\StagingWorkspaceFacade;
+use Keboola\JobQueue\JobConfiguration\Mapping\StagingWorkspace\StagingWorkspaceFactory;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\BaseDataLoaderTestCase;
 use Keboola\KeyGenerator\PemKeyCertificateGenerator;
-use Keboola\StagingProvider\InputProviderInitializer;
-use Keboola\StagingProvider\Provider\LocalStagingProvider;
-use Keboola\StagingProvider\Provider\SnowflakeKeypairGenerator;
+use Keboola\StagingProvider\Staging\StagingClass;
+use Keboola\StagingProvider\Staging\StagingType;
+use Keboola\StagingProvider\Workspace\SnowflakeKeypairGenerator;
+use Keboola\StagingProvider\Workspace\WorkspaceProvider;
 use Keboola\StorageApi\Components;
 use Keboola\StorageApi\Workspaces;
 use Keboola\StorageApiBranch\ClientWrapper;
+use Keboola\StorageApiBranch\StorageApiToken;
 use Psr\Log\NullLogger;
 
 abstract class BaseInputDataLoaderTestCase extends BaseDataLoaderTestCase
@@ -27,53 +32,70 @@ abstract class BaseInputDataLoaderTestCase extends BaseDataLoaderTestCase
 
     protected function getInputDataLoader(
         ComponentSpecification $component,
+        Configuration $config,
+        State $state = new State(),
+        ?string $stagingWorkspaceId = null,
         ?ClientWrapper $clientWrapper = null,
-        ?string $configId = null,
     ): InputDataLoader {
         $clientWrapper = $clientWrapper ?? $this->clientWrapper;
-        $logger = new NullLogger();
 
-        $inputStrategyFactory = new StrategyFactory(
-            clientWrapper: $clientWrapper,
-            logger: $logger,
-            format: 'json',
+        $workspaceProvider = new WorkspaceProvider(
+            new Workspaces($clientWrapper->getBasicClient()),
+            new Components($clientWrapper->getBasicClient()),
+            new SnowflakeKeypairGenerator(new PemKeyCertificateGenerator()),
         );
 
-        $componentsApi = new Components($clientWrapper->getBasicClient());
-        $workspacesApi = new Workspaces($clientWrapper->getBasicClient());
-        $snowflakeKeyPairGenerator = new SnowflakeKeypairGenerator(new PemKeyCertificateGenerator());
-
-        $workspaceProviderFactoryFactory = new WorkspaceProviderFactory(
-            componentsApiClient: $componentsApi,
-            workspacesApiClient: $workspacesApi,
-            snowflakeKeyPairGenerator: $snowflakeKeyPairGenerator,
-            logger: $logger,
+        $dataLoaderFactory = new InputDataLoaderFactory(
+            $workspaceProvider,
+            new NullLogger(),
+            $this->getDataDirPath(),
         );
 
-        assert($configId !== '');
-        $workspaceProvider = $workspaceProviderFactoryFactory->getWorkspaceStaging(
-            stagingStorage: $component->getInputStagingStorage(),
-            component: $component,
-            configId: $configId,
-            backendConfig: null,
-            useReadonlyRole: null,
+        return $dataLoaderFactory->createInputDataLoader(
+            $clientWrapper,
+            $component,
+            $config,
+            $state,
+            stagingWorkspaceId: $stagingWorkspaceId,
+        );
+    }
+
+    protected function getStagingWorkspaceFacade(
+        StorageApiToken $storageApiToken,
+        ComponentSpecification $component,
+        Configuration $configuration = new Configuration(),
+        ?string $configId = null,
+        ?ClientWrapper $clientWrapper = null,
+    ): StagingWorkspaceFacade {
+        $clientWrapper ??= $this->clientWrapper;
+
+        // ensure we're dealing with a component with workspace staging
+        self::assertSame(
+            StagingClass::Workspace,
+            StagingType::from($component->getInputStagingStorage())->getStagingClass(),
         );
 
-        $inputProviderInitializer = new InputProviderInitializer(
-            stagingFactory: $inputStrategyFactory,
-            workspaceStagingProvider: $workspaceProvider,
-            localStagingProvider: new LocalStagingProvider($this->getWorkingDirPath()),
+        $workspaceProvider = new WorkspaceProvider(
+            new Workspaces($clientWrapper->getBranchClient()),
+            new Components($clientWrapper->getBranchClient()),
+            new SnowflakeKeypairGenerator(new PemKeyCertificateGenerator()),
         );
 
-        $inputProviderInitializer->initializeProviders(
-            stagingType: $component->getOutputStagingStorage(),
-            tokenInfo: $clientWrapper->getToken()->getTokenInfo(),
+        $stagingWorkspaceFactory = new StagingWorkspaceFactory(
+            $workspaceProvider,
+            new NullLogger(),
         );
 
-        return new InputDataLoader(
-            inputStrategyFactory: $inputStrategyFactory,
-            logger: $logger,
-            dataInDir: '/data/in',
+        $stagingWorkspaceFacade = $stagingWorkspaceFactory->createStagingWorkspaceFacade(
+            $storageApiToken,
+            $component,
+            $configuration,
+            $configId,
         );
+
+        // factory always returns staging for components with workspace staging
+        assert($stagingWorkspaceFacade !== null);
+
+        return $stagingWorkspaceFacade;
     }
 }

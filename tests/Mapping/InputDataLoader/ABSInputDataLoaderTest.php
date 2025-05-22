@@ -10,7 +10,6 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\FilesL
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Input;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Storage;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TablesList;
-use Keboola\JobQueue\JobConfiguration\JobDefinition\State\State;
 use Keboola\StorageApi\Options\FileUploadOptions;
 use SplFileInfo;
 use Symfony\Component\Filesystem\Filesystem;
@@ -68,13 +67,12 @@ class ABSInputDataLoaderTest extends BaseInputDataLoaderTestCase
         );
         sleep(1);
 
-        $component = $this->getComponent();
-        $dataLoader = $this->getInputDataLoader($component);
-        $dataLoader->loadInputData(
-            component: $component,
-            jobConfiguration: $jobConfiguration,
-            jobState: new State(),
+        $dataLoader = $this->getInputDataLoader(
+            component: $this->getComponent(),
+            config: $jobConfiguration,
+            clientWrapper: $this->clientWrapper,
         );
+        $dataLoader->loadInputData();
 
         $manifest = json_decode(
             // @phpstan-ignore-next-line

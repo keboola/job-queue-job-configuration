@@ -113,7 +113,7 @@ class StagingWorkspaceFactoryTest extends TestCase
 
         // this is just simplification for the test, in production the backendType is produced by Connection
         // Connection backend has the same name as our StagingType, just without the "workspace-" prefix
-        $backendType = preg_replace('/^workspace-/', '', $componentStaging->value);
+        $backendType = (string) preg_replace('/^workspace-/', '', $componentStaging->value);
 
         $createdWorkspace = new WorkspaceWithCredentials(
             new Workspace(
