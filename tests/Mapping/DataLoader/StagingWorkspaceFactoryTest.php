@@ -91,6 +91,7 @@ class StagingWorkspaceFactoryTest extends TestCase
         array $tokenFlags,
         StagingType $componentStaging,
         array $configData,
+        string $expectedLogNotice,
         NewWorkspaceConfig $expectedWorkspaceConfig,
     ): void {
         $storageApiToken = new StorageApiToken([
@@ -149,7 +150,7 @@ class StagingWorkspaceFactoryTest extends TestCase
             null,
         );
 
-//        self::assertTrue($this->logsHandler->hasNotice('Creating a new ephemeral workspace.'));
+        self::assertTrue($this->logsHandler->hasNotice($expectedLogNotice));
         self::assertEquals(
             new StagingWorkspaceFacade(
                 $workspaceProvider,
@@ -171,6 +172,7 @@ class StagingWorkspaceFactoryTest extends TestCase
             ],
             'componentStaging' => StagingType::WorkspaceSnowflake,
             'configData' => [],
+            'expectedLogNotice' => 'Creating a new ephemeral workspace.',
             'expectedWorkspaceConfig' => new NewWorkspaceConfig(
                 stagingType: StagingType::WorkspaceSnowflake,
                 componentId: 'test-component',
@@ -188,6 +190,7 @@ class StagingWorkspaceFactoryTest extends TestCase
             ],
             'componentStaging' => StagingType::WorkspaceBigquery,
             'configData' => [],
+            'expectedLogNotice' => 'Creating a new ephemeral workspace.',
             'expectedWorkspaceConfig' => new NewWorkspaceConfig(
                 stagingType: StagingType::WorkspaceBigquery,
                 componentId: 'test-component',
@@ -213,6 +216,7 @@ class StagingWorkspaceFactoryTest extends TestCase
                     ],
                 ],
             ],
+            'expectedLogNotice' => 'Creating a new readonly ephemeral workspace.',
             'expectedWorkspaceConfig' => new NewWorkspaceConfig(
                 stagingType: StagingType::WorkspaceSnowflake,
                 componentId: 'test-component',
