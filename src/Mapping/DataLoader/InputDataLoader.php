@@ -22,6 +22,11 @@ use Psr\Log\LoggerInterface;
 
 class InputDataLoader
 {
+    private readonly string $targetDataDirPath;
+
+    /**
+     * @param non-empty-string $targetDataDirPath Relative path inside "/data" dir where to put the loaded data to.
+     */
     public function __construct(
         private readonly InputStrategyFactory $inputStrategyFactory,
         private readonly ClientWrapper $clientWrapper,
@@ -29,8 +34,9 @@ class InputDataLoader
         private readonly Configuration $jobConfiguration,
         private readonly State $jobState,
         private readonly LoggerInterface $logger,
-        private readonly string $dataInDir,
+        string $targetDataDirPath,
     ) {
+        $this->targetDataDirPath = '/' . trim($targetDataDirPath, '/'); // normalize to a path with leading slash
     }
 
     public function loadInputData(): LoadInputDataResult
@@ -60,7 +66,7 @@ class InputDataLoader
                 $inputTableResult = $reader->downloadTables(
                     new InputTableOptionsList($inputConfig->tables->toArray()),
                     new InputTableStateList($inputState->tables->toArray()),
-                    $this->dataInDir . '/tables/',
+                    $this->targetDataDirPath . '/tables/',
                     $readerOptions,
                 );
             }
@@ -69,7 +75,7 @@ class InputDataLoader
                 $this->logger->debug('Downloading source files.');
                 $inputFileStateList = $reader->downloadFiles(
                     $inputConfig->files->toArray(),
-                    $this->dataInDir . '/files/',
+                    $this->targetDataDirPath . '/files/',
                     new InputFileStateList($inputState->files->toArray()),
                 );
             }

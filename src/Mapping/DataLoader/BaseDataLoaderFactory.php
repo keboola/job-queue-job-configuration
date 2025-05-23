@@ -15,6 +15,9 @@ use Psr\Log\LoggerInterface;
 
 abstract class BaseDataLoaderFactory
 {
+    /**
+     * @param string $dataDirectory "/data" for no-dind, something like "/tmp/run-abcd.123/data" in job-runner
+     */
     public function __construct(
         protected readonly WorkspaceProvider $workspaceProvider,
         protected readonly LoggerInterface $logger,

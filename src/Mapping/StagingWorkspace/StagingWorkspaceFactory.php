@@ -98,7 +98,7 @@ class StagingWorkspaceFactory
         ComponentSpecification $component,
         Configuration $configuration,
         ?string $configId,
-        StorageApiToken $storageApiToken
+        StorageApiToken $storageApiToken,
     ): StagingWorkspaceFacade {
         $backendConfig = $configuration->runtime?->backend;
         $useReadonlyRole = $configuration->storage->input->readOnlyStorageAccess;

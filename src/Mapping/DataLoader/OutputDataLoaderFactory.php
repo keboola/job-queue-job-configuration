@@ -13,6 +13,9 @@ use Keboola\StorageApiBranch\ClientWrapper;
 
 class OutputDataLoaderFactory extends BaseDataLoaderFactory
 {
+    /**
+     * @param non-empty-string $sourceDataDirPath Relative path inside "/data" dir where to read the data from.
+     */
     public function createOutputDataLoader(
         ClientWrapper $clientWrapper,
         ComponentSpecification $component,
@@ -20,7 +23,7 @@ class OutputDataLoaderFactory extends BaseDataLoaderFactory
         ?string $configId,
         ?string $configRowId,
         ?string $stagingWorkspaceId,
-        string $sourceDataDir,
+        string $sourceDataDirPath,
     ): OutputDataLoader {
         $stagingProvider = $this->createStagingProvider(
             StagingType::from($component->getOutputStagingStorage()),
@@ -42,7 +45,7 @@ class OutputDataLoaderFactory extends BaseDataLoaderFactory
             $configId,
             $configRowId,
             $this->logger,
-            $sourceDataDir,
+            $sourceDataDirPath,
         );
     }
 }

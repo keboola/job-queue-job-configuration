@@ -57,7 +57,7 @@ abstract class BaseInputDataLoaderTestCase extends BaseDataLoaderTestCase
             $config,
             $state,
             stagingWorkspaceId: $stagingWorkspaceId,
-            targetDataDir: 'in/',
+            targetDataDirPath: 'in/',
         );
     }
 

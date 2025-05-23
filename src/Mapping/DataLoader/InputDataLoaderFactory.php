@@ -14,13 +14,16 @@ use Keboola\StorageApiBranch\ClientWrapper;
 
 class InputDataLoaderFactory extends BaseDataLoaderFactory
 {
+    /**
+     * @param non-empty-string $targetDataDirPath Relative path inside "/data" dir where to put the loaded data to.
+     */
     public function createInputDataLoader(
         ClientWrapper $clientWrapper,
         ComponentSpecification $component,
         Configuration $jobConfiguration,
         State $jobState,
         ?string $stagingWorkspaceId,
-        string $targetDataDir,
+        string $targetDataDirPath,
     ): InputDataLoader {
         $stagingProvider = $this->createStagingProvider(
             StagingType::from($component->getInputStagingStorage()),
@@ -41,7 +44,7 @@ class InputDataLoaderFactory extends BaseDataLoaderFactory
             $jobConfiguration,
             $jobState,
             $this->logger,
-            $targetDataDir,
+            $targetDataDirPath,
         );
     }
 }

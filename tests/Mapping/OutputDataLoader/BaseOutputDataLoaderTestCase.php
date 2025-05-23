@@ -52,7 +52,7 @@ abstract class BaseOutputDataLoaderTestCase extends BaseDataLoaderTestCase
             $configId,
             $configRowId,
             stagingWorkspaceId: null, // TODO
-            sourceDataDir: 'out/',
+            sourceDataDirPath: 'out/',
         );
     }
 }

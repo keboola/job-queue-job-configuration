@@ -22,6 +22,11 @@ use Psr\Log\LoggerInterface;
 
 class OutputDataLoader
 {
+    private readonly string $sourceDataDirPath;
+
+    /**
+     * @param non-empty-string $sourceDataDirPath Relative path inside "/data" dir where to read the data from.
+     */
     public function __construct(
         private readonly OutputStrategyFactory $outputStrategyFactory,
         private readonly ClientWrapper $clientWrapper,
@@ -30,8 +35,9 @@ class OutputDataLoader
         private readonly ?string $configId,
         private readonly ?string $configRowId,
         private readonly LoggerInterface $logger,
-        private readonly string $dataOutDir,
+        string $sourceDataDirPath,
     ) {
+        $this->sourceDataDirPath = '/' . trim($sourceDataDirPath, '/'); // normalize to a path with leading slash
     }
 
     public function storeOutput(
@@ -84,7 +90,7 @@ class OutputDataLoader
                 $this->outputStrategyFactory,
             );
             $fileWriter->uploadFiles(
-                $this->dataOutDir . '/files/',
+                $this->sourceDataDirPath . '/files/',
                 ['mapping' => $outputStorageConfig->files->toArray()],
                 $fileSystemMetadata,
                 [],
@@ -92,7 +98,7 @@ class OutputDataLoader
             );
             if ($this->useFileStorageOnly($this->component, $this->configuration->runtime)) {
                 $fileWriter->uploadFiles(
-                    $this->dataOutDir . '/tables/',
+                    $this->sourceDataDirPath . '/tables/',
                     [],
                     $fileSystemMetadata,
                     $outputStorageConfig->tableFiles->toArray(),
@@ -115,7 +121,7 @@ class OutputDataLoader
 
             $mappingSettings = new OutputMappingSettings(
                 configuration: $uploadTablesOptions,
-                sourcePathPrefix: $this->dataOutDir . '/tables/',
+                sourcePathPrefix: $this->sourceDataDirPath . '/tables/',
                 storageApiToken: $clientWrapper->getToken(),
                 isFailedJob: $isFailedJob,
                 dataTypeSupport: $this->getDataTypeSupport($this->component, $outputStorageConfig)->value,
