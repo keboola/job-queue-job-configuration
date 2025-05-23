@@ -26,9 +26,9 @@ abstract class BaseDataLoaderFactory
         StagingType $stagingType,
         ?string $stagingWorkspaceId,
     ): StagingProvider {
-        if ($stagingType->getStagingClass() === StagingClass::Workspace xor
-            $stagingWorkspaceId !== null
-        ) {
+        $hasWorkspaceStaging = $stagingType->getStagingClass() === StagingClass::Workspace;
+        $hasWorkspaceId = $stagingWorkspaceId !== null;
+        if ($hasWorkspaceStaging !== $hasWorkspaceId) {
             throw new LogicException('Staging workspace ID must be configured for component with workspace staging.');
         }
 
