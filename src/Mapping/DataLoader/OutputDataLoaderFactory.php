@@ -20,6 +20,7 @@ class OutputDataLoaderFactory extends BaseDataLoaderFactory
         ?string $configId,
         ?string $configRowId,
         ?string $stagingWorkspaceId,
+        string $sourceDataDir,
     ): OutputDataLoader {
         $stagingProvider = $this->createStagingProvider(
             StagingType::from($component->getOutputStagingStorage()),
@@ -41,7 +42,7 @@ class OutputDataLoaderFactory extends BaseDataLoaderFactory
             $configId,
             $configRowId,
             $this->logger,
-            'out/',
+            $sourceDataDir,
         );
     }
 }

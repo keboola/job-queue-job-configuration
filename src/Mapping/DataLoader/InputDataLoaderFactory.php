@@ -20,6 +20,7 @@ class InputDataLoaderFactory extends BaseDataLoaderFactory
         Configuration $jobConfiguration,
         State $jobState,
         ?string $stagingWorkspaceId,
+        string $targetDataDir,
     ): InputDataLoader {
         $stagingProvider = $this->createStagingProvider(
             StagingType::from($component->getInputStagingStorage()),
@@ -40,7 +41,7 @@ class InputDataLoaderFactory extends BaseDataLoaderFactory
             $jobConfiguration,
             $jobState,
             $this->logger,
-            'in/',
+            $targetDataDir,
         );
     }
 }
