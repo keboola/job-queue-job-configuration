@@ -36,11 +36,9 @@ abstract class BaseInputDataLoaderTestCase extends BaseDataLoaderTestCase
         ?string $stagingWorkspaceId = null,
         ?ClientWrapper $clientWrapper = null,
     ): InputDataLoader {
-        $clientWrapper = $clientWrapper ?? $this->clientWrapper;
-
         return InputDataLoader::create(
             new NullLogger(),
-            $clientWrapper,
+            $clientWrapper ?? $this->clientWrapper,
             $component,
             $config,
             $state,
