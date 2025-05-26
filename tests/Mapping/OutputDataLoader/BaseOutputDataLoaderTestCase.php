@@ -7,13 +7,7 @@ namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\OutputDataLoader;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
 use Keboola\JobQueue\JobConfiguration\Mapping\DataLoader\OutputDataLoader;
-use Keboola\JobQueue\JobConfiguration\Mapping\DataLoader\OutputDataLoaderFactory;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\BaseDataLoaderTestCase;
-use Keboola\KeyGenerator\PemKeyCertificateGenerator;
-use Keboola\StagingProvider\Workspace\SnowflakeKeypairGenerator;
-use Keboola\StagingProvider\Workspace\WorkspaceProvider;
-use Keboola\StorageApi\Components;
-use Keboola\StorageApi\Workspaces;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Psr\Log\NullLogger;
 
@@ -33,26 +27,16 @@ abstract class BaseOutputDataLoaderTestCase extends BaseDataLoaderTestCase
     ): OutputDataLoader {
         $clientWrapper ??= $this->clientWrapper;
 
-        $workspaceProvider = new WorkspaceProvider(
-            new Workspaces($clientWrapper->getBasicClient()),
-            new Components($clientWrapper->getBasicClient()),
-            new SnowflakeKeypairGenerator(new PemKeyCertificateGenerator()),
-        );
-
-        $dataLoaderFactory = new OutputDataLoaderFactory(
-            $workspaceProvider,
+        return OutputDataLoader::create(
             new NullLogger(),
-            $this->getDataDirPath(),
-        );
-
-        return $dataLoaderFactory->createOutputDataLoader(
             $clientWrapper,
             $component,
             $config,
             $configId,
             $configRowId,
             stagingWorkspaceId: null, // TODO
-            sourceDataDirPath: 'out/',
+            dataDirPath: $this->getDataDirPath(),
+            sourceDataDirSubpath: 'out/',
         );
     }
 }

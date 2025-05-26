@@ -34,6 +34,7 @@ abstract class BaseDataLoaderTestCase extends TestCase
     protected const COMPONENT_ID = 'docker-demo';
     protected const DEFAULT_PROJECT = 'snowflake';
 
+    /** @var non-empty-string */
     private string $workingDirPath;
     protected ClientWrapper $clientWrapper;
 
@@ -49,16 +50,25 @@ abstract class BaseDataLoaderTestCase extends TestCase
         $this->cleanupBucketAndFiles();
     }
 
+    /**
+     * @return non-empty-string
+     */
     protected function getWorkingDirPath(): string
     {
         return $this->workingDirPath;
     }
 
+    /**
+     * @return non-empty-string
+     */
     protected function getDataDirPath(): string
     {
         return $this->workingDirPath . '/data';
     }
 
+    /**
+     * @return non-empty-string
+     */
     protected function getTmpDirPath(): string
     {
         return $this->workingDirPath . '/tmp';
@@ -70,6 +80,7 @@ abstract class BaseDataLoaderTestCase extends TestCase
         $fs = new Filesystem();
 
         $workingDirPath = $temp->getTmpFolder();
+        assert($workingDirPath !== '');
 
         $fs->mkdir([
             $workingDirPath,

@@ -17,6 +17,9 @@ use Keboola\OutputMapping\Staging\StrategyFactory as OutputStrategyFactory;
 use Keboola\OutputMapping\SystemMetadata;
 use Keboola\OutputMapping\TableLoader;
 use Keboola\OutputMapping\Writer\FileWriter;
+use Keboola\StagingProvider\Staging\File\FileFormat;
+use Keboola\StagingProvider\Staging\StagingProvider;
+use Keboola\StagingProvider\Staging\StagingType;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Psr\Log\LoggerInterface;
 
@@ -38,6 +41,46 @@ class OutputDataLoader
         string $sourceDataDirPath,
     ) {
         $this->sourceDataDirPath = '/' . trim($sourceDataDirPath, '/'); // normalize to a path with leading slash
+    }
+
+    /**
+     * @param non-empty-string $dataDirPath "/data" for no-dind, something like "/tmp/run-abcd.123/data" in job-runner.
+     * @param non-empty-string $sourceDataDirSubpath Relative path inside $dataDir dir where to read the data from.
+     */
+    public static function create(
+        LoggerInterface $logger,
+        ClientWrapper $clientWrapper,
+        ComponentSpecification $component,
+        Configuration $configuration,
+        ?string $configId,
+        ?string $configRowId,
+        ?string $stagingWorkspaceId,
+        string $dataDirPath,
+        string $sourceDataDirSubpath,
+    ): self {
+        $stagingProvider = new StagingProvider(
+            StagingType::from($component->getInputStagingStorage()),
+            $dataDirPath,
+            $stagingWorkspaceId,
+        );
+
+        $strategyFactory = new OutputStrategyFactory(
+            $stagingProvider,
+            $clientWrapper,
+            $logger,
+            FileFormat::from($component->getConfigurationFormat()),
+        );
+
+        return new self(
+            $strategyFactory,
+            $clientWrapper,
+            $component,
+            $configuration,
+            $configId,
+            $configRowId,
+            $logger,
+            $sourceDataDirSubpath,
+        );
     }
 
     public function storeOutput(

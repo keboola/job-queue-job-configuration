@@ -8,7 +8,6 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecifica
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\State\State;
 use Keboola\JobQueue\JobConfiguration\Mapping\DataLoader\InputDataLoader;
-use Keboola\JobQueue\JobConfiguration\Mapping\DataLoader\InputDataLoaderFactory;
 use Keboola\JobQueue\JobConfiguration\Mapping\StagingWorkspace\StagingWorkspaceFacade;
 use Keboola\JobQueue\JobConfiguration\Mapping\StagingWorkspace\StagingWorkspaceFactory;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\BaseDataLoaderTestCase;
@@ -39,25 +38,15 @@ abstract class BaseInputDataLoaderTestCase extends BaseDataLoaderTestCase
     ): InputDataLoader {
         $clientWrapper = $clientWrapper ?? $this->clientWrapper;
 
-        $workspaceProvider = new WorkspaceProvider(
-            new Workspaces($clientWrapper->getBasicClient()),
-            new Components($clientWrapper->getBasicClient()),
-            new SnowflakeKeypairGenerator(new PemKeyCertificateGenerator()),
-        );
-
-        $dataLoaderFactory = new InputDataLoaderFactory(
-            $workspaceProvider,
+        return InputDataLoader::create(
             new NullLogger(),
-            $this->getDataDirPath(),
-        );
-
-        return $dataLoaderFactory->createInputDataLoader(
             $clientWrapper,
             $component,
             $config,
             $state,
-            stagingWorkspaceId: $stagingWorkspaceId,
-            targetDataDirPath: 'in/',
+            $stagingWorkspaceId,
+            $this->getDataDirPath(),
+            'in/',
         );
     }
 
