@@ -25,9 +25,9 @@
         "ext-zip": "*",
         "colinodell/psr-testlogger": "^1.3",
         "keboola/common-exceptions": "^1.2",
-        "keboola/input-mapping": "dev-pepa_invertStaging",
-        "keboola/output-mapping": "dev-pepa_invertStaging",
-        "keboola/staging-provider": "dev-pepa_invertStaging",
+        "keboola/input-mapping": "^21.0",
+        "keboola/output-mapping": "^26.0",
+        "keboola/staging-provider": "^12.0",
         "keboola/storage-api-client": "^18.1",
         "psr/log": "^3.0",
         "symfony/config": "^6.4|^7.0"
