@@ -16,7 +16,8 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Storag
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TablesList;
 use Keboola\JobQueue\JobConfiguration\Mapping\DataLoader\OutputDataLoader;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseSnowflakeProject;
-use Keboola\OutputMapping\Staging\StrategyFactory;
+use Keboola\OutputMapping\TableLoader;
+use Keboola\OutputMapping\Writer\FileWriter;
 use Keboola\OutputMapping\Writer\Table\MappingDestination;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\StorageApiToken;
@@ -900,7 +901,8 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $clientWrapperMock->method('getToken')->willReturn($tokenMock);
 
         $outputDataLoader = new OutputDataLoader(
-            $this->createMock(StrategyFactory::class),
+            $this->createMock(FileWriter::class),
+            $this->createMock(TableLoader::class),
             $clientWrapperMock,
             $component,
             new JobConfiguration(),
@@ -1149,7 +1151,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             config: $config,
             component: $component,
         );
-        ;
 
         $tableQueue = $dataLoader->storeOutput();
 

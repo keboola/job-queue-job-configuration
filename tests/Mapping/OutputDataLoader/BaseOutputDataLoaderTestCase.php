@@ -25,11 +25,9 @@ abstract class BaseOutputDataLoaderTestCase extends BaseDataLoaderTestCase
         ?string $configId = 'testConfig',
         ?string $configRowId = null,
     ): OutputDataLoader {
-        $clientWrapper ??= $this->clientWrapper;
-
         return OutputDataLoader::create(
             new NullLogger(),
-            $clientWrapper,
+            $clientWrapper ?? $this->clientWrapper,
             $component,
             $config,
             $configId,
