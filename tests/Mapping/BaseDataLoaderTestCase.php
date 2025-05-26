@@ -118,8 +118,9 @@ abstract class BaseDataLoaderTestCase extends TestCase
         ]);
     }
 
-    protected function getComponent(): ComponentSpecification
-    {
+    protected function getComponent(
+        ?string $stagingStorageType = null,
+    ): ComponentSpecification {
         return new ComponentSpecification([
             'id' => static::COMPONENT_ID,
             'data' => [
@@ -127,6 +128,10 @@ abstract class BaseDataLoaderTestCase extends TestCase
                     'type' => 'dockerhub',
                     'uri' => 'keboola/docker-demo',
                     'tag' => 'master',
+                ],
+                'staging_storage' => [
+                    'input' => $stagingStorageType ?? self::DEFAULT_COMPONENT_STAGING_STORAGE_TYPE,
+                    'output' => $stagingStorageType ?? self::DEFAULT_COMPONENT_STAGING_STORAGE_TYPE,
                 ],
             ],
         ]);
@@ -339,35 +344,5 @@ abstract class BaseDataLoaderTestCase extends TestCase
                 default => throw new InvalidArgumentException('You have passed a not-implemented attribute.'),
             };
         }
-    }
-
-    protected function createOutputStrategyFactory(
-        StagingProvider $stagingProvider,
-        ?ClientWrapper $clientWrapper = null,
-        LoggerInterface $logger = new NullLogger(),
-    ): OutputStrategyFactory {
-        $clientWrapper ??= $this->clientWrapper;
-
-        return new OutputStrategyFactory(
-            stagingProvider: $stagingProvider,
-            clientWrapper: $clientWrapper,
-            logger: $logger,
-            format: FileFormat::Json,
-        );
-    }
-
-    protected function createInputStrategyFactory(
-        StagingProvider $stagingProvider,
-        ?ClientWrapper $clientWrapper = null,
-        LoggerInterface $logger = new NullLogger(),
-    ): InputStrategyFactory {
-        $clientWrapper ??= $this->clientWrapper;
-
-        return new InputStrategyFactory(
-            stagingProvider: $stagingProvider,
-            clientWrapper: $clientWrapper,
-            logger: $logger,
-            format: FileFormat::Json,
-        );
     }
 }
