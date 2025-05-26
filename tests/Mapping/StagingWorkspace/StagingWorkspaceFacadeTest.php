@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\DataLoader;
+namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\StagingWorkspace;
 
 use Keboola\JobQueue\JobConfiguration\Mapping\StagingWorkspace\StagingWorkspaceFacade;
 use Keboola\StagingProvider\Workspace\WorkspaceProvider;
