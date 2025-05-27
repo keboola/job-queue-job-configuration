@@ -59,7 +59,7 @@ class OutputDataLoader
         string $sourceDataDirSubpath,
     ): self {
         $stagingProvider = new StagingProvider(
-            StagingType::from($component->getInputStagingStorage()),
+            StagingType::from($component->getOutputStagingStorage()),
             $dataDirPath,
             $stagingWorkspaceId,
         );
