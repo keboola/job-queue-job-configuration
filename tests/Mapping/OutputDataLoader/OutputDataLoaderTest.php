@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\OutputDataLoader;
 
 use Keboola\CommonExceptions\UserExceptionInterface;
+use Keboola\Csv\CsvFile;
 use Keboola\Datatype\Definition\BaseType;
 use Keboola\Datatype\Definition\GenericStorage;
 use Keboola\Datatype\Definition\Snowflake;
@@ -16,10 +17,13 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Storag
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TablesList;
 use Keboola\JobQueue\JobConfiguration\Mapping\DataLoader\OutputDataLoader;
 use Keboola\JobQueue\JobConfiguration\Tests\Mapping\Attribute\UseSnowflakeProject;
-use Keboola\OutputMapping\Staging\StrategyFactory;
+use Keboola\OutputMapping\TableLoader;
+use Keboola\OutputMapping\Writer\FileWriter;
 use Keboola\OutputMapping\Writer\Table\MappingDestination;
+use Keboola\StorageApi\Workspaces;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Keboola\StorageApiBranch\StorageApiToken;
+use Keboola\Temp\Temp;
 use Psr\Log\NullLogger;
 use ReflectionClass;
 use Symfony\Component\Filesystem\Filesystem;
@@ -29,6 +33,68 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
     protected static function expectedDefaultTableBackend(): string
     {
         return 'snowflake';
+    }
+
+    public function testWorkspaceStaging(): void
+    {
+        $bucketId = $this->dropAndCreateBucket($this->clientWrapper, 'test-workspace-staging', 'in');
+
+        // import testing data to bucket so we can populate the staging workspace
+        $temp = new Temp();
+        $csv = new CsvFile($temp->getTmpFolder() . '/upload.csv');
+        $csv->writeRow(['id', 'text']);
+        $csv->writeRow(['test1', 'test1']);
+        $tableId = $this->clientWrapper->getBranchClient()->createTableAsync($bucketId, 'input-table', $csv);
+        unset($csv);
+
+        $component = $this->getComponent('workspace-snowflake');
+
+        // create a workspace for staging and import testing data
+        $stagingWorkspaceFacade = $this->getStagingWorkspaceFacade(
+            storageApiToken: $this->clientWrapper->getToken(),
+            component: $component,
+        );
+        $workspaceId = $stagingWorkspaceFacade->getWorkspaceId();
+
+        $workspacesApiClient = new Workspaces($this->clientWrapper->getBranchClient());
+        $workspacesApiClient->loadWorkspaceData((int) $workspaceId, [
+            'input' => [
+                [
+                    'source' => $tableId,
+                    'destination' => 'workspace-table',
+                ],
+            ],
+        ]);
+
+        // validate the table does not exist before OM
+        self::assertFalse($this->clientWrapper->getBasicClient()->tableExists($bucketId . '.output-table'));
+
+        $dataLoader = $this->getOutputDataLoader(
+            config: new JobConfiguration(
+                storage: new Storage(
+                    output: new Output(
+                        tables: new TablesList([
+                            [
+                                'source' => 'workspace-table',
+                                'destination' => $bucketId . '.output-table',
+                            ],
+                        ]),
+                    ),
+                ),
+            ),
+            component: $component,
+            stagingWorkspaceId: $workspaceId,
+        );
+        $tableQueue = $dataLoader->storeOutput();
+        self::assertNotNull($tableQueue);
+
+        $tableQueue->waitForAll();
+
+        // validate the table does exist after OM
+        self::assertTrue($this->clientWrapper->getBasicClient()->tableExists($bucketId . '.output-table'));
+
+        // cleanup the staging workspace after test
+        $stagingWorkspaceFacade->cleanup();
     }
 
     public function testExecutorDefaultBucket(): void
@@ -900,7 +966,8 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $clientWrapperMock->method('getToken')->willReturn($tokenMock);
 
         $outputDataLoader = new OutputDataLoader(
-            $this->createMock(StrategyFactory::class),
+            $this->createMock(FileWriter::class),
+            $this->createMock(TableLoader::class),
             $clientWrapperMock,
             $component,
             new JobConfiguration(),
@@ -1149,7 +1216,6 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             config: $config,
             component: $component,
         );
-        ;
 
         $tableQueue = $dataLoader->storeOutput();
 

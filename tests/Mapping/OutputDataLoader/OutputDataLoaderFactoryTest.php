@@ -9,6 +9,8 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
 use Keboola\JobQueue\JobConfiguration\Mapping\DataLoader\OutputDataLoader;
 use Keboola\JobQueue\JobConfiguration\Tests\ReflectionPropertyAccessTestCase;
 use Keboola\OutputMapping\Staging\StrategyFactory;
+use Keboola\OutputMapping\TableLoader;
+use Keboola\OutputMapping\Writer\FileWriter;
 use Keboola\StagingProvider\Staging\File\FileFormat;
 use Keboola\StagingProvider\Staging\StagingProvider;
 use Keboola\StagingProvider\Staging\StagingType;
@@ -68,9 +70,25 @@ class OutputDataLoaderFactoryTest extends TestCase
             FileFormat::Yaml,
         );
 
-        self::assertEquals(
+        $expectedFileWriter = new FileWriter(
+            $clientWrapper,
+            $logger,
             $expectedStrategyFactory,
-            self::getPrivatePropertyValue($dataLoader, 'outputStrategyFactory'),
+        );
+
+        $expectedTableLoader = new TableLoader(
+            $logger,
+            $clientWrapper,
+            $expectedStrategyFactory,
+        );
+
+        self::assertEquals(
+            $expectedFileWriter,
+            self::getPrivatePropertyValue($dataLoader, 'fileWriter'),
+        );
+        self::assertEquals(
+            $expectedTableLoader,
+            self::getPrivatePropertyValue($dataLoader, 'tableLoader'),
         );
         self::assertSame(
             $clientWrapper,

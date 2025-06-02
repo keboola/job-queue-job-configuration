@@ -31,7 +31,8 @@ class OutputDataLoader
      * @param non-empty-string $sourceDataDirPath Relative path inside "/data" dir where to read the data from.
      */
     public function __construct(
-        private readonly OutputStrategyFactory $outputStrategyFactory,
+        private readonly FileWriter $fileWriter,
+        private readonly TableLoader $tableLoader,
         private readonly ClientWrapper $clientWrapper,
         private readonly ComponentSpecification $component,
         private readonly Configuration $configuration,
@@ -71,8 +72,21 @@ class OutputDataLoader
             FileFormat::from($component->getConfigurationFormat()),
         );
 
-        return new self(
+        $fileWriter = new FileWriter(
+            $clientWrapper,
+            $logger,
             $strategyFactory,
+        );
+
+        $tableLoader = new TableLoader(
+            logger: $logger,
+            clientWrapper: $clientWrapper,
+            strategyFactory: $strategyFactory,
+        );
+
+        return new self(
+            $fileWriter,
+            $tableLoader,
             $clientWrapper,
             $component,
             $configuration,
@@ -90,57 +104,21 @@ class OutputDataLoader
 
         $inputStorageConfig = $this->configuration->storage->input;
         $outputStorageConfig = $this->configuration->storage->output;
-        $clientWrapper = $this->clientWrapper;
-
-        $defaultBucketName = $outputStorageConfig->defaultBucket ?? '';
-        if ($defaultBucketName === '') {
-            $defaultBucketName = $this->getDefaultBucket($this->component, $this->configId);
-        }
 
         $this->logger->debug('Uploading output tables and files.');
 
-        $uploadTablesOptions = ['mapping' => $outputStorageConfig->tables->toArray()];
-
-        $commonSystemMetadata = [
-            SystemMetadata::SYSTEM_KEY_COMPONENT_ID => $this->component->getId(),
-            SystemMetadata::SYSTEM_KEY_CONFIGURATION_ID => $this->configId,
-        ];
-        if ($this->configRowId) {
-            $commonSystemMetadata[SystemMetadata::SYSTEM_KEY_CONFIGURATION_ROW_ID] = $this->configRowId;
-        }
-        $tableSystemMetadata = $fileSystemMetadata = $commonSystemMetadata;
-        if ($clientWrapper->isDevelopmentBranch()) {
-            $tableSystemMetadata[SystemMetadata::SYSTEM_KEY_BRANCH_ID] = $clientWrapper->getBranchId();
-        }
-
-        $fileSystemMetadata[SystemMetadata::SYSTEM_KEY_RUN_ID] = $clientWrapper->getBranchClient()->getRunId();
-
-        // Get default bucket
-        if ($defaultBucketName) {
-            $uploadTablesOptions['bucket'] = $defaultBucketName;
-            $this->logger->debug('Default bucket ' . $uploadTablesOptions['bucket']);
-        }
-
-        $treatValuesAsNull = $this->configuration->storage->output->treatValuesAsNull;
-        if ($treatValuesAsNull !== null) {
-            $uploadTablesOptions['treat_values_as_null'] = $treatValuesAsNull;
-        }
-
         try {
-            $fileWriter = new FileWriter(
-                $clientWrapper,
-                $this->logger,
-                $this->outputStrategyFactory,
-            );
-            $fileWriter->uploadFiles(
+            $fileSystemMetadata = $this->buildFilesystemMetadata();
+            $this->fileWriter->uploadFiles(
                 $this->sourceDataDirPath . '/files/',
                 ['mapping' => $outputStorageConfig->files->toArray()],
                 $fileSystemMetadata,
                 [],
                 $isFailedJob,
             );
+
             if ($this->useFileStorageOnly($this->component, $this->configuration->runtime)) {
-                $fileWriter->uploadFiles(
+                $this->fileWriter->uploadFiles(
                     $this->sourceDataDirPath . '/tables/',
                     [],
                     $fileSystemMetadata,
@@ -150,51 +128,33 @@ class OutputDataLoader
 
                 if (!$inputStorageConfig->files->isEmpty()) {
                     // tag input files
-                    $fileWriter->tagFiles($inputStorageConfig->files->toArray());
+                    $this->fileWriter->tagFiles($inputStorageConfig->files->toArray());
                 }
 
                 return null;
             }
 
-            $tableLoader = new TableLoader(
-                logger: $this->logger,
-                clientWrapper: $clientWrapper,
-                strategyFactory: $this->outputStrategyFactory,
-            );
-
             $mappingSettings = new OutputMappingSettings(
-                configuration: $uploadTablesOptions,
+                configuration: $this->buildUploadTableOptions($outputStorageConfig),
                 sourcePathPrefix: $this->sourceDataDirPath . '/tables/',
-                storageApiToken: $clientWrapper->getToken(),
+                storageApiToken: $this->clientWrapper->getToken(),
                 isFailedJob: $isFailedJob,
                 dataTypeSupport: $this->getDataTypeSupport($this->component, $outputStorageConfig)->value,
             );
 
-            $tableQueue = $tableLoader->uploadTables(
+            $tableQueue = $this->tableLoader->uploadTables(
                 configuration: $mappingSettings,
-                systemMetadata: new SystemMetadata($tableSystemMetadata),
+                systemMetadata: new SystemMetadata($this->buildTableMetadata()),
             );
 
             if (!$inputStorageConfig->files->isEmpty() && !$isFailedJob) {
                 // tag input files
-                $fileWriter->tagFiles($inputStorageConfig->files->toArray());
+                $this->fileWriter->tagFiles($inputStorageConfig->files->toArray());
             }
 
             return $tableQueue;
         } catch (InvalidOutputException $ex) {
             throw new UserException($ex->getMessage(), previous: $ex);
-        }
-    }
-
-    private function getDefaultBucket(ComponentSpecification $component, ?string $configId): string
-    {
-        if ($component->hasDefaultBucket()) {
-            if (!$configId) {
-                throw new UserException('Configuration ID not set, but is required for default_bucket option.');
-            }
-            return $component->getDefaultBucketName($configId);
-        } else {
-            return '';
         }
     }
 
@@ -209,5 +169,74 @@ class OutputDataLoader
             return DataTypeSupport::NONE;
         }
         return $outputStorageConfig->dataTypeSupport ?? $component->getDataTypesSupport();
+    }
+
+    private function buildCommonMetadata(): array
+    {
+        $metadata = [
+            SystemMetadata::SYSTEM_KEY_COMPONENT_ID => $this->component->getId(),
+            SystemMetadata::SYSTEM_KEY_CONFIGURATION_ID => $this->configId,
+        ];
+
+        if ($this->configRowId) {
+            $metadata[SystemMetadata::SYSTEM_KEY_CONFIGURATION_ROW_ID] = $this->configRowId;
+        }
+
+        return $metadata;
+    }
+
+    public function buildTableMetadata(): array
+    {
+        $metadata = $this->buildCommonMetadata();
+
+        if ($this->clientWrapper->isDevelopmentBranch()) {
+            $metadata[SystemMetadata::SYSTEM_KEY_BRANCH_ID] = $this->clientWrapper->getBranchId();
+        }
+
+        return $metadata;
+    }
+
+    public function buildFilesystemMetadata(): array
+    {
+        $metadata = $this->buildCommonMetadata();
+        $metadata[SystemMetadata::SYSTEM_KEY_RUN_ID] = $this->clientWrapper->getBranchClient()->getRunId();
+        return $metadata;
+    }
+
+    public function buildUploadTableOptions(Output $outputStorageConfig): array
+    {
+        $uploadTablesOptions = [
+            'mapping' => $outputStorageConfig->tables->toArray(),
+        ];
+
+        // Get default bucket
+        $defaultBucketName = $outputStorageConfig->defaultBucket ?? '';
+        if ($defaultBucketName === '') {
+            $defaultBucketName = $this->getDefaultBucket($this->component, $this->configId);
+        }
+
+        if ($defaultBucketName) {
+            $uploadTablesOptions['bucket'] = $defaultBucketName;
+            $this->logger->debug('Default bucket ' . $uploadTablesOptions['bucket']);
+        }
+
+        $treatValuesAsNull = $this->configuration->storage->output->treatValuesAsNull;
+        if ($treatValuesAsNull !== null) {
+            $uploadTablesOptions['treat_values_as_null'] = $treatValuesAsNull;
+        }
+
+        return $uploadTablesOptions;
+    }
+
+    private function getDefaultBucket(ComponentSpecification $component, ?string $configId): string
+    {
+        if ($component->hasDefaultBucket()) {
+            if (!$configId) {
+                throw new UserException('Configuration ID not set, but is required for default_bucket option.');
+            }
+            return $component->getDefaultBucketName($configId);
+        } else {
+            return '';
+        }
     }
 }

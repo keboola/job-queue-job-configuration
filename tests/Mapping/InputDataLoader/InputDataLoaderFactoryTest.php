@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\InputDataLoader;
 
+use Keboola\InputMapping\Reader;
 use Keboola\InputMapping\Staging\StrategyFactory;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
@@ -69,13 +70,15 @@ class InputDataLoaderFactoryTest extends TestCase
             FileFormat::Json,
         );
 
-        self::assertEquals(
-            $expectedStrategyFactory,
-            self::getPrivatePropertyValue($dataLoader, 'inputStrategyFactory'),
-        );
-        self::assertSame(
+        $expectedReader = new Reader(
             $clientWrapper,
-            self::getPrivatePropertyValue($dataLoader, 'clientWrapper'),
+            $logger,
+            $expectedStrategyFactory,
+        );
+
+        self::assertEquals(
+            $expectedReader,
+            self::getPrivatePropertyValue($dataLoader, 'reader'),
         );
         self::assertSame(
             $component,

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Keboola\JobQueue\JobConfiguration\Tests\Mapping\InputDataLoader;
 
-use Keboola\CommonExceptions\ApplicationExceptionInterface;
 use Keboola\Csv\CsvFile;
 use Keboola\InputMapping\State\InputFileStateList;
 use Keboola\InputMapping\Table\Result;
@@ -14,7 +13,6 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration 
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Input;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\Storage;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Storage\TablesList;
-use Keboola\JobQueue\JobConfiguration\JobDefinition\State\State;
 use Keboola\StorageApi\Metadata;
 use Symfony\Component\Filesystem\Filesystem;
 

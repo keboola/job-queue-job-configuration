@@ -31,8 +31,7 @@ class InputDataLoader
      * @param non-empty-string $targetDataDirPath Relative path inside "/data" dir where to put the loaded data to.
      */
     public function __construct(
-        private readonly InputStrategyFactory $inputStrategyFactory,
-        private readonly ClientWrapper $clientWrapper,
+        private readonly Reader $reader,
         private readonly ComponentSpecification $component,
         private readonly Configuration $jobConfiguration,
         private readonly State $jobState,
@@ -69,9 +68,14 @@ class InputDataLoader
             FileFormat::from($component->getConfigurationFormat()),
         );
 
-        return new self(
-            $strategyFactory,
+        $reader = new Reader(
             $clientWrapper,
+            $logger,
+            $strategyFactory,
+        );
+
+        return new self(
+            $reader,
             $component,
             $jobConfiguration,
             $jobState,
@@ -90,11 +94,6 @@ class InputDataLoader
         $inputConfig = $this->jobConfiguration->storage->input;
         $inputState = $this->jobState->storage->input;
 
-        $reader = new Reader(
-            $this->clientWrapper,
-            $this->logger,
-            $this->inputStrategyFactory,
-        );
         try {
             if (!$inputConfig->tables->isEmpty()) {
                 $this->logger->debug('Downloading source tables.');
@@ -104,7 +103,7 @@ class InputDataLoader
                     preserveWorkspace: false,
                 );
 
-                $inputTableResult = $reader->downloadTables(
+                $inputTableResult = $this->reader->downloadTables(
                     new InputTableOptionsList($inputConfig->tables->toArray()),
                     new InputTableStateList($inputState->tables->toArray()),
                     $this->targetDataDirPath . '/tables/',
@@ -114,7 +113,8 @@ class InputDataLoader
 
             if (!$inputConfig->files->isEmpty()) {
                 $this->logger->debug('Downloading source files.');
-                $inputFileStateList = $reader->downloadFiles(
+
+                $inputFileStateList = $this->reader->downloadFiles(
                     $inputConfig->files->toArray(),
                     $this->targetDataDirPath . '/files/',
                     new InputFileStateList($inputState->files->toArray()),
@@ -126,6 +126,9 @@ class InputDataLoader
             throw new UserException($e->getMessage(), previous: $e);
         }
 
-        return new LoadInputDataResult($inputTableResult, $inputFileStateList);
+        return new LoadInputDataResult(
+            $inputTableResult,
+            $inputFileStateList,
+        );
     }
 }
