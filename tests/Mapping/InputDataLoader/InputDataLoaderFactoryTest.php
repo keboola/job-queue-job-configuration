@@ -76,6 +76,7 @@ class InputDataLoaderFactoryTest extends TestCase
             $expectedStrategyFactory,
         );
 
+        self::assertNotNull($dataLoader);
         self::assertEquals(
             $expectedReader,
             self::getPrivatePropertyValue($dataLoader, 'reader'),
@@ -100,5 +101,43 @@ class InputDataLoaderFactoryTest extends TestCase
             '/subpath',
             self::getPrivatePropertyValue($dataLoader, 'targetDataDirPath'),
         );
+    }
+
+    public function testCreateWithNoneInputStaging(): void
+    {
+        $logger = new Logger('test');
+
+        $component = new ComponentSpecification([
+            'id' => 'my.component',
+            'data' => [
+                'definition' => [
+                    'type' => 'dockerhub',
+                    'uri' => 'keboola/docker-demo',
+                    'tag' => 'master',
+                ],
+                'configuration_format' => 'json',
+                'staging_storage' => [
+                    'input' => 'none',
+                    'output' => 'local',
+                ],
+            ],
+        ]);
+
+        $clientWrapper = $this->createMock(ClientWrapper::class);
+        $configuration = new Configuration();
+        $state = new State();
+
+        $dataLoader = InputDataLoader::create(
+            $logger,
+            $clientWrapper,
+            $component,
+            $configuration,
+            $state,
+            null,
+            '/dataDir/path',
+            '/subpath/',
+        );
+
+        self::assertNull($dataLoader);
     }
 }

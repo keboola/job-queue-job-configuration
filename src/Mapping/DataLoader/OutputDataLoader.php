@@ -18,6 +18,7 @@ use Keboola\OutputMapping\SystemMetadata;
 use Keboola\OutputMapping\TableLoader;
 use Keboola\OutputMapping\Writer\FileWriter;
 use Keboola\StagingProvider\Staging\File\FileFormat;
+use Keboola\StagingProvider\Staging\StagingClass;
 use Keboola\StagingProvider\Staging\StagingProvider;
 use Keboola\StagingProvider\Staging\StagingType;
 use Keboola\StorageApiBranch\ClientWrapper;
@@ -58,9 +59,14 @@ class OutputDataLoader
         ?string $stagingWorkspaceId,
         string $dataDirPath,
         string $sourceDataDirSubpath,
-    ): self {
+    ): ?self {
+        $componentOutputStagingType = StagingType::from($component->getOutputStagingStorage());
+        if ($componentOutputStagingType->getStagingClass() === StagingClass::None) {
+            return null;
+        }
+
         $stagingProvider = new StagingProvider(
-            StagingType::from($component->getOutputStagingStorage()),
+            $componentOutputStagingType,
             $dataDirPath,
             $stagingWorkspaceId,
         );
