@@ -17,6 +17,7 @@ use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecifica
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\State\State;
 use Keboola\StagingProvider\Staging\File\FileFormat;
+use Keboola\StagingProvider\Staging\StagingClass;
 use Keboola\StagingProvider\Staging\StagingProvider;
 use Keboola\StagingProvider\Staging\StagingType;
 use Keboola\StorageApi\ClientException;
@@ -54,9 +55,14 @@ class InputDataLoader
         ?string $stagingWorkspaceId,
         string $dataDirPath,
         string $targetDataDirSubpath,
-    ): self {
+    ): ?self {
+        $componentInputStagingType = StagingType::from($component->getInputStagingStorage());
+        if ($componentInputStagingType->getStagingClass() === StagingClass::None) {
+            return null;
+        }
+
         $stagingProvider = new StagingProvider(
-            StagingType::from($component->getInputStagingStorage()),
+            $componentInputStagingType,
             $dataDirPath,
             $stagingWorkspaceId,
         );

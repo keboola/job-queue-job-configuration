@@ -36,7 +36,7 @@ abstract class BaseInputDataLoaderTestCase extends BaseDataLoaderTestCase
         ?string $stagingWorkspaceId = null,
         ?ClientWrapper $clientWrapper = null,
     ): InputDataLoader {
-        return InputDataLoader::create(
+        $inputDataLoader = InputDataLoader::create(
             new NullLogger(),
             $clientWrapper ?? $this->clientWrapper,
             $component,
@@ -46,6 +46,9 @@ abstract class BaseInputDataLoaderTestCase extends BaseDataLoaderTestCase
             $this->getDataDirPath(),
             'in/',
         );
+        assert($inputDataLoader !== null);
+
+        return $inputDataLoader;
     }
 
     protected function getStagingWorkspaceFacade(

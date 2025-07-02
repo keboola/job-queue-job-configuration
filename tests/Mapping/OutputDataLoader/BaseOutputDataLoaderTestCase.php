@@ -36,7 +36,7 @@ abstract class BaseOutputDataLoaderTestCase extends BaseDataLoaderTestCase
         ?string $configRowId = null,
         ?string $stagingWorkspaceId = null,
     ): OutputDataLoader {
-        return OutputDataLoader::create(
+        $outputDataLoader = OutputDataLoader::create(
             new NullLogger(),
             $clientWrapper ?? $this->clientWrapper,
             $component,
@@ -47,6 +47,9 @@ abstract class BaseOutputDataLoaderTestCase extends BaseDataLoaderTestCase
             dataDirPath: $this->getDataDirPath(),
             sourceDataDirSubpath: 'out/',
         );
+        assert($outputDataLoader !== null);
+
+        return $outputDataLoader;
     }
 
     protected function getStagingWorkspaceFacade(

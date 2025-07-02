@@ -82,6 +82,7 @@ class OutputDataLoaderFactoryTest extends TestCase
             $expectedStrategyFactory,
         );
 
+        self::assertNotNull($dataLoader);
         self::assertEquals(
             $expectedFileWriter,
             self::getPrivatePropertyValue($dataLoader, 'fileWriter'),
@@ -118,5 +119,43 @@ class OutputDataLoaderFactoryTest extends TestCase
             '/subpath',
             self::getPrivatePropertyValue($dataLoader, 'sourceDataDirPath'),
         );
+    }
+
+    public function testCreateWithNoneOutputStaging(): void
+    {
+        $logger = new Logger('test');
+
+        $component = new ComponentSpecification([
+            'id' => 'my.component',
+            'data' => [
+                'definition' => [
+                    'type' => 'dockerhub',
+                    'uri' => 'keboola/docker-demo',
+                    'tag' => 'master',
+                ],
+                'configuration_format' => 'json',
+                'staging_storage' => [
+                    'input' => 's3',
+                    'output' => 'none',
+                ],
+            ],
+        ]);
+
+        $clientWrapper = $this->createMock(ClientWrapper::class);
+        $configuration = new Configuration();
+
+        $dataLoader = OutputDataLoader::create(
+            $logger,
+            $clientWrapper,
+            $component,
+            $configuration,
+            'configId',
+            'configRowId',
+            null,
+            '/dataDir/path',
+            '/subpath/',
+        );
+
+        self::assertNull($dataLoader);
     }
 }
