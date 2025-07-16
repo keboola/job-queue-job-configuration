@@ -13,11 +13,10 @@
             "Keboola\\JobQueue\\JobConfiguration\\Tests\\": "tests/"
         }
     },
-    "config": {
-        "lock": false,
-        "sort-packages": true,
-        "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": true
+    "repositories": {
+        "libs": {
+            "type": "path",
+            "url": "../../libs/*"
         }
     },
     "require": {
@@ -26,9 +25,10 @@
         "colinodell/psr-testlogger": "^1.3",
         "keboola/common-exceptions": "^1.2",
         "keboola/input-mapping": "^21.0",
+        "keboola/job-queue-internal-api-php-client": "*@dev",
         "keboola/output-mapping": "^27.0",
         "keboola/staging-provider": "^12.2",
-        "keboola/storage-api-client": "^18.1",
+        "keboola/storage-api-client": "dev-pepa/PAT-402_backendConfig as 18.2.5",
         "psr/log": "^3.0",
         "symfony/config": "^6.4|^7.0"
     },
@@ -55,5 +55,12 @@
             "@composer validate --no-check-all --strict",
             "@check"
         ]
+    },
+    "config": {
+        "lock": false,
+        "sort-packages": true,
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
     }
 }
