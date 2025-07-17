@@ -27,7 +27,7 @@
         "keboola/input-mapping": "^21.0",
         "keboola/output-mapping": "^27.0",
         "keboola/staging-provider": "^12.2",
-        "keboola/storage-api-client": "dev-pepa/PAT-402_backendConfig as 18.2.5",
+        "keboola/storage-api-client": "^18.2.5",
         "psr/log": "^3.0",
         "symfony/config": "^6.4|^7.0"
     },
