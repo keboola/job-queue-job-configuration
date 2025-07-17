@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\JobStorageApiClient;
 
 use InvalidArgumentException;
+use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Throwable;
 
 /**
@@ -21,6 +22,8 @@ use Throwable;
  */
 readonly class JobStorageApiClientOptions
 {
+    public const CONFIG_KEY = 'storage_client_options';
+
     public function __construct(
         /** @var non-empty-string */
         public string $runId,
@@ -32,6 +35,46 @@ readonly class JobStorageApiClientOptions
         public ?string $backendSize = null,
         public ?string $backendContext = null,
     ) {
+    }
+
+    public static function configDefinition(): ArrayNodeDefinition
+    {
+        return (new ArrayNodeDefinition(self::CONFIG_KEY))
+            ->ignoreExtraKeys()
+            ->children()
+                ->scalarNode('run_id')
+                    ->isRequired()
+                    ->cannotBeEmpty()
+                ->end()
+                ->scalarNode('branch_id')
+                    ->isRequired()
+                    ->cannotBeEmpty()
+                ->end()
+                ->booleanNode('use_branch_storage')
+                    ->isRequired()
+                ->end()
+                ->integerNode('backoff_max_tries')
+                    ->defaultNull()
+                    ->min(0)
+                    ->beforeNormalization()
+                        ->ifNull()
+                        ->thenUnset()
+                    ->end()
+                ->end()
+                ->arrayNode('backend')
+                    ->isRequired()
+                    ->ignoreExtraKeys()
+                    ->children()
+                        ->scalarNode('size')
+                            ->defaultNull()
+                        ->end()
+                        ->scalarNode('context')
+                            ->defaultNull()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end()
+        ;
     }
 
     /**
