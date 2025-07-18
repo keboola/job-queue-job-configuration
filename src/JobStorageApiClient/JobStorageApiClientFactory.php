@@ -21,11 +21,11 @@ class JobStorageApiClientFactory
 
     public function createClientWrapper(JobStorageApiClientOptions $jobClientOptions): ClientWrapper
     {
-        $clientOptions = $this->createClientOptionsFromArrayOptions($jobClientOptions);
+        $clientOptions = $this->createClientOptionsFromJobClientOptions($jobClientOptions);
         return $this->parentFactory->createClientWrapper($clientOptions);
     }
 
-    private function createClientOptionsFromArrayOptions(JobStorageApiClientOptions $options): ClientOptions
+    private function createClientOptionsFromJobClientOptions(JobStorageApiClientOptions $options): ClientOptions
     {
         $userAgentPrefix =
             $this->clientOptions->getUserAgent() ??
