@@ -205,6 +205,111 @@ class ConfigurationDefinitionTest extends TestCase
         ], $config['runtime']['backend']);
     }
 
+
+    public static function provideValidWorkspaceCredentials(): iterable
+    {
+        yield 'snowflake password' => [
+            'data' => [
+                'type' => 'snowflake',
+                'id' => '1234',
+                '#password' => 'test',
+            ],
+        ];
+
+        yield 'snowflake privateKey' => [
+            'data' => [
+                'type' => 'snowflake',
+                'id' => '1234',
+                '#privateKey' => 'test',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider provideValidWorkspaceCredentials
+     * @doesNotPerformAssertions
+     */
+    public function testValidWorkspaceConfiguration(array $data): void
+    {
+        (new Processor())->processConfiguration(new ConfigurationDefinition(), [
+            'config' => [
+                'runtime' => [
+                    'backend' => [
+                        'workspace_credentials' => $data,
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    public static function provideInvalidWorkspaceCredentials(): iterable
+    {
+        yield 'missing id' => [
+            'data' => [
+                'type' => 'snowflake',
+                '#password' => 'test',
+            ],
+            'expectedError' => 'The child config "id" under "configuration.runtime.backend.workspace_credentials" ' .
+                'must be configured.',
+        ];
+
+        yield 'missing type' => [
+            'data' => [
+                'id' => '1234',
+                '#password' => 'test',
+            ],
+            'expectedError' => 'The child config "type" under "configuration.runtime.backend.workspace_credentials" ' .
+                'must be configured.',
+        ];
+
+        yield 'invalid type' => [
+            'data' => [
+                'id' => '1234',
+                'type' => 'foo',
+                '#password' => 'test',
+            ],
+            'expectedError' => 'The value "foo" is not allowed for path ' .
+                '"configuration.runtime.backend.workspace_credentials.type". Permissible values: "snowflake"',
+        ];
+
+        yield 'no #password or #privateKey' => [
+            'data' => [
+                'id' => '1234',
+                'type' => 'snowflake',
+            ],
+            'expectedError' => 'Invalid configuration for path "configuration.runtime.backend.workspace_credentials":' .
+                ' Exactly one of "password" or "privateKey" must be configured.',
+        ];
+
+        yield 'both #password and #privateKey' => [
+            'data' => [
+                'id' => '1234',
+                'type' => 'snowflake',
+                '#password' => 'test',
+                '#privateKey' => 'test',
+            ],
+            'expectedError' => 'Invalid configuration for path "configuration.runtime.backend.workspace_credentials":' .
+                ' Exactly one of "password" or "privateKey" must be configured.',
+        ];
+    }
+
+    /** @dataProvider provideInvalidWorkspaceCredentials */
+    public function testInvalidWorkspaceConfiguration(array $data, string $expectedError): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage($expectedError);
+
+        (new Processor())->processConfiguration(new ConfigurationDefinition(), [
+            'config' => [
+                'runtime' => [
+                    'backend' => [
+                        'workspace_credentials' => $data,
+                    ],
+                ],
+            ],
+        ]);
+    }
+
     public function testRuntimeBackendConfigurationHasDefaultEmptyValue(): void
     {
         $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
@@ -214,6 +319,9 @@ class ConfigurationDefinitionTest extends TestCase
         ]);
 
         self::assertSame([], $config['runtime']['backend']);
+
+        self::assertArrayHasKey('process_timeout', $config['runtime']);
+        self::assertNull($config['runtime']['process_timeout']);
     }
 
     public function testRuntimeBackendConfigurationIgnoreExtraKeys(): void
@@ -237,6 +345,93 @@ class ConfigurationDefinitionTest extends TestCase
             ],
             $config['runtime']['backend'],
         );
+    }
+
+    public function testRuntimeConfigurationInvalidWorkspaceCredentials(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        // phpcs:ignore Generic.Files.LineLength.MaxExceeded
+        $this->expectExceptionMessage('The value "unsupported" is not allowed for path "configuration.runtime.backend.workspace_credentials.type". Permissible values: "snowflake"');
+
+        (new Processor())->processConfiguration(new ConfigurationDefinition(), [
+            'config' => [
+                'runtime' => [
+                    'safe' => true,
+                    'image_tag' => '12.7.0',
+                    'backend' => [
+                        'type' => 'foo',
+                        'context' => 'wml',
+                        'workspace_credentials' => [
+                            'id' => '1234',
+                            'type' => 'unsupported',
+                            '#password' => 'test',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    public static function provideValidProcessTimeout(): iterable
+    {
+        yield 'value' => [
+            'timeout' => 300,
+        ];
+
+        yield 'null' => [
+            'timeout' => null,
+        ];
+    }
+
+    /** @dataProvider provideValidProcessTimeout */
+    public function testRuntimeProcessTimeoutSet(?int $timeout): void
+    {
+        $config = (new Processor())->processConfiguration(new ConfigurationDefinition(), [
+            'config' => [
+                'runtime' => [
+                    'process_timeout' => $timeout,
+                ],
+            ],
+        ]);
+
+        self::assertArrayHasKey('process_timeout', $config['runtime']);
+        self::assertSame($timeout, $config['runtime']['process_timeout']);
+    }
+
+    public static function provideInvalidProcessTimeout(): iterable
+    {
+        yield 'zero' => [
+            'timeout' => 0,
+            'expectedError' =>
+                'Invalid configuration for path "configuration.runtime.process_timeout": must be greater than 0',
+        ];
+
+        yield 'negative' => [
+            'timeout' => -10,
+            'expectedError' =>
+                'Invalid configuration for path "configuration.runtime.process_timeout": must be greater than 0',
+        ];
+
+        yield 'float' => [
+            'timeout' => 10.0,
+            'expectedError' =>
+                'Invalid configuration for path "configuration.runtime.process_timeout": must be "null" or "int"',
+        ];
+    }
+
+    /** @dataProvider provideInvalidProcessTimeout */
+    public function testRuntimeProcessTimeoutInvalid(mixed $timeout, string $expectedError): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage($expectedError);
+
+        (new Processor())->processConfiguration(new ConfigurationDefinition(), [
+            'config' => [
+                'runtime' => [
+                    'process_timeout' => $timeout,
+                ],
+            ],
+        ]);
     }
 
     public function testRuntimeBackendConfigurationWithNullWorkspaceCredentials(): void

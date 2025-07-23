@@ -64,8 +64,14 @@ class AppProxyDefinitionTest extends TestCase
     /** @dataProvider provideValidAppProxyAuthorizationConfig */
     public function testValidAppProxyAuthorizationConfig(?array $config): void
     {
-        (new Processor())->processConfiguration(new AppProxyDefinition(), [
+        // process the user-provided config
+        $producedConfig = (new Processor())->processConfiguration(new AppProxyDefinition(), [
             'app_proxy' => $config,
+        ]);
+
+        // process the config again to check that processing produces valid config
+        (new Processor())->processConfiguration(new AppProxyDefinition(), [
+            'app_proxy' => $producedConfig,
         ]);
         self::assertTrue(true);
     }
