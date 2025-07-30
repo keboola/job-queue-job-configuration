@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\Tests\JobDefinition\Configuration;
 
 use Keboola\JobQueue\JobConfiguration\Exception\InvalidDataException;
+use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Artifacts\Artifacts;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Configuration;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Processors\Processor;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Processors\ProcessorDefinition;
@@ -35,7 +36,7 @@ class ConfigurationTest extends TestCase
         self::assertNull($configuration->imageParameters);
         self::assertSame([], $configuration->authorization);
         self::assertNull($configuration->action);
-        self::assertSame([], $configuration->artifacts);
+        self::assertEquals(new Artifacts(), $configuration->artifacts);
     }
 
     public function testFromEmptyArray(): void
@@ -53,7 +54,7 @@ class ConfigurationTest extends TestCase
         self::assertNull($configuration->imageParameters);
         self::assertSame([], $configuration->authorization);
         self::assertNull($configuration->action);
-        self::assertSame([], $configuration->artifacts);
+        self::assertEquals(new Artifacts(), $configuration->artifacts);
     }
 
     public function testFromArray(): void
@@ -153,15 +154,15 @@ class ConfigurationTest extends TestCase
             $configuration->authorization,
         );
         self::assertSame('run', $configuration->action);
-        self::assertSame(
-            [
+        self::assertEquals(
+            Artifacts::fromArray([
                 'runs' => [
                     'enabled' => true,
                     'filter' => [
                         'limit' => 10,
                     ],
                 ],
-            ],
+            ]),
             $configuration->artifacts,
         );
     }
@@ -214,7 +215,12 @@ class ConfigurationTest extends TestCase
                     ],
                 ],
                 'processors' => [],
-                'artifacts' => [],
+                'artifacts' => [
+                    'options' => ['zip' => true],
+                    'runs' => ['enabled' => false],
+                    'custom' => ['enabled' => false],
+                    'shared' => ['enabled' => false],
+                ],
             ],
         ];
 
@@ -273,14 +279,14 @@ class ConfigurationTest extends TestCase
                     ],
                 ],
                 action: 'run',
-                artifacts: [
+                artifacts: Artifacts::fromArray([
                     'runs' => [
                         'enabled' => true,
                         'filter' => [
                             'limit' => 10,
                         ],
                     ],
-                ],
+                ]),
             ),
             'output' => [
                 'action' => 'run',
@@ -327,12 +333,15 @@ class ConfigurationTest extends TestCase
                     ],
                 ],
                 'artifacts' => [
+                    'options' => ['zip' => true],
                     'runs' => [
                         'enabled' => true,
                         'filter' => [
                             'limit' => 10,
                         ],
                     ],
+                    'custom' => ['enabled' => false],
+                    'shared' => ['enabled' => false],
                 ],
                 'runtime' => [
                     'safe' => null,

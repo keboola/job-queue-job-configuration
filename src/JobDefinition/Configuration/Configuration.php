@@ -23,7 +23,7 @@ readonly class Configuration
         public ?array $imageParameters = null,
         public array $authorization = [],
         public ?string $action = null,
-        public array $artifacts = [],
+        public Artifacts\Artifacts $artifacts = new Artifacts\Artifacts(),
     ) {
     }
 
@@ -51,7 +51,7 @@ readonly class Configuration
             imageParameters: $data['image_parameters'] ?? null,
             authorization: $data['authorization'] ?? [],
             action: $data['action'] ?? null,
-            artifacts: $data['artifacts'] ?? [],
+            artifacts: Artifacts\Artifacts::fromArray($data['artifacts'] ?? []),
         );
     }
 
@@ -62,7 +62,7 @@ readonly class Configuration
             'parameters' => $this->parameters,
             'storage' => $this->storage->toArray(),
             'processors' => $this->processors->toArray(),
-            'artifacts' => $this->artifacts,
+            'artifacts' => $this->artifacts->toArray(),
         ];
 
         if ($this->runtime !== null) {
