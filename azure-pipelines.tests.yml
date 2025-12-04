@@ -1,6 +1,12 @@
 jobs:
   - template: ../../azure-pipelines/jobs/run-tests.yml
     parameters:
+      displayName: Code Style and Static Analysis
+      serviceName: ci-job-configuration
+      testCommand: composer phpcs && composer phpstan
+
+  - template: ../../azure-pipelines/jobs/run-tests.yml
+    parameters:
       displayName: Job Definition
       serviceName: ci-job-configuration
       testCommand: vendor/bin/phpunit --testsuite job-definition
