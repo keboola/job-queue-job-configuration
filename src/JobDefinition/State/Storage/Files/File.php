@@ -15,8 +15,11 @@ readonly class File
 
     public static function fromArray(array $data): self
     {
+        /** @var list<array> $tags */
+        $tags = $data['tags'] ?? [];
+
         return new self(
-            tags: array_map(FileTag::fromArray(...), $data['tags'] ?? []),
+            tags: array_map(FileTag::fromArray(...), $tags),
             lastImportId: (string) $data['lastImportId'],
         );
     }

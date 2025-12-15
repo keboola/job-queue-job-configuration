@@ -15,7 +15,7 @@ class GelfLoggingConfiguration implements LoggingConfigurationInterface
     public static function fromArray(array $data): self
     {
         return new self(
-            $data['gelf_server_type'] ?? 'tcp',
+            (string) ($data['gelf_server_type'] ?? 'tcp'),
         );
     }
 

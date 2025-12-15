@@ -14,9 +14,14 @@ readonly class Storage
 
     public static function fromArray(array $data): self
     {
+        /** @var array $input */
+        $input = $data['input'] ?? [];
+        /** @var array $output */
+        $output = $data['output'] ?? [];
+
         return new self(
-            input: Input::fromArray($data['input'] ?? []),
-            output: Output::fromArray($data['output'] ?? []),
+            input: Input::fromArray($input),
+            output: Output::fromArray($output),
         );
     }
 

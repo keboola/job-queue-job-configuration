@@ -19,12 +19,15 @@ readonly class Runtime
 
     public static function fromArray(array $data): self
     {
+        /** @var array|null $backend */
+        $backend = $data['backend'] ?? null;
+
         return new self(
-            safe: $data['safe'] ?? null,
-            imageTag: $data['image_tag'] ?? null,
-            processTimeout: $data['process_timeout'] ?? null,
+            safe: isset($data['safe']) ? (bool) $data['safe'] : null,
+            imageTag: isset($data['image_tag']) ? (string) $data['image_tag'] : null,
+            processTimeout: isset($data['process_timeout']) ? (int) $data['process_timeout'] : null,
             useFileStorageOnly: isset($data['use_file_storage_only']) ? (bool) $data['use_file_storage_only'] : null,
-            backend: isset($data['backend']) ? Backend::fromArray($data['backend']) : null,
+            backend: $backend !== null ? Backend::fromArray($backend) : null,
             extraProps: array_diff_key($data, array_flip([
                 'safe',
                 'image_tag',

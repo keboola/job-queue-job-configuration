@@ -22,18 +22,27 @@ readonly class Output
 
     public static function fromArray(array $data): self
     {
+        /** @var array $tables */
+        $tables = $data['tables'] ?? [];
+        /** @var array $files */
+        $files = $data['files'] ?? [];
+        /** @var array $tableFiles */
+        $tableFiles = $data['table_files'] ?? [];
+        /** @var array|null $treatValuesAsNull */
+        $treatValuesAsNull = $data['treat_values_as_null'] ?? null;
+
         return new self(
-            tables: TablesList::fromArray($data['tables'] ?? []),
-            files: FilesList::fromArray($data['files'] ?? []),
-            tableFiles: TableFiles::fromArray($data['table_files'] ?? []),
+            tables: TablesList::fromArray($tables),
+            files: FilesList::fromArray($files),
+            tableFiles: TableFiles::fromArray($tableFiles),
             defaultBucket: isset($data['default_bucket']) ? (string) $data['default_bucket'] : null,
             dataTypeSupport: isset($data['data_type_support'])
                 ? DataTypeSupport::from((string) $data['data_type_support'])
                 : null,
             tableModifications: isset($data['table_modifications'])
-                ? TableModifications::from($data['table_modifications'])
+                ? TableModifications::from((string) $data['table_modifications'])
                 : null,
-            treatValuesAsNull: $data['treat_values_as_null'] ?? null,
+            treatValuesAsNull: $treatValuesAsNull,
         );
     }
 

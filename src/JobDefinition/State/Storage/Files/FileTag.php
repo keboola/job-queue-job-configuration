@@ -15,8 +15,8 @@ readonly class FileTag
     public static function fromArray(array $data): self
     {
         return new self(
-            name: $data['name'] ?? null,
-            match: $data['match'] ?? null,
+            name: isset($data['name']) ? (string) $data['name'] : null,
+            match: isset($data['match']) ? (string) $data['match'] : null,
         );
     }
 

@@ -16,10 +16,14 @@ use Symfony\Component\Config\Definition\Processor;
 class ComponentSpecification
 {
     private string $id;
+    /** @var ComponentDataArray */
     private array $data;
     private string $networkType;
+    /** @var list<string> */
     private array $features;
+    /** @var array{dataTypesSupport?: string} */
     private array $dataTypesConfiguration;
+    /** @var array{allowedProcessorPosition?: string} */
     private array $processorConfiguration;
 
     /**
@@ -27,7 +31,7 @@ class ComponentSpecification
      */
     public function __construct(array $componentData)
     {
-        $this->id = empty($componentData['id']) ? '' : $componentData['id'];
+        $this->id = empty($componentData['id']) ? '' : (string) $componentData['id'];
         $componentData['data'] = empty($componentData['data']) ? [] : $componentData['data'];
 
         try {
@@ -39,15 +43,23 @@ class ComponentSpecification
             throw new ComponentInvalidException(
                 'Component definition is invalid. Verify the deployment setup and the repository settings ' .
                 'in the Developer Portal. Detail: ' . $e->getMessage(),
-                $componentData['data'],
+                is_array($componentData['data']) ? $componentData['data'] : [],
                 $e,
             );
         }
 
-        $this->data = $processedComponentData['data'];
-        $this->dataTypesConfiguration = $processedComponentData['dataTypesConfiguration'] ?? [];
-        $this->processorConfiguration = $processedComponentData['processorConfiguration'] ?? [];
-        $this->features = $processedComponentData['features'] ?? [];
+        /** @var ComponentDataArray $data */
+        $data = $processedComponentData['data'];
+        $this->data = $data;
+        /** @var array{dataTypesSupport?: string} $dataTypesConfiguration */
+        $dataTypesConfiguration = $processedComponentData['dataTypesConfiguration'] ?? [];
+        $this->dataTypesConfiguration = $dataTypesConfiguration;
+        /** @var array{allowedProcessorPosition?: string} $processorConfiguration */
+        $processorConfiguration = $processedComponentData['processorConfiguration'] ?? [];
+        $this->processorConfiguration = $processorConfiguration;
+        /** @var list<string> $features */
+        $features = $processedComponentData['features'] ?? [];
+        $this->features = $features;
 
         $this->networkType = $this->data['network'];
     }
@@ -164,14 +176,15 @@ class ComponentSpecification
 
     public function getLoggingConfiguration(): LoggingConfigurationInterface
     {
-        $logging = $this->data['logging'] ?? [];
+        $logging = $this->data['logging'];
+        $type = $logging['type'];
 
-        return match ($logging['type'] ?? 'standard') {
+        return match ($type) {
             'standard' => StandardLoggingConfiguration::fromArray($logging),
             'gelf' => GelfLoggingConfiguration::fromArray($logging),
             default => throw new ComponentInvalidException(sprintf(
                 'Invalid logging type "%s". Valid values are "standard" or "gelf"',
-                $logging['type'],
+                $type,
             )),
         };
     }
@@ -241,7 +254,7 @@ class ComponentSpecification
      */
     public function getInputStagingStorage(): string
     {
-        return $this->getStagingStorage()['input'] ?? 'local';
+        return $this->data['staging_storage']['input'];
     }
 
     /**
@@ -249,7 +262,7 @@ class ComponentSpecification
      */
     public function getOutputStagingStorage(): string
     {
-        return $this->getStagingStorage()['output'] ?? 'local';
+        return $this->data['staging_storage']['output'];
     }
 
     public function isApplicationErrorDisabled(): bool

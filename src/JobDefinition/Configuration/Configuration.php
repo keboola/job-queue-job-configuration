@@ -34,24 +34,43 @@ readonly class Configuration
         } catch (InvalidConfigurationException $e) {
             throw new InvalidDataException(
                 sprintf('Job configuration data is not valid: %s', $e->getMessage()),
-                $data,
+                [],
                 $e,
             );
         }
 
+        /** @var array $parameters */
+        $parameters = $data['parameters'] ?? [];
+        /** @var array $storage */
+        $storage = $data['storage'] ?? [];
+        /** @var array $processors */
+        $processors = $data['processors'] ?? [];
+        /** @var array|null $runtime */
+        $runtime = $data['runtime'] ?? null;
+        /** @var array|null $imageParameters */
+        $imageParameters = $data['image_parameters'] ?? null;
+        /** @var array $authorization */
+        $authorization = $data['authorization'] ?? [];
+        /** @var string|null $action */
+        $action = $data['action'] ?? null;
+        /** @var array $artifacts */
+        $artifacts = $data['artifacts'] ?? [];
+        /** @var array $sharedCodeRowIds */
+        $sharedCodeRowIds = $data['shared_code_row_ids'] ?? [];
+
         return new self(
-            parameters: $data['parameters'] ?? [],
-            storage: Storage\Storage::fromArray($data['storage'] ?? []),
-            processors: Processors\Processors::fromArray($data['processors'] ?? []),
-            runtime: isset($data['runtime']) ? Runtime\Runtime::fromArray($data['runtime']) : null,
+            parameters: $parameters,
+            storage: Storage\Storage::fromArray($storage),
+            processors: Processors\Processors::fromArray($processors),
+            runtime: $runtime !== null ? Runtime\Runtime::fromArray($runtime) : null,
             variablesId: isset($data['variables_id']) ? (string) $data['variables_id'] : null,
             variablesValuesId: isset($data['variables_values_id']) ? (string) $data['variables_values_id'] : null,
             sharedCodeId: isset($data['shared_code_id']) ? (string) $data['shared_code_id'] : null,
-            sharedCodeRowIds: array_map(strval(...), $data['shared_code_row_ids'] ?? []),
-            imageParameters: $data['image_parameters'] ?? null,
-            authorization: $data['authorization'] ?? [],
-            action: $data['action'] ?? null,
-            artifacts: Artifacts\Artifacts::fromArray($data['artifacts'] ?? []),
+            sharedCodeRowIds: array_map(strval(...), $sharedCodeRowIds),
+            imageParameters: $imageParameters,
+            authorization: $authorization,
+            action: $action,
+            artifacts: Artifacts\Artifacts::fromArray($artifacts),
         );
     }
 
@@ -86,7 +105,7 @@ readonly class Configuration
             $data['image_parameters'] = $this->imageParameters;
         }
 
-        if ($this->authorization !== null && $this->authorization !== []) {
+        if ($this->authorization !== []) {
             $data['authorization'] = $this->authorization;
         }
 

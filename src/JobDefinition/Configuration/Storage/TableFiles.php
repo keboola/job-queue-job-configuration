@@ -15,9 +15,12 @@ readonly class TableFiles
 
     public static function fromArray(array $data): self
     {
+        /** @var array $tags */
+        $tags = $data['tags'] ?? [];
+
         return new self(
-            tags: $data['tags'] ?? [],
-            isPermanent: $data['is_permanent'] ?? true,
+            tags: $tags,
+            isPermanent: (bool) ($data['is_permanent'] ?? true),
         );
     }
 

@@ -15,9 +15,14 @@ readonly class Input
 
     public static function fromArray(array $data): self
     {
+        /** @var array $tables */
+        $tables = $data['tables'] ?? [];
+        /** @var array $files */
+        $files = $data['files'] ?? [];
+
         return new self(
-            tables: TablesList::fromArray($data['tables'] ?? []),
-            files: FilesList::fromArray($data['files'] ?? []),
+            tables: TablesList::fromArray($tables),
+            files: FilesList::fromArray($files),
             readOnlyStorageAccess: isset($data['read_only_storage_access']) ?
                 (bool) $data['read_only_storage_access'] : null,
         );

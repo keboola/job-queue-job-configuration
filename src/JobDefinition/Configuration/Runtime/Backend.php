@@ -15,11 +15,14 @@ readonly class Backend
 
     public static function fromArray(array $data): self
     {
+        /** @var WorkspaceCredentialsArray|null $workspaceCredentials */
+        $workspaceCredentials = $data['workspace_credentials'] ?? null;
+
         return new self(
-            type: $data['type'] ?? null,
-            context: $data['context'] ?? null,
-            workspaceCredentials: isset($data['workspace_credentials']) ?
-                WorkspaceCredentials::fromArray($data['workspace_credentials']) :
+            type: isset($data['type']) ? (string) $data['type'] : null,
+            context: isset($data['context']) ? (string) $data['context'] : null,
+            workspaceCredentials: $workspaceCredentials !== null ?
+                WorkspaceCredentials::fromArray($workspaceCredentials) :
                 null,
         );
     }

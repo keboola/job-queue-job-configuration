@@ -18,9 +18,14 @@ readonly class Processors
 
     public static function fromArray(array $data): self
     {
+        /** @var list<array> $before */
+        $before = $data['before'] ?? [];
+        /** @var list<array> $after */
+        $after = $data['after'] ?? [];
+
         return new self(
-            before: array_map(fn($p) => Processor::fromArray($p), $data['before'] ?? []),
-            after: array_map(fn($p) => Processor::fromArray($p), $data['after'] ?? []),
+            before: array_map(fn(array $p) => Processor::fromArray($p), $before),
+            after: array_map(fn(array $p) => Processor::fromArray($p), $after),
         );
     }
 

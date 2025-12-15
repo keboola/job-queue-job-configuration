@@ -48,10 +48,12 @@ class AppProxyDefinition implements ConfigurationInterface
                             ->end()
                         ->end()
                         ->validate()
-                            ->always(function (array $v) {
+                            ->always(function (array $v): array {
                                 // arrayNode in config automatically defaults to empty array but allowed_roles must not
                                 // be an empty array, so we do manual cleanup
-                                if (count($v['allowed_roles']) === 0) {
+                                /** @var array $allowedRoles */
+                                $allowedRoles = $v['allowed_roles'] ?? [];
+                                if (count($allowedRoles) === 0) {
                                     unset($v['allowed_roles']);
                                 }
 
@@ -89,10 +91,12 @@ class AppProxyDefinition implements ConfigurationInterface
                             ->end()
                         ->end()
                         ->validate()
-                            ->always(function (array $v) {
+                            ->always(function (array $v): array {
                                 // arrayNode in config automatically defaults to empty array but auth must not
                                 // be an empty array, so we do manual cleanup
-                                if (count($v['auth']) === 0) {
+                                /** @var array $auth */
+                                $auth = $v['auth'] ?? [];
+                                if (count($auth) === 0) {
                                     unset($v['auth']);
                                 }
 
@@ -100,22 +104,26 @@ class AppProxyDefinition implements ConfigurationInterface
                             })
                         ->end()
                         ->validate()
-                            ->ifTrue(fn($v) => $v['auth_required'] === !isset($v['auth']))
+                            ->ifTrue(fn(array $v) => $v['auth_required'] === !isset($v['auth']))
                             ->thenInvalid('"auth" value must be configured (only) when "auth_required" is true')
                         ->end()
                     ->end()
                 ->end()
             ->end()
             ->validate()
-                ->always(function ($v) {
-                    $definedProviders = array_map(fn($provider) => $provider['id'], $v['auth_providers']);
-                    foreach ($v['auth_rules'] as $ruleId => $rule) {
+                ->always(function (array $v): array {
+                    /** @var list<array{id: string}> $authProviders */
+                    $authProviders = $v['auth_providers'];
+                    $definedProviders = array_map(fn(array $provider) => $provider['id'], $authProviders);
+                    /** @var array<int|string, array{auth?: array}> $authRules */
+                    $authRules = $v['auth_rules'];
+                    foreach ($authRules as $ruleId => $rule) {
                         $invalidRuleProviders = array_diff($rule['auth'] ?? [], $definedProviders);
 
                         if (count($invalidRuleProviders) > 0) {
                             throw new InvalidArgumentException(sprintf(
                                 'auth_rules.%s.auth contains unknown auth providers: %s',
-                                $ruleId,
+                                (string) $ruleId,
                                 implode(', ', $invalidRuleProviders),
                             ));
                         }

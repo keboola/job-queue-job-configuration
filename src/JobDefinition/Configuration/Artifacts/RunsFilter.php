@@ -15,8 +15,8 @@ readonly class RunsFilter
     public static function fromArray(array $data): self
     {
         return new self(
-            dateSince: $data['date_since'] ?? null,
-            limit: $data['limit'] ?? null,
+            dateSince: isset($data['date_since']) ? (string) $data['date_since'] : null,
+            limit: isset($data['limit']) ? (int) $data['limit'] : null,
         );
     }
 

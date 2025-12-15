@@ -14,7 +14,7 @@ readonly class Shared
     public static function fromArray(array $data): self
     {
         return new self(
-            enabled: $data['enabled'] ?? false,
+            enabled: (bool) ($data['enabled'] ?? false),
         );
     }
 

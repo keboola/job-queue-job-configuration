@@ -18,11 +18,11 @@ readonly class CustomFilter
     public static function fromArray(array $data): self
     {
         return new self(
-            componentId: $data['component_id'] ?? null,
-            configId: $data['config_id'] ?? null,
-            branchId: $data['branch_id'] ?? null,
-            dateSince: $data['date_since'] ?? null,
-            limit: $data['limit'] ?? null,
+            componentId: isset($data['component_id']) ? (string) $data['component_id'] : null,
+            configId: isset($data['config_id']) ? (string) $data['config_id'] : null,
+            branchId: isset($data['branch_id']) ? (string) $data['branch_id'] : null,
+            dateSince: isset($data['date_since']) ? (string) $data['date_since'] : null,
+            limit: isset($data['limit']) ? (int) $data['limit'] : null,
         );
     }
 

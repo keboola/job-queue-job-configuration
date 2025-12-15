@@ -26,15 +26,22 @@ readonly class State
         } catch (InvalidConfigurationException $e) {
             throw new InvalidDataException(
                 sprintf('Job state data is not valid: %s', $e->getMessage()),
-                $data,
+                [],
                 $e,
             );
         }
 
+        /** @var array $storage */
+        $storage = $data['storage'] ?? [];
+        /** @var array $component */
+        $component = $data['component'] ?? [];
+        /** @var array|null $dataApp */
+        $dataApp = $data['data_app'] ?? null;
+
         return new self(
-            storage: Storage::fromArray($data['storage'] ?? []),
-            component: $data['component'] ?? [],
-            dataApp: $data['data_app'] ?? null,
+            storage: Storage::fromArray($storage),
+            component: $component,
+            dataApp: $dataApp,
         );
     }
 

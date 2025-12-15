@@ -14,7 +14,7 @@ readonly class Options
     public static function fromArray(array $data): self
     {
         return new self(
-            zip: $data['zip'] ?? true,
+            zip: (bool) ($data['zip'] ?? true),
         );
     }
 

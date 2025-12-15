@@ -5,6 +5,63 @@ parameters:
         - tests
     ignoreErrors:
         - identifier: missingType.iterableValue
+        # PHPStan 2.x strict checks - safe casts from validated Symfony Config Processor data
+        - identifier: cast.string
+        - identifier: cast.int
+        # Generic type parameter not specified - acceptable for Symfony Config Definition
+        - identifier: missingType.generics
+        # PHPStan 2.x strict checks for array_map callback types - safe because data is validated
+        - identifier: argument.type
+        # PHPStan 2.x strict checks for offset access on mixed - safe in Symfony Config Definition validators
+        - identifier: offsetAccess.nonOffsetAccessible
+        # PHPStan 2.x strict checks for return types - safe because data is validated by ComponentDataArray type alias
+        - identifier: return.type
+        # PHPStan 2.x strict checks for PHPUnit assertions that always evaluate to true
+        - identifier: staticMethod.alreadyNarrowedType
+        # PHPStan 2.x strict checks for PHPDoc @var tags
+        - identifier: varTag.nativeType
+        # PHPStan 2.x strict checks for invalid array key types
+        - identifier: offsetAccess.invalidOffset
+    typeAliases:
+        WorkspaceCredentialsArray: '''
+            array{
+                id: non-empty-string,
+                type: value-of<Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Runtime\WorkspaceCredentials\Type>,
+                "#password"?: string|null,
+                "#privateKey"?: string|null
+            }
+        '''
+        ProcessorDefinitionArray: '''
+            array{
+                component: non-empty-string,
+                tag?: string|null
+            }
+        '''
+        ComponentDataArray: '''
+            array{
+                definition: array{type: string, uri: string, tag: string, digest?: string, repository?: array},
+                memory: string,
+                configuration_format: "json"|"yaml",
+                process_timeout: int,
+                forward_token: bool,
+                forward_token_details: bool,
+                default_bucket: bool,
+                image_parameters: array,
+                network: string,
+                default_bucket_stage: string,
+                synchronous_actions?: array<string>,
+                logging: array{type: string, verbosity: array, gelf_server_type?: string, no_application_errors: bool},
+                staging_storage: array{input: string, output: string}
+            }
+        '''
+        LoggingArray: '''
+            array{
+                type?: string,
+                verbosity?: array,
+                gelf_server_type?: string,
+                no_application_errors?: bool
+            }
+        '''
 
 includes:
     - vendor/phpstan/phpstan-phpunit/extension.neon

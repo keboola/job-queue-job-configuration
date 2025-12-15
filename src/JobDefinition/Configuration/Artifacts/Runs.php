@@ -14,9 +14,12 @@ readonly class Runs
 
     public static function fromArray(array $data): self
     {
+        /** @var array $filter */
+        $filter = $data['filter'] ?? [];
+
         return new self(
-            enabled: $data['enabled'] ?? false,
-            filter: RunsFilter::fromArray($data['filter'] ?? []),
+            enabled: (bool) ($data['enabled'] ?? false),
+            filter: RunsFilter::fromArray($filter),
         );
     }
 

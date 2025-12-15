@@ -210,9 +210,10 @@ class ConfigurationDefinition implements ConfigurationInterface
                 ->end()
                 ->arrayNode('runs')
                     ->validate()
-                        ->ifTrue(function ($v) {
+                        ->ifTrue(function (array $v) {
                             if ($v['enabled'] === true) {
-                                if (!isset($v['filter']['date_since']) && !isset($v['filter']['limit'])) {
+                                $filter = $v['filter'] ?? [];
+                                if (!isset($filter['date_since']) && !isset($filter['limit'])) {
                                     return true;
                                 }
                             }
@@ -232,10 +233,11 @@ class ConfigurationDefinition implements ConfigurationInterface
                 ->end()
                 ->arrayNode('custom')
                     ->validate()
-                        ->ifTrue(function ($v) {
+                        ->ifTrue(function (array $v) {
                             if ($v['enabled'] === true) {
+                                $filter = $v['filter'] ?? [];
                                 //phpcs:ignore Generic.Files.LineLength.MaxExceeded
-                                if (!isset($v['filter']['component_id']) && !isset($v['filter']['config_id']) && !isset($v['filter']['branch_id'])) {
+                                if (!isset($filter['component_id']) && !isset($filter['config_id']) && !isset($filter['branch_id'])) {
                                     return true;
                                 }
                             }
