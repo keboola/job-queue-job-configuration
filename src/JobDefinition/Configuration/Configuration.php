@@ -29,12 +29,13 @@ readonly class Configuration
 
     public static function fromArray(array $data): self
     {
+        $originalData = $data;
         try {
             $data = (new Processor())->processConfiguration(new ConfigurationDefinition(), ['configuration' => $data]);
         } catch (InvalidConfigurationException $e) {
             throw new InvalidDataException(
                 sprintf('Job configuration data is not valid: %s', $e->getMessage()),
-                [],
+                $originalData,
                 $e,
             );
         }

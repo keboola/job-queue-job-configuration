@@ -21,12 +21,13 @@ readonly class State
 
     public static function fromArray(array $data): self
     {
+        $originalData = $data;
         try {
             $data = (new Processor())->processConfiguration(new StateDefinition(), ['state' => $data]);
         } catch (InvalidConfigurationException $e) {
             throw new InvalidDataException(
                 sprintf('Job state data is not valid: %s', $e->getMessage()),
-                [],
+                $originalData,
                 $e,
             );
         }
