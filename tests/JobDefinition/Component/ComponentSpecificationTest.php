@@ -22,9 +22,9 @@ class ComponentSpecificationTest extends TestCase
         $configuration = [
             'data' => [
                 'definition' => [
-                    'type' => 'dockerhub',
-                    'uri' => 'keboola/docker-demo',
-                    'tag' => 'master',
+                    'type' => 'aws-ecr',
+                    'uri' => '123456789.dkr.ecr.us-east-1.amazonaws.com/keboola/test-component',
+                    'tag' => '1.0.0',
                     'name' => 'keboola/test-component',
                 ],
                 'memory' => '128m',
@@ -62,8 +62,8 @@ class ComponentSpecificationTest extends TestCase
         self::assertTrue($component->hasForwardToken());
         self::assertTrue($component->hasForwardTokenDetails());
         self::assertTrue($component->hasDefaultBucket());
-        self::assertSame('keboola/docker-demo', $component->getImageUri());
-        self::assertSame('master', $component->getImageTag());
+        self::assertSame('123456789.dkr.ecr.us-east-1.amazonaws.com/keboola/test-component', $component->getImageUri());
+        self::assertSame('1.0.0', $component->getImageTag());
         self::assertSame('keboola/test-component', $component->getImageName());
         self::assertSame(DataTypeSupport::AUTHORITATIVE, $component->getDataTypesSupport());
         self::assertSame(AllowedProcessorPosition::BEFORE, $component->getAllowedProcessorPosition());
