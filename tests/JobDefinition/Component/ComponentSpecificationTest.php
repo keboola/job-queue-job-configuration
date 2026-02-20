@@ -325,6 +325,33 @@ class ComponentSpecificationTest extends TestCase
         ];
     }
 
+    public function testDefinitionNameIsNullByDefault(): void
+    {
+        $component = new ComponentSpecification([
+            'data' => [
+                'definition' => [
+                    'type' => 'dockerhub',
+                    'uri' => 'keboola/test-component',
+                ],
+            ],
+        ]);
+        self::assertNull($component->getImageDefinition()['name']);
+    }
+
+    public function testDefinitionNameCanBeSet(): void
+    {
+        $component = new ComponentSpecification([
+            'data' => [
+                'definition' => [
+                    'type' => 'aws-ecr',
+                    'uri' => '123456789.dkr.ecr.us-east-1.amazonaws.com/keboola/test-component',
+                    'name' => 'keboola/test-component',
+                ],
+            ],
+        ]);
+        self::assertSame('keboola/test-component', $component->getImageDefinition()['name']);
+    }
+
     /** @dataProvider provideGetSynchronousActionTestData */
     public function testGetSynchronousAction(
         array $componentData,

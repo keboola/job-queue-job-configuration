@@ -16,8 +16,9 @@ class ComponentSpecificationDefinitionTest extends TestCase
         $config = [
             'data' => [
                 'definition' => [
-                    'type' => 'dockerhub',
-                    'uri' => 'keboola/docker-demo',
+                    'type' => 'aws-ecr',
+                    'uri' => '123456789.dkr.ecr.us-east-1.amazonaws.com/keboola/test-component',
+                    'name' => 'keboola/test-component',
                 ],
                 'memory' => '64m',
                 'vendor' => ['a' => 'b'],
@@ -34,10 +35,11 @@ class ComponentSpecificationDefinitionTest extends TestCase
         $expectedConfiguration = [
             'data' => [
                 'definition' => [
-                    'type' => 'dockerhub',
-                    'uri' => 'keboola/docker-demo',
+                    'type' => 'aws-ecr',
+                    'uri' => '123456789.dkr.ecr.us-east-1.amazonaws.com/keboola/test-component',
                     'tag' => 'latest',
                     'digest' => '',
+                    'name' => 'keboola/test-component',
                 ],
                 'memory' => '64m',
                 'configuration_format' => 'json',
@@ -87,6 +89,7 @@ class ComponentSpecificationDefinitionTest extends TestCase
                     'uri' => 'keboola/docker-demo',
                     'tag' => 'latest',
                     'digest' => '',
+                    'name' => null,
                 ],
                 'memory' => '256m',
                 'configuration_format' => 'json',
