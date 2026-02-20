@@ -11,6 +11,39 @@ use Symfony\Component\Config\Definition\Processor;
 
 class ComponentSpecificationDefinitionTest extends TestCase
 {
+    public function testExtraKeysAreIgnoredRecursively(): void
+    {
+        $config = [
+            'extraKey' => 'ignored',
+            'data' => [
+                'extraKey' => 'ignored',
+                'definition' => [
+                    'type' => 'aws-ecr',
+                    'uri' => '123456789.dkr.ecr.us-east-1.amazonaws.com/keboola/test-component',
+                    'extraKey' => 'ignored',
+                    'repository' => [
+                        'region' => 'us-east-1',
+                        'extraKey' => 'ignored',
+                    ],
+                ],
+                'logging' => [
+                    'type' => 'standard',
+                    'extraKey' => 'ignored',
+                ],
+                'staging_storage' => [
+                    'extraKey' => 'ignored',
+                ],
+            ],
+        ];
+
+        $processed = (new Processor())->processConfiguration(
+            new ComponentSpecificationDefinition(),
+            ['component' => $config],
+        );
+
+        self::assertSame('aws-ecr', $processed['data']['definition']['type']);
+    }
+
     public function testConfiguration(): void
     {
         $config = [
@@ -163,23 +196,6 @@ class ComponentSpecificationDefinitionTest extends TestCase
             'Invalid configuration for path "component.data.configuration_format": ' .
             'Invalid configuration_format "fail".',
         );
-        (new Processor())->processConfiguration(new ComponentSpecificationDefinition(), ['component' => $config]);
-    }
-
-    public function testExtraConfigurationField(): void
-    {
-        $config = [
-            'data' => [
-                'definition' => [
-                    'type' => 'dockerhub',
-                    'uri' => 'keboola/docker-demo',
-                ],
-                'unknown' => [],
-            ],
-            'features' => [],
-        ];
-        self::expectException(InvalidConfigurationException::class);
-        self::expectExceptionMessage('Unrecognized option "unknown" under "component.data"');
         (new Processor())->processConfiguration(new ComponentSpecificationDefinition(), ['component' => $config]);
     }
 

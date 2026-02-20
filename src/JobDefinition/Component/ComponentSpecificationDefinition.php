@@ -6,6 +6,7 @@ namespace Keboola\JobQueue\JobConfiguration\JobDefinition\Component;
 
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\DataTypeSupport;
 use Monolog\Logger;
+use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -16,7 +17,7 @@ class ComponentSpecificationDefinition implements ConfigurationInterface
         $treeBuilder = new TreeBuilder('component');
         $root = $treeBuilder->getRootNode();
 
-        $root->ignoreExtraKeys()->children()
+        $root->children()
             ->arrayNode('features')->scalarPrototype()->end()->end()
             ->arrayNode('dataTypesConfiguration')
                 ->children()
@@ -119,6 +120,24 @@ class ComponentSpecificationDefinition implements ConfigurationInterface
             ->end()
         ->end();
 
+        $this->makeArrayNodeDefinitionIgnoreExtraKeys($root);
+
         return $treeBuilder;
+    }
+
+    /**
+     * Recursively configures the ArrayNode and all its children to ignore extra keys.
+     */
+    private function makeArrayNodeDefinitionIgnoreExtraKeys(ArrayNodeDefinition $node): void
+    {
+        $node->ignoreExtraKeys();
+
+        foreach ($node->getChildNodeDefinitions() as $child) {
+            if (!$child instanceof ArrayNodeDefinition) {
+                continue;
+            }
+
+            $this->makeArrayNodeDefinitionIgnoreExtraKeys($child);
+        }
     }
 }
