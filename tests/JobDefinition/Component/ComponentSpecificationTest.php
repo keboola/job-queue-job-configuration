@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\Tests\JobDefinition\Component;
 
 use Keboola\CommonExceptions\ApplicationExceptionInterface;
-use Keboola\JobQueue\JobConfiguration\Exception\ComponentInvalidException;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\AllowedProcessorPosition;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecification;
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Component\ComponentSpecificationDefinition;
@@ -23,9 +22,10 @@ class ComponentSpecificationTest extends TestCase
         $configuration = [
             'data' => [
                 'definition' => [
-                    'type' => 'dockerhub',
-                    'uri' => 'keboola/docker-demo',
-                    'tag' => 'master',
+                    'type' => 'aws-ecr',
+                    'uri' => '123456789.dkr.ecr.us-east-1.amazonaws.com/keboola/test-component',
+                    'tag' => '1.0.0',
+                    'name' => 'keboola/test-component',
                 ],
                 'memory' => '128m',
                 'process_timeout' => 7200,
@@ -62,8 +62,9 @@ class ComponentSpecificationTest extends TestCase
         self::assertTrue($component->hasForwardToken());
         self::assertTrue($component->hasForwardTokenDetails());
         self::assertTrue($component->hasDefaultBucket());
-        self::assertSame('keboola/docker-demo', $component->getImageUri());
-        self::assertSame('master', $component->getImageTag());
+        self::assertSame('123456789.dkr.ecr.us-east-1.amazonaws.com/keboola/test-component', $component->getImageUri());
+        self::assertSame('1.0.0', $component->getImageTag());
+        self::assertSame('keboola/test-component', $component->getImageName());
         self::assertSame(DataTypeSupport::AUTHORITATIVE, $component->getDataTypesSupport());
         self::assertSame(AllowedProcessorPosition::BEFORE, $component->getAllowedProcessorPosition());
     }
@@ -101,6 +102,7 @@ class ComponentSpecificationTest extends TestCase
         self::assertFalse($component->hasForwardToken());
         self::assertFalse($component->hasForwardTokenDetails());
         self::assertFalse($component->hasDefaultBucket());
+        self::assertNull($component->getImageName());
     }
 
     public function testInvalidComponentNoDefinition(): void
@@ -323,6 +325,33 @@ class ComponentSpecificationTest extends TestCase
             'customTag' => '0.3.3',
             'expectedImageUri' => 'keboola/test-component:0.3.3',
         ];
+    }
+
+    public function testDefinitionNameIsNullByDefault(): void
+    {
+        $component = new ComponentSpecification([
+            'data' => [
+                'definition' => [
+                    'type' => 'dockerhub',
+                    'uri' => 'keboola/test-component',
+                ],
+            ],
+        ]);
+        self::assertNull($component->getImageName());
+    }
+
+    public function testDefinitionNameCanBeSet(): void
+    {
+        $component = new ComponentSpecification([
+            'data' => [
+                'definition' => [
+                    'type' => 'aws-ecr',
+                    'uri' => '123456789.dkr.ecr.us-east-1.amazonaws.com/keboola/test-component',
+                    'name' => 'keboola/test-component',
+                ],
+            ],
+        ]);
+        self::assertSame('keboola/test-component', $component->getImageName());
     }
 
     /** @dataProvider provideGetSynchronousActionTestData */

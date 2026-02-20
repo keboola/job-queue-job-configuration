@@ -211,6 +211,11 @@ class ComponentSpecification
         return $this->data['definition']['uri'];
     }
 
+    public function getImageName(): ?string
+    {
+        return $this->data['definition']['name'];
+    }
+
     public function getImageTag(): string
     {
         return $this->data['definition']['tag'];

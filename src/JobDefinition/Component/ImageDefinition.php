@@ -36,6 +36,7 @@ class ImageDefinition implements ConfigurationInterface
             ->scalarNode('uri')->isRequired()->cannotBeEmpty()->end()
             ->scalarNode('tag')->defaultValue('latest')->end()
             ->scalarNode('digest')->defaultValue('')->end()
+            ->scalarNode('name')->defaultNull()->end()
             ->arrayNode('repository')
                 ->children()
                     ->scalarNode('region')->end()
