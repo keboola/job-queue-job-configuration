@@ -48,8 +48,8 @@ foreach ($stackUrlToTokensEnv as $stackUrlEnv => $tokensEnv) {
 function verifyToken(string $storageApiUrlEnv, string $storageApiTokenEnv): void
 {
     $client = new Client([
-        'url' => getenv($storageApiUrlEnv),
-        'token' => getenv($storageApiTokenEnv),
+        'url' => (string) getenv($storageApiUrlEnv),
+        'token' => (string) getenv($storageApiTokenEnv),
     ]);
 
     try {
