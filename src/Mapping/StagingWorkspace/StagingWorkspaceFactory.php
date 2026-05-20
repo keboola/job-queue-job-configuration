@@ -108,9 +108,10 @@ class StagingWorkspaceFactory
             $useReadonlyRole ? 'readonly ephemeral' : 'ephemeral',
         ));
 
-        $workspaceLoginType = $stagingType === StagingType::WorkspaceSnowflake
-            ? WorkspaceLoginType::SNOWFLAKE_SERVICE_KEYPAIR
-            : null;
+        $workspaceLoginType = match ($stagingType) {
+            StagingType::WorkspaceSnowflake => WorkspaceLoginType::SNOWFLAKE_SERVICE_KEYPAIR,
+            StagingType::WorkspaceBigquery => WorkspaceLoginType::DEFAULT,
+        };
 
         $workspaceConfig = new NewWorkspaceConfig(
             stagingType: $stagingType,

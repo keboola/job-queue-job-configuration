@@ -198,7 +198,7 @@ class StagingWorkspaceFactoryTest extends TestCase
                 size: null,
                 useReadonlyRole: false,
                 networkPolicy: NetworkPolicy::SYSTEM,
-                loginType: null,
+                loginType: WorkspaceLoginType::DEFAULT,
             ),
         ];
 
