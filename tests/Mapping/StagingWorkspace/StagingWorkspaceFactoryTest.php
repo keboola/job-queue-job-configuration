@@ -180,7 +180,7 @@ class StagingWorkspaceFactoryTest extends TestCase
                 size: null,
                 useReadonlyRole: false,
                 networkPolicy: NetworkPolicy::SYSTEM,
-                loginType: null,
+                loginType: WorkspaceLoginType::SNOWFLAKE_SERVICE_KEYPAIR,
             ),
         ];
 
@@ -198,7 +198,7 @@ class StagingWorkspaceFactoryTest extends TestCase
                 size: null,
                 useReadonlyRole: false,
                 networkPolicy: NetworkPolicy::SYSTEM,
-                loginType: null,
+                loginType: WorkspaceLoginType::DEFAULT,
             ),
         ];
 
@@ -224,7 +224,7 @@ class StagingWorkspaceFactoryTest extends TestCase
                 size: null,
                 useReadonlyRole: true,
                 networkPolicy: NetworkPolicy::SYSTEM,
-                loginType: null,
+                loginType: WorkspaceLoginType::SNOWFLAKE_SERVICE_KEYPAIR,
             ),
         ];
     }
