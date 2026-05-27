@@ -22,6 +22,7 @@ class StagingWorkspaceFactory
     public function __construct(
         private readonly WorkspaceProvider $workspaceProvider,
         private readonly LoggerInterface $logger,
+        private readonly NetworkPolicy $networkPolicy = NetworkPolicy::SYSTEM,
     ) {
     }
 
@@ -111,6 +112,10 @@ class StagingWorkspaceFactory
         $workspaceLoginType = match ($stagingType) {
             StagingType::WorkspaceSnowflake => WorkspaceLoginType::SNOWFLAKE_SERVICE_KEYPAIR,
             StagingType::WorkspaceBigquery => WorkspaceLoginType::DEFAULT,
+            default => throw new ApplicationException(sprintf(
+                'Unsupported workspace staging type "%s".',
+                $stagingType->value,
+            )),
         };
 
         $workspaceConfig = new NewWorkspaceConfig(
@@ -119,7 +124,7 @@ class StagingWorkspaceFactory
             configId: $configId,
             size: $backendConfig?->type,
             useReadonlyRole: $useReadonlyRole,
-            networkPolicy: NetworkPolicy::SYSTEM,
+            networkPolicy: $this->networkPolicy,
             loginType: $workspaceLoginType,
         );
 
