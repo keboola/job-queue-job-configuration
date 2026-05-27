@@ -164,6 +164,72 @@ class StagingWorkspaceFactoryTest extends TestCase
         // TODO prepare also functional test
     }
 
+    public function testCreateNewWorkspaceUsesConfiguredNetworkPolicy(): void
+    {
+        $storageApiToken = new StorageApiToken([
+            'owner' => [
+                'hasSnowflake' => true,
+            ],
+        ], 'token-value');
+
+        $component = new ComponentSpecification([
+            'id' => 'test-component',
+            'data' => [
+                'definition' => [
+                    'type' => 'dockerhub',
+                    'uri' => 'test/test',
+                ],
+                'staging-storage' => [
+                    'input' => StagingType::WorkspaceSnowflake->value,
+                    'output' => StagingType::WorkspaceSnowflake->value,
+                ],
+            ],
+        ]);
+
+        $createdWorkspace = new WorkspaceWithCredentials(
+            new Workspace(
+                id: 'workspace-id',
+                backendType: 'snowflake',
+                backendSize: 'small',
+                loginType: WorkspaceLoginType::SNOWFLAKE_SERVICE_KEYPAIR,
+            ),
+            [
+                'privateKey' => '<PRIVATE_KEY>',
+            ],
+        );
+
+        $workspaceProvider = $this->createMock(WorkspaceProvider::class);
+        $workspaceProvider->expects(self::once())
+            ->method('createNewWorkspace')
+            ->with(
+                $storageApiToken,
+                new NewWorkspaceConfig(
+                    stagingType: StagingType::WorkspaceSnowflake,
+                    componentId: 'test-component',
+                    configId: null,
+                    size: null,
+                    useReadonlyRole: false,
+                    networkPolicy: NetworkPolicy::USER,
+                    loginType: WorkspaceLoginType::SNOWFLAKE_SERVICE_KEYPAIR,
+                ),
+            )
+            ->willReturn($createdWorkspace)
+        ;
+
+        $factory = new StagingWorkspaceFactory(
+            $workspaceProvider,
+            $this->logger,
+            NetworkPolicy::USER,
+        );
+
+        $factory->createStagingWorkspaceFacade(
+            $storageApiToken,
+            $component,
+            Configuration::fromArray([]),
+            null,
+        );
+    }
+
     public static function provideNewWorkspaceTestData(): iterable
     {
         yield 'basic Snowflake workspace' => [
