@@ -801,17 +801,25 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
         $tableDetails = $this->clientWrapper->getBasicClient()->getTable($tableId);
         self::assertTrue($tableDetails['isTyped']);
 
+        $columns = [];
+        foreach ($tableDetails['definition']['columns'] as $column) {
+            $columns[$column['name']] = $column;
+        }
+
+        // Id, Name, foo + the newly added New_Column
+        self::assertCount(4, $columns);
+
         // PKs is changed
         self::assertEquals(['Name', 'foo'], $tableDetails['definition']['primaryKeysNames']);
 
         // length is changed
-        self::assertEquals('500', $tableDetails['definition']['columns'][0]['definition']['length']);
+        self::assertEquals('500', $columns['foo']['definition']['length']);
 
         // nullable is changed
-        self::assertFalse($tableDetails['definition']['columns'][1]['definition']['nullable']);
+        self::assertFalse($columns['Name']['definition']['nullable']);
 
         // new column is added and Webalized
-        self::assertEquals('New_Column', $tableDetails['definition']['columns'][3]['name']);
+        self::assertArrayHasKey('New_Column', $columns);
     }
 
     #[UseSnowflakeProject(nativeTypes: 'new-native-types')]
