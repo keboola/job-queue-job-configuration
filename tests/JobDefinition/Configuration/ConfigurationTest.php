@@ -74,7 +74,6 @@ class ConfigurationTest extends TestCase
                         'where_values' => [],
                         'where_operator' => 'eq',
                         'overwrite' => false,
-                        'use_view' => false,
                         'keep_internal_timestamp_column' => true,
                     ],
                 ],
