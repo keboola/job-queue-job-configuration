@@ -110,15 +110,18 @@ class StateTest extends TestCase
 
             self::fail('Expected exception');
         } catch (InvalidDataException $e) {
+            // The message and the previous chain end up in logs, so they must not leak state data.
+            self::assertSame('Job state data is not valid.', $e->getMessage());
+            self::assertNull($e->getPrevious());
+
+            // The raw state must not be carried in the context; only the structural reason is kept.
+            $context = $e->getContext();
+            self::assertArrayNotHasKey('foo', $context);
+            self::assertArrayHasKey('validationError', $context);
+            self::assertIsString($context['validationError']);
             self::assertStringContainsString(
-                'Job state data is not valid: Unrecognized option "foo" under "state". ',
-                $e->getMessage(),
-            );
-            self::assertSame(
-                [
-                    'foo' => 'bar',
-                ],
-                $e->getContext(),
+                'Unrecognized option "foo" under "state".',
+                $context['validationError'],
             );
         }
     }

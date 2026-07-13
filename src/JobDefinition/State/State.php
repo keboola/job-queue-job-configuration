@@ -24,10 +24,15 @@ readonly class State
         try {
             $data = (new Processor())->processConfiguration(new StateDefinition(), ['state' => $data]);
         } catch (InvalidConfigurationException $e) {
+            // The state may contain sensitive data. This exception can be logged at critical level
+            // (e.g. in service-container) with the JSON formatter, which serializes both the
+            // exception message and the whole "previous" chain. Therefore neither the raw state
+            // ($data) nor the validation message (which can embed offending values) may be
+            // forwarded here. The validation reason is kept in the non-logged exception context
+            // for debugging only.
             throw new InvalidDataException(
-                sprintf('Job state data is not valid: %s', $e->getMessage()),
-                $data,
-                $e,
+                'Job state data is not valid.',
+                ['validationError' => $e->getMessage()],
             );
         }
 

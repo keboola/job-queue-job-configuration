@@ -175,15 +175,18 @@ class ConfigurationTest extends TestCase
 
             self::fail('Expected exception');
         } catch (InvalidDataException $e) {
+            // The message and the previous chain end up in logs, so they must not leak config data.
+            self::assertSame('Job configuration data is not valid.', $e->getMessage());
+            self::assertNull($e->getPrevious());
+
+            // The raw configuration must not be carried in the context; only the reason is kept.
+            $context = $e->getContext();
+            self::assertArrayNotHasKey('foo', $context);
+            self::assertArrayHasKey('validationError', $context);
+            self::assertIsString($context['validationError']);
             self::assertStringContainsString(
-                'Job configuration data is not valid: Unrecognized option "foo" under "configuration". ',
-                $e->getMessage(),
-            );
-            self::assertSame(
-                [
-                    'foo' => 'bar',
-                ],
-                $e->getContext(),
+                'Unrecognized option "foo" under "configuration".',
+                $context['validationError'],
             );
         }
     }

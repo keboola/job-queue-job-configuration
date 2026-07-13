@@ -32,10 +32,14 @@ readonly class Configuration
         try {
             $data = (new Processor())->processConfiguration(new ConfigurationDefinition(), ['configuration' => $data]);
         } catch (InvalidConfigurationException $e) {
+            // Job configuration may contain sensitive data and this exception can be logged with a
+            // JSON formatter that serializes both the message and the "previous" chain. See
+            // State::fromArray for details: neither the raw configuration ($data) nor the validation
+            // message may be forwarded. The validation reason is kept in the non-logged exception
+            // context for debugging only.
             throw new InvalidDataException(
-                sprintf('Job configuration data is not valid: %s', $e->getMessage()),
-                $data,
-                $e,
+                'Job configuration data is not valid.',
+                ['validationError' => $e->getMessage()],
             );
         }
 
