@@ -20,6 +20,7 @@ use Keboola\StorageApi\Options\Components\Configuration as StorageApiConfig;
 use Keboola\StorageApi\WorkspaceLoginType;
 use Keboola\StorageApi\Workspaces;
 use Keboola\StorageApiBranch\ClientWrapper;
+use Keboola\StorageApiBranch\Factory\AuthType;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -42,8 +43,9 @@ class StagingWorkspaceFactoryFunctionalTest extends TestCase
 
         $this->clientWrapper = new ClientWrapper(
             new ClientOptions(
-                self::getRequiredEnv('STORAGE_API_URL'),
-                self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
+                url: self::getRequiredEnv('STORAGE_API_URL'),
+                token: self::getRequiredEnv('TEST_STORAGE_API_TOKEN'),
+                authType: AuthType::STORAGE_TOKEN,
             ),
         );
         $this->workspacesApiClient = new Workspaces($this->clientWrapper->getBranchClient());
