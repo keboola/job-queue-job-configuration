@@ -14,6 +14,7 @@ use Keboola\StorageApi\Client;
 use Keboola\StorageApi\DevBranches;
 use Keboola\StorageApi\Metadata;
 use Keboola\StorageApiBranch\ClientWrapper;
+use Keboola\StorageApiBranch\Factory\AuthType;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -134,9 +135,10 @@ class OutputDataLoaderMetadataTest extends BaseOutputDataLoaderTestCase
         $branchBucketName = sprintf('%s-%s', $branchId, 'docker-demo-testConfig');
         $clientWrapper = new ClientWrapper(
             new ClientOptions(
-                (string) getenv('STORAGE_API_URL'),
-                (string) getenv('TEST_STORAGE_API_TOKEN_MASTER'),
-                (string) $branchId,
+                url: (string) getenv('STORAGE_API_URL'),
+                token: (string) getenv('TEST_STORAGE_API_TOKEN_MASTER'),
+                branchId: (string) $branchId,
+                authType: AuthType::STORAGE_TOKEN,
             ),
         );
 

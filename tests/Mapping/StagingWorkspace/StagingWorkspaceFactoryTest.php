@@ -16,6 +16,7 @@ use Keboola\StagingProvider\Workspace\Workspace;
 use Keboola\StagingProvider\Workspace\WorkspaceProvider;
 use Keboola\StagingProvider\Workspace\WorkspaceWithCredentials;
 use Keboola\StorageApi\WorkspaceLoginType;
+use Keboola\StorageApiBranch\Factory\AuthType;
 use Keboola\StorageApiBranch\StorageApiToken;
 use Monolog\Handler\TestHandler;
 use Monolog\Logger;
@@ -94,9 +95,13 @@ class StagingWorkspaceFactoryTest extends TestCase
         string $expectedLogNotice,
         NewWorkspaceConfig $expectedWorkspaceConfig,
     ): void {
-        $storageApiToken = new StorageApiToken([
-            'owner' => $tokenFlags,
-        ], 'token-value');
+        $storageApiToken = new StorageApiToken(
+            tokenInfo: [
+                'owner' => $tokenFlags,
+            ],
+            tokenValue: 'token-value',
+            tokenType: AuthType::STORAGE_TOKEN,
+        );
 
         $component = new ComponentSpecification([
             'id' => 'test-component',
@@ -166,11 +171,15 @@ class StagingWorkspaceFactoryTest extends TestCase
 
     public function testCreateNewWorkspaceUsesConfiguredNetworkPolicy(): void
     {
-        $storageApiToken = new StorageApiToken([
-            'owner' => [
-                'hasSnowflake' => true,
+        $storageApiToken = new StorageApiToken(
+            tokenInfo: [
+                'owner' => [
+                    'hasSnowflake' => true,
+                ],
             ],
-        ], 'token-value');
+            tokenValue: 'token-value',
+            tokenType: AuthType::STORAGE_TOKEN,
+        );
 
         $component = new ComponentSpecification([
             'id' => 'test-component',
@@ -297,11 +306,15 @@ class StagingWorkspaceFactoryTest extends TestCase
 
     public function testExternallyManagedWorkspace(): void
     {
-        $storageApiToken = new StorageApiToken([
-            'owner' => [
-                'hasSnowflake' => true,
+        $storageApiToken = new StorageApiToken(
+            tokenInfo: [
+                'owner' => [
+                    'hasSnowflake' => true,
+                ],
             ],
-        ], 'token-value');
+            tokenValue: 'token-value',
+            tokenType: AuthType::STORAGE_TOKEN,
+        );
 
         $component = new ComponentSpecification([
             'id' => 'test-component',
@@ -316,13 +329,6 @@ class StagingWorkspaceFactoryTest extends TestCase
                 ],
             ],
         ]);
-
-        $returnedWorkspace = new Workspace(
-            id: 'workspace-id',
-            backendType: 'snowflake',
-            backendSize: 'small',
-            loginType: WorkspaceLoginType::DEFAULT,
-        );
 
         $returnedWorkspace = new WorkspaceWithCredentials(
             new Workspace(

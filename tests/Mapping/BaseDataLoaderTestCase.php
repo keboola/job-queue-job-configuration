@@ -17,6 +17,7 @@ use Keboola\StagingProvider\Staging\StagingProvider;
 use Keboola\StorageApi\ClientException;
 use Keboola\StorageApi\Options\ListFilesOptions;
 use Keboola\StorageApiBranch\ClientWrapper;
+use Keboola\StorageApiBranch\Factory\AuthType;
 use Keboola\StorageApiBranch\Factory\ClientOptions;
 use Keboola\Temp\Temp;
 use PHPUnit\Framework\TestCase;
@@ -261,8 +262,9 @@ abstract class BaseDataLoaderTestCase extends TestCase
 
         return new ClientWrapper(
             new ClientOptions(
-                (string) getenv('STORAGE_API_URL_GCP'),
-                (string) $token,
+                url: (string) getenv('STORAGE_API_URL_GCP'),
+                token: (string) $token,
+                authType: AuthType::STORAGE_TOKEN,
             ),
         );
     }
@@ -275,8 +277,9 @@ abstract class BaseDataLoaderTestCase extends TestCase
 
         return new ClientWrapper(
             new ClientOptions(
-                (string) getenv('STORAGE_API_URL_AZURE'),
-                (string) $token,
+                url: (string) getenv('STORAGE_API_URL_AZURE'),
+                token: (string) $token,
+                authType: AuthType::STORAGE_TOKEN,
             ),
         );
     }
@@ -299,8 +302,9 @@ abstract class BaseDataLoaderTestCase extends TestCase
 
         return new ClientWrapper(
             new ClientOptions(
-                (string) getenv('STORAGE_API_URL'),
-                (string) $token,
+                url: (string) getenv('STORAGE_API_URL'),
+                token: (string) $token,
+                authType: AuthType::STORAGE_TOKEN,
             ),
         );
     }
