@@ -633,10 +633,11 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             fn(array $metadata) => in_array($metadata['key'], ['key1', 'key2', 'KBC.description'], true),
         ));
         self::assertCount(3, $tableMetadata);
+        // the description is part of the table-create payload, so Storage records it as its own metadata
         self::assertEquals([
+            ['key' => 'KBC.description', 'value' => 'table description', 'provider' => 'storage'],
             ['key' => 'key1', 'value' => 'value1', 'provider' => 'docker-demo'],
             ['key' => 'key2', 'value' => 'value2', 'provider' => 'docker-demo'],
-            ['key' => 'KBC.description', 'value' => 'table description', 'provider' => 'docker-demo'],
         ], array_map(function ($v) {
             unset($v['id'], $v['timestamp']);
             return $v;
@@ -660,8 +661,9 @@ class OutputDataLoaderTest extends BaseOutputDataLoaderTestCase
             fn(array $metadata) => in_array($metadata['key'], ['KBC.description'], true),
         ));
         self::assertCount(1, $stringColumnMetadata);
+        // the description is part of the table-create payload, so Storage records it as its own metadata
         self::assertEquals([
-            ['key' => 'KBC.description', 'value' => 'column description', 'provider' => 'docker-demo'],
+            ['key' => 'KBC.description', 'value' => 'column description', 'provider' => 'storage'],
         ], array_map(function ($v) {
             unset($v['id'], $v['timestamp']);
             return $v;
