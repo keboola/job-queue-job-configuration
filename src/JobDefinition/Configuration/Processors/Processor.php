@@ -22,9 +22,13 @@ readonly class Processor
 
     public function toArray(): array
     {
-        return array_filter([
+        return [
             'definition' => $this->definition->toArray(),
-            'parameters' => $this->parameters ?? [],
-        ]);
+            // `parameters` must be emitted even when empty: a component's config schema applies its
+            // defaults only to keys already present in its input, so a missing key makes every
+            // defaulted parameter unresolvable inside the processor. ConfigFileManager serializes
+            // the empty array as `{}`.
+            'parameters' => $this->parameters,
+        ];
     }
 }
