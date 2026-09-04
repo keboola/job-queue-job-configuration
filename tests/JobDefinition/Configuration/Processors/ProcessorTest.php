@@ -183,6 +183,7 @@ class ProcessorTest extends TestCase
                 'definition' => [
                     'component' => 'test-component',
                 ],
+                'parameters' => [],
             ],
         ];
         yield 'defined params' => [

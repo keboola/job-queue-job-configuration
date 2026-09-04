@@ -321,6 +321,7 @@ class ConfigurationTest extends TestCase
                             'definition' => [
                                 'component' => 'bar',
                             ],
+                            'parameters' => [],
                         ],
                     ],
                     'after' => [
@@ -328,6 +329,7 @@ class ConfigurationTest extends TestCase
                             'definition' => [
                                 'component' => 'foo',
                             ],
+                            'parameters' => [],
                         ],
                     ],
                 ],
@@ -449,6 +451,7 @@ class ConfigurationTest extends TestCase
                     'definition' => [
                         'component' => 'bar',
                     ],
+                    'parameters' => [],
                 ],
             ],
             'after' => [
@@ -456,6 +459,7 @@ class ConfigurationTest extends TestCase
                     'definition' => [
                         'component' => 'foo',
                     ],
+                    'parameters' => [],
                 ],
             ],
         ], $mergedConfiguration->processors->toArray());

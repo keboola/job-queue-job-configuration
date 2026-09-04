@@ -22,9 +22,11 @@ readonly class Processor
 
     public function toArray(): array
     {
-        return array_filter([
+        return [
             'definition' => $this->definition->toArray(),
-            'parameters' => $this->parameters ?? [],
-        ]);
+            // a component's config schema applies its defaults only to keys already present in
+            // its input; ConfigFileManager serializes the empty array as `{}`
+            'parameters' => $this->parameters,
+        ];
     }
 }
