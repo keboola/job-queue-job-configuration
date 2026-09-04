@@ -24,10 +24,8 @@ readonly class Processor
     {
         return [
             'definition' => $this->definition->toArray(),
-            // `parameters` must be emitted even when empty: a component's config schema applies its
-            // defaults only to keys already present in its input, so a missing key makes every
-            // defaulted parameter unresolvable inside the processor. ConfigFileManager serializes
-            // the empty array as `{}`.
+            // a component's config schema applies its defaults only to keys already present in
+            // its input; ConfigFileManager serializes the empty array as `{}`
             'parameters' => $this->parameters,
         ];
     }
