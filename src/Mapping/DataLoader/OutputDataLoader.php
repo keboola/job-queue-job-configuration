@@ -23,6 +23,7 @@ use Keboola\StagingProvider\Staging\StagingProvider;
 use Keboola\StagingProvider\Staging\StagingType;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
 class OutputDataLoader
 {
@@ -115,13 +116,19 @@ class OutputDataLoader
 
         try {
             $fileSystemMetadata = $this->buildFilesystemMetadata();
-            $this->fileWriter->uploadFiles(
-                $this->sourceDataDirPath . '/files/',
-                ['mapping' => $outputStorageConfig->files->toArray()],
-                $fileSystemMetadata,
-                [],
-                $isFailedJob,
-            );
+            try {
+                $this->fileWriter->uploadFiles(
+                    $this->sourceDataDirPath . '/files/',
+                    ['mapping' => $outputStorageConfig->files->toArray()],
+                    $fileSystemMetadata,
+                    [],
+                    $isFailedJob,
+                );
+            } catch (Throwable $e) {
+                // the tables are not reached, but the direct-grant ones are already written by the component
+                $this->refreshDirectGrantMetadataAfterFailure();
+                throw $e;
+            }
 
             if ($this->useFileStorageOnly($this->component, $this->configuration->runtime)) {
                 $this->fileWriter->uploadFiles(
@@ -140,16 +147,8 @@ class OutputDataLoader
                 return null;
             }
 
-            $mappingSettings = new OutputMappingSettings(
-                configuration: $this->buildUploadTableOptions($outputStorageConfig),
-                sourcePathPrefix: $this->sourceDataDirPath . '/tables/',
-                storageApiToken: $this->clientWrapper->getToken(),
-                isFailedJob: $isFailedJob,
-                dataTypeSupport: $this->getDataTypeSupport($this->component, $outputStorageConfig)->value,
-            );
-
             $tableQueue = $this->tableLoader->uploadTables(
-                configuration: $mappingSettings,
+                configuration: $this->buildMappingSettings($isFailedJob),
                 systemMetadata: new SystemMetadata($this->buildTableMetadata()),
             );
 
@@ -162,6 +161,46 @@ class OutputDataLoader
         } catch (InvalidOutputException $ex) {
             throw new UserException($ex->getMessage(), previous: $ex);
         }
+    }
+
+    /**
+     * Refreshes metadata of the tables written through direct grants without storing any output. Meant for a job
+     * which does not get to storeOutput() - e.g. a terminated job - because the component may have changed the
+     * direct-grant tables anyway. The returned queue is already started; waiting for it is up to the caller.
+     */
+    public function refreshDirectGrantMetadata(): LoadTableQueue
+    {
+        $this->logger->debug('Refreshing metadata of direct-grant tables.');
+
+        try {
+            // the job did not finish successfully, the refresh only needs the mapping to find the direct-grant tables
+            return $this->tableLoader->refreshDirectGrantMetadata($this->buildMappingSettings(isFailedJob: true));
+        } catch (InvalidOutputException $ex) {
+            throw new UserException($ex->getMessage(), previous: $ex);
+        }
+    }
+
+    private function refreshDirectGrantMetadataAfterFailure(): void
+    {
+        try {
+            $this->refreshDirectGrantMetadata()->waitForAll();
+        } catch (Throwable $e) {
+            // the original failure is the one to report
+            $this->logger->warning('Failed to refresh metadata of direct-grant tables: ' . $e->getMessage());
+        }
+    }
+
+    private function buildMappingSettings(bool $isFailedJob): OutputMappingSettings
+    {
+        $outputStorageConfig = $this->configuration->storage->output;
+
+        return new OutputMappingSettings(
+            configuration: $this->buildUploadTableOptions($outputStorageConfig),
+            sourcePathPrefix: $this->sourceDataDirPath . '/tables/',
+            storageApiToken: $this->clientWrapper->getToken(),
+            isFailedJob: $isFailedJob,
+            dataTypeSupport: $this->getDataTypeSupport($this->component, $outputStorageConfig)->value,
+        );
     }
 
     private function useFileStorageOnly(ComponentSpecification $component, ?Runtime $runtimeConfig): bool
