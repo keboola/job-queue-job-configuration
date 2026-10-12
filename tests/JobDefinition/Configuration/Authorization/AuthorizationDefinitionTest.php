@@ -6,6 +6,7 @@ namespace Keboola\JobQueue\JobConfiguration\Tests\JobDefinition\Configuration\Au
 
 use Keboola\JobQueue\JobConfiguration\JobDefinition\Configuration\Authorization\AuthorizationDefinition;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 
 class AuthorizationDefinitionTest extends TestCase
@@ -57,6 +58,15 @@ class AuthorizationDefinitionTest extends TestCase
             ],
         ];
 
+        yield 'configured GitHub App token' => [
+            'config' => [
+                'githubApp' => [
+                    '#token' => 'KBC::ProjectSecure::token',
+                    'expiresAt' => '2026-10-12T13:00:00+00:00',
+                ],
+            ],
+        ];
+
         yield 'configured context' => [
             'config' => [
                 'context' => 'wlm',
@@ -86,5 +96,47 @@ class AuthorizationDefinitionTest extends TestCase
             'authorization' => $config,
         ]);
         self::assertTrue(true);
+    }
+
+    public static function provideInvalidAuthorizationConfig(): iterable
+    {
+        yield 'GitHub App without token' => [
+            'config' => [
+                'githubApp' => [
+                    'expiresAt' => '2026-10-12T13:00:00+00:00',
+                ],
+            ],
+            'expectedMessage' => 'The child config "#token" under "authorization.githubApp" must be configured.',
+        ];
+
+        yield 'GitHub App with empty token' => [
+            'config' => [
+                'githubApp' => [
+                    '#token' => '',
+                    'expiresAt' => '2026-10-12T13:00:00+00:00',
+                ],
+            ],
+            'expectedMessage' => 'The path "authorization.githubApp.#token" cannot contain an empty value, but got "".',
+        ];
+
+        yield 'GitHub App without expiration' => [
+            'config' => [
+                'githubApp' => [
+                    '#token' => 'KBC::ProjectSecure::token',
+                ],
+            ],
+            'expectedMessage' => 'The child config "expiresAt" under "authorization.githubApp" must be configured.',
+        ];
+    }
+
+    /** @dataProvider provideInvalidAuthorizationConfig */
+    public function testInvalidAuthorizationConfig(array $config, string $expectedMessage): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage($expectedMessage);
+
+        (new Processor())->processConfiguration(new AuthorizationDefinition(), [
+            'authorization' => $config,
+        ]);
     }
 }
