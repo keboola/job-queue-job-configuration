@@ -268,7 +268,7 @@ class ComponentSpecificationTest extends TestCase
         self::assertTrue($component->hasNoSwap());
     }
 
-    public function testGitHubAppGitAuthIsNotAllowedByDefault(): void
+    public function testOrganizationGitHubAppAuthIsNotAllowedByDefault(): void
     {
         $componentData = [
             'id' => 'keboola.dbt-transformation',
@@ -280,10 +280,10 @@ class ComponentSpecificationTest extends TestCase
             ],
         ];
         $component = new ComponentSpecification($componentData);
-        self::assertFalse($component->allowGitHubAppGitAuth());
+        self::assertFalse($component->allowOrganizationGitHubAppAuth());
     }
 
-    public function testGitHubAppGitAuthIsAllowedByFeature(): void
+    public function testOrganizationGitHubAppAuthIsAllowedByFeature(): void
     {
         $componentData = [
             'id' => 'keboola.dbt-transformation',
@@ -294,11 +294,11 @@ class ComponentSpecificationTest extends TestCase
                 ],
             ],
             'features' => [
-                'github-app-git-auth',
+                'organization-github-app-auth',
             ],
         ];
         $component = new ComponentSpecification($componentData);
-        self::assertTrue($component->allowGitHubAppGitAuth());
+        self::assertTrue($component->allowOrganizationGitHubAppAuth());
     }
 
     public function testSetTag(): void

@@ -141,9 +141,9 @@ class ComponentSpecification
         return in_array('allow-use-file-storage-only', $this->features);
     }
 
-    public function allowGitHubAppGitAuth(): bool
+    public function allowOrganizationGitHubAppAuth(): bool
     {
-        return in_array('github-app-git-auth', $this->features);
+        return in_array('organization-github-app-auth', $this->features);
     }
 
     public function getLoggerType(): string
