@@ -16,10 +16,10 @@ class UnitConverter
         }
         switch ($matches[2]) {
             case 'm':
-                $multiplier = 10**6;
+                $multiplier = 1024 ** 2;
                 break;
             case 'g':
-                $multiplier = 10**9;
+                $multiplier = 1024 ** 3;
                 break;
             default:
                 throw new InvalidUnitFormatException(sprintf('Unit "%s" is not known', $memoryLimit));

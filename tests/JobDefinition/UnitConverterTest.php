@@ -13,10 +13,11 @@ class UnitConverterTest extends TestCase
 {
     public function testConversionToBytes(): void
     {
-        self::assertSame(10000000, UnitConverter::connectionMemoryLimitToBytes('10m'));
-        self::assertSame(10000000, UnitConverter::connectionMemoryLimitToBytes('10M'));
-        self::assertSame(10000000000, UnitConverter::connectionMemoryLimitToBytes('10g'));
-        self::assertSame(10000000000, UnitConverter::connectionMemoryLimitToBytes('10G'));
+        self::assertSame(10 * 1024 ** 2, UnitConverter::connectionMemoryLimitToBytes('10m'));
+        self::assertSame(10 * 1024 ** 2, UnitConverter::connectionMemoryLimitToBytes('10M'));
+        self::assertSame(256 * 1024 ** 2, UnitConverter::connectionMemoryLimitToBytes('256m'));
+        self::assertSame(10 * 1024 ** 3, UnitConverter::connectionMemoryLimitToBytes('10g'));
+        self::assertSame(10 * 1024 ** 3, UnitConverter::connectionMemoryLimitToBytes('10G'));
     }
 
     /** @dataProvider invalidUnitProvider */
