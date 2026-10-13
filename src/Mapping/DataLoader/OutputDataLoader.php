@@ -23,7 +23,6 @@ use Keboola\StagingProvider\Staging\StagingProvider;
 use Keboola\StagingProvider\Staging\StagingType;
 use Keboola\StorageApiBranch\ClientWrapper;
 use Psr\Log\LoggerInterface;
-use Throwable;
 
 class OutputDataLoader
 {
@@ -116,19 +115,13 @@ class OutputDataLoader
 
         try {
             $fileSystemMetadata = $this->buildFilesystemMetadata();
-            try {
-                $this->fileWriter->uploadFiles(
-                    $this->sourceDataDirPath . '/files/',
-                    ['mapping' => $outputStorageConfig->files->toArray()],
-                    $fileSystemMetadata,
-                    [],
-                    $isFailedJob,
-                );
-            } catch (Throwable $e) {
-                // the tables are not reached, but the direct-grant ones are already written by the component
-                $this->refreshDirectGrantMetadataAfterFailure();
-                throw $e;
-            }
+            $this->fileWriter->uploadFiles(
+                $this->sourceDataDirPath . '/files/',
+                ['mapping' => $outputStorageConfig->files->toArray()],
+                $fileSystemMetadata,
+                [],
+                $isFailedJob,
+            );
 
             if ($this->useFileStorageOnly($this->component, $this->configuration->runtime)) {
                 $this->fileWriter->uploadFiles(
@@ -177,16 +170,6 @@ class OutputDataLoader
             return $this->tableLoader->refreshDirectGrantMetadata($this->buildMappingSettings(isFailedJob: true));
         } catch (InvalidOutputException $ex) {
             throw new UserException($ex->getMessage(), previous: $ex);
-        }
-    }
-
-    private function refreshDirectGrantMetadataAfterFailure(): void
-    {
-        try {
-            $this->refreshDirectGrantMetadata()->waitForAll();
-        } catch (Throwable $e) {
-            // the original failure is the one to report
-            $this->logger->warning('Failed to refresh metadata of direct-grant tables: ' . $e->getMessage());
         }
     }
 

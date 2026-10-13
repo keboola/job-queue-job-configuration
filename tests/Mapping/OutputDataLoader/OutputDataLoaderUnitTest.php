@@ -192,15 +192,9 @@ class OutputDataLoaderUnitTest extends TestCase
             ->method('uploadFiles')
             ->willThrowException(new InvalidOutputException('Invalid output configuration'));
 
-        $refreshQueue = $this->createMock(LoadTableQueue::class);
-        $refreshQueue->expects($this->once())->method('waitForAll');
-
         $tableLoader = $this->createMock(TableLoader::class);
         $tableLoader->expects($this->never())
             ->method('uploadTables');
-        $tableLoader->expects($this->once())
-            ->method('refreshDirectGrantMetadata')
-            ->willReturn($refreshQueue);
 
         $clientWrapper = $this->createClientWrapperMock();
         $component = $this->createComponentMock();
@@ -541,37 +535,6 @@ class OutputDataLoaderUnitTest extends TestCase
         );
 
         $outputDataLoader->storeOutput();
-    }
-
-    public function testStoreOutputReportsFileUploadFailureWhenRefreshAfterItFails(): void
-    {
-        $fileWriter = $this->createMock(FileWriter::class);
-        $fileWriter->expects($this->once())
-            ->method('uploadFiles')
-            ->willThrowException(new InvalidOutputException('Invalid output configuration'));
-
-        $refreshQueue = $this->createMock(LoadTableQueue::class);
-        $refreshQueue->expects($this->once())
-            ->method('waitForAll')
-            ->willThrowException(new InvalidOutputException('Failed to refresh metadata of direct-grant tables'));
-
-        $tableLoader = $this->createMock(TableLoader::class);
-        $tableLoader->expects($this->once())
-            ->method('refreshDirectGrantMetadata')
-            ->willReturn($refreshQueue);
-
-        $outputDataLoader = $this->createOutputDataLoader($fileWriter, $tableLoader);
-
-        try {
-            $outputDataLoader->storeOutput();
-            self::fail('Storing output should fail on the file upload.');
-        } catch (UserException $e) {
-            self::assertSame('Invalid output configuration', $e->getMessage());
-        }
-
-        self::assertTrue($this->logsHandler->hasWarning(
-            'Failed to refresh metadata of direct-grant tables: Failed to refresh metadata of direct-grant tables',
-        ));
     }
 
     public function testRefreshDirectGrantMetadata(): void
