@@ -157,16 +157,14 @@ class OutputDataLoader
     }
 
     /**
-     * Refreshes metadata of the tables written through direct grants without storing any output. Meant for a job
-     * which does not get to storeOutput() - e.g. a terminated job - because the component may have changed the
-     * direct-grant tables anyway. The returned queue is already started; waiting for it is up to the caller.
+     * Refreshes metadata of direct-grant tables without storing any output, for a job which does not get to
+     * storeOutput(). The returned queue is already started.
      */
     public function refreshDirectGrantMetadata(): LoadTableQueue
     {
         $this->logger->debug('Refreshing metadata of direct-grant tables.');
 
         try {
-            // the job did not finish successfully, the refresh only needs the mapping to find the direct-grant tables
             return $this->tableLoader->refreshDirectGrantMetadata($this->buildMappingSettings(isFailedJob: true));
         } catch (InvalidOutputException $ex) {
             throw new UserException($ex->getMessage(), previous: $ex);
