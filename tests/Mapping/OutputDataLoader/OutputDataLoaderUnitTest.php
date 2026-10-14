@@ -536,4 +536,83 @@ class OutputDataLoaderUnitTest extends TestCase
 
         $outputDataLoader->storeOutput();
     }
+
+    public function testRefreshDirectGrantMetadata(): void
+    {
+        $outputTablesConfig = [
+            [
+                'source' => 'test',
+                'destination' => 'out.c-main.test',
+                'unload_strategy' => 'direct-grant',
+            ],
+        ];
+
+        $refreshQueue = $this->createMock(LoadTableQueue::class);
+
+        $fileWriter = $this->createMock(FileWriter::class);
+        $fileWriter->expects($this->never())->method('uploadFiles');
+
+        $tableLoader = $this->createMock(TableLoader::class);
+        $tableLoader->expects($this->never())->method('uploadTables');
+        $tableLoader->expects($this->once())
+            ->method('refreshDirectGrantMetadata')
+            ->with($this->callback(function (OutputMappingSettings $settings): bool {
+                $mapping = $settings->getRawConfiguration()['mapping'];
+                self::assertCount(1, $mapping);
+                self::assertSame('test', $mapping[0]['source']);
+                self::assertSame('direct-grant', $mapping[0]['unload_strategy']);
+                self::assertSame('/out/tables/', $settings->getSourcePathPrefix());
+                self::assertTrue($settings->isFailedJob());
+                return true;
+            }))
+            ->willReturn($refreshQueue);
+
+        $outputDataLoader = $this->createOutputDataLoader(
+            $fileWriter,
+            $tableLoader,
+            Configuration::fromArray([
+                'storage' => [
+                    'output' => [
+                        'tables' => $outputTablesConfig,
+                    ],
+                ],
+            ]),
+        );
+
+        self::assertSame($refreshQueue, $outputDataLoader->refreshDirectGrantMetadata());
+        self::assertTrue($this->logsHandler->hasDebug('Refreshing metadata of direct-grant tables.'));
+    }
+
+    public function testRefreshDirectGrantMetadataWithInvalidOutputException(): void
+    {
+        $tableLoader = $this->createMock(TableLoader::class);
+        $tableLoader->expects($this->once())
+            ->method('refreshDirectGrantMetadata')
+            ->willThrowException(new InvalidOutputException('Workspace "1234" not found.'));
+
+        $outputDataLoader = $this->createOutputDataLoader($this->createMock(FileWriter::class), $tableLoader);
+
+        $this->expectException(UserException::class);
+        $this->expectExceptionMessage('Workspace "1234" not found.');
+
+        $outputDataLoader->refreshDirectGrantMetadata();
+    }
+
+    private function createOutputDataLoader(
+        FileWriter $fileWriter,
+        TableLoader $tableLoader,
+        Configuration $jobConfiguration = new Configuration(),
+    ): OutputDataLoader {
+        return new OutputDataLoader(
+            $fileWriter,
+            $tableLoader,
+            $this->createClientWrapperMock(),
+            $this->createComponentMock(),
+            $jobConfiguration,
+            null,
+            null,
+            $this->logger,
+            'out/',
+        );
+    }
 }

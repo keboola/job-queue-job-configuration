@@ -140,16 +140,8 @@ class OutputDataLoader
                 return null;
             }
 
-            $mappingSettings = new OutputMappingSettings(
-                configuration: $this->buildUploadTableOptions($outputStorageConfig),
-                sourcePathPrefix: $this->sourceDataDirPath . '/tables/',
-                storageApiToken: $this->clientWrapper->getToken(),
-                isFailedJob: $isFailedJob,
-                dataTypeSupport: $this->getDataTypeSupport($this->component, $outputStorageConfig)->value,
-            );
-
             $tableQueue = $this->tableLoader->uploadTables(
-                configuration: $mappingSettings,
+                configuration: $this->buildMappingSettings($isFailedJob),
                 systemMetadata: new SystemMetadata($this->buildTableMetadata()),
             );
 
@@ -162,6 +154,34 @@ class OutputDataLoader
         } catch (InvalidOutputException $ex) {
             throw new UserException($ex->getMessage(), previous: $ex);
         }
+    }
+
+    /**
+     * Refreshes metadata of direct-grant tables without storing any output, for a job which does not get to
+     * storeOutput(). The returned queue is already started.
+     */
+    public function refreshDirectGrantMetadata(): LoadTableQueue
+    {
+        $this->logger->debug('Refreshing metadata of direct-grant tables.');
+
+        try {
+            return $this->tableLoader->refreshDirectGrantMetadata($this->buildMappingSettings(isFailedJob: true));
+        } catch (InvalidOutputException $ex) {
+            throw new UserException($ex->getMessage(), previous: $ex);
+        }
+    }
+
+    private function buildMappingSettings(bool $isFailedJob): OutputMappingSettings
+    {
+        $outputStorageConfig = $this->configuration->storage->output;
+
+        return new OutputMappingSettings(
+            configuration: $this->buildUploadTableOptions($outputStorageConfig),
+            sourcePathPrefix: $this->sourceDataDirPath . '/tables/',
+            storageApiToken: $this->clientWrapper->getToken(),
+            isFailedJob: $isFailedJob,
+            dataTypeSupport: $this->getDataTypeSupport($this->component, $outputStorageConfig)->value,
+        );
     }
 
     private function useFileStorageOnly(ComponentSpecification $component, ?Runtime $runtimeConfig): bool

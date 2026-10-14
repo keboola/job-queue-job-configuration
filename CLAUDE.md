@@ -54,7 +54,7 @@ All configuration classes use Symfony's `Config` component (`TreeBuilder` / `Con
 Handles input/output data movement between Storage and the job's working directory.
 
 - `InputDataLoader/InputDataLoader` — Downloads input tables/files from Storage API with staging support.
-- `OutputDataLoader/OutputDataLoader` — Uploads output metadata back to Storage.
+- `OutputDataLoader/OutputDataLoader` — Uploads output metadata back to Storage. Tables written through direct grants (`unload_strategy: direct-grant`) get their metadata refreshed by `storeOutput()` like a `write_always` table, so a runner which catches a failure of `storeOutput()` must retry it with `isFailedJob: true`; a runner which does not call `storeOutput()` (terminated job, debug mode) must call `refreshDirectGrantMetadata()` instead.
 - `StagingWorkspace/StagingWorkspaceFacade` — Lifecycle wrapper around a Keboola workspace (Snowflake, BigQuery, etc.).
 - `StagingWorkspace/StagingWorkspaceFactory` — Instantiates the correct workspace type.
 
