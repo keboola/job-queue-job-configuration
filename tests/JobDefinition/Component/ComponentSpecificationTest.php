@@ -268,6 +268,39 @@ class ComponentSpecificationTest extends TestCase
         self::assertTrue($component->hasNoSwap());
     }
 
+    public function testOrganizationGitHubAppAuthIsNotAllowedByDefault(): void
+    {
+        $componentData = [
+            'id' => 'keboola.dbt-transformation',
+            'data' => [
+                'definition' => [
+                    'type' => 'dockerhub',
+                    'uri' => 'dummy',
+                ],
+            ],
+        ];
+        $component = new ComponentSpecification($componentData);
+        self::assertFalse($component->allowOrganizationGitHubAppAuth());
+    }
+
+    public function testOrganizationGitHubAppAuthIsAllowedByFeature(): void
+    {
+        $componentData = [
+            'id' => 'keboola.dbt-transformation',
+            'data' => [
+                'definition' => [
+                    'type' => 'dockerhub',
+                    'uri' => 'dummy',
+                ],
+            ],
+            'features' => [
+                'organization-github-app-auth',
+            ],
+        ];
+        $component = new ComponentSpecification($componentData);
+        self::assertTrue($component->allowOrganizationGitHubAppAuth());
+    }
+
     public function testSetTag(): void
     {
         $componentData = [
