@@ -65,7 +65,7 @@ class S3InputDataLoaderTest extends BaseInputDataLoaderTestCase
             $filePath,
             "id,text,row_number\n1,test,1\n1,test,2\n1,test,3",
         );
-        $this->clientWrapper->getBasicClient()->createTable(
+        $this->clientWrapper->getBasicClient()->createTableAsync(
             $bucketId,
             'test',
             new CsvFile($filePath),
