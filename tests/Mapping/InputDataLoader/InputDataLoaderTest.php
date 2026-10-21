@@ -87,7 +87,7 @@ class InputDataLoaderTest extends BaseInputDataLoaderTestCase
             "id,text,row_number\n1,test,1\n1,test,2\n1,test,3",
         );
         $csv = new CsvFile($this->getTmpDirPath() . '/data.csv');
-        $this->clientWrapper->getBasicClient()->createTable($bucketId, 'test', $csv);
+        $this->clientWrapper->getBasicClient()->createTableAsync($bucketId, 'test', $csv);
         $metadata = new Metadata($this->clientWrapper->getBasicClient());
         $metadata->postBucketMetadata(
             $bucketId,
