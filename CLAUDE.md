@@ -64,6 +64,7 @@ Staging variants (S3, ABS, BigQuery, GCS, Snowflake) each have their own `InputD
 
 - `JobStorageApiClient/` — Factory + options for constructing Storage API clients with job-specific auth.
 - `Exception/` — `ComponentInvalidException` (extends `ApplicationExceptionInterface`), `InvalidDataException`, `UserException`.
+- `Tracing/StepTraceContext` — Hands the Datadog trace context from the service container to the input/output mapping step through `trace-context.json` in the step data dir.
 - `JobDefinition/UnitConverter` — Memory string ↔ bytes conversion (e.g. `256m` → bytes).
 
 ### Test suites
