@@ -23,11 +23,13 @@
         "php": "^8.2",
         "ext-zip": "*",
         "colinodell/psr-testlogger": "^1.3",
+        "graylog2/gelf-php": "^2.0",
         "keboola/common-exceptions": "^1.2",
         "keboola/input-mapping": "^23.2",
         "keboola/output-mapping": "^27.12",
         "keboola/staging-provider": "^12.3",
         "keboola/storage-api-client": "^18.2.5",
+        "monolog/monolog": "^3.0",
         "psr/log": "^3.0",
         "symfony/config": "^6.4|^7.0"
     },
