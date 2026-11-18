@@ -5,13 +5,17 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\Tracing;
 
 use JsonException;
+use Keboola\JobQueue\Telemetry\TracerFactory;
+use Keboola\JobQueue\Telemetry\TracerInterface;
 use RuntimeException;
-use function DDTrace\consume_distributed_tracing_headers;
-use function DDTrace\generate_distributed_tracing_headers;
 
 /**
- * Carries the Datadog trace context from the service container to a step container through the step data dir,
- * so the step's own trace continues under the service container span that runs the step.
+ * Carries the trace context from the service container to a step container through the step data dir, so the step's
+ * own trace continues under the service container span that runs the step.
+ *
+ * The file holds the propagation headers of the tracer the service container is built with: x-datadog-* with
+ * Datadog, W3C traceparent / tracestate with OpenTelemetry. Either tracer reads both formats without failing, a context
+ * it cannot continue starts a new trace (Datadog continues a W3C context as well).
  *
  * The step process has to import the context before it opens any span of its own: the context is applied to its root
  * span only. The service container exports it before it unblocks the step, and the step process is not started before
@@ -21,33 +25,27 @@ final readonly class StepTraceContext
 {
     public const FILE_NAME = 'trace-context.json';
 
+    private TracerInterface $tracer;
+
     public function __construct(
         private string $dataDirPath,
+        ?TracerInterface $tracer = null,
     ) {
+        $this->tracer = $tracer ?? TracerFactory::create();
     }
 
     public function export(): void
     {
-        if (!function_exists('DDTrace\generate_distributed_tracing_headers')) {
-            return;
-        }
-
-        $this->write(generate_distributed_tracing_headers());
+        $this->write($this->tracer->exportContext());
     }
 
     /**
-     * A missing or malformed file is ignored, tracing must never fail the step.
+     * Starts the root span of the step process under the imported context. A missing or malformed file is ignored,
+     * tracing must never fail the step.
      */
     public function import(): void
     {
-        if (!function_exists('DDTrace\consume_distributed_tracing_headers')) {
-            return;
-        }
-
-        $headers = $this->read();
-        if ($headers !== []) {
-            consume_distributed_tracing_headers($headers);
-        }
+        $this->tracer->startProcessSpan($this->read());
     }
 
     /**
