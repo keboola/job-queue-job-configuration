@@ -15,7 +15,10 @@ use RuntimeException;
  *
  * The file holds the propagation headers of the tracer the service container is built with: x-datadog-* with
  * Datadog, W3C traceparent / tracestate with OpenTelemetry. Either tracer reads both formats without failing, a context
- * it cannot continue starts a new trace (Datadog continues a W3C context as well).
+ * it cannot continue starts a new trace (Datadog continues a W3C context as well). With OpenTelemetry the step falls
+ * back to the TRACEPARENT / TRACESTATE environment of the job pod first, the context of the daemon span that started
+ * the pod and that the service container continues as well: the step is then a sibling of the service container span
+ * instead of its child, but stays in the trace of the job (see TracerInterface::startProcessSpan()).
  *
  * The step process has to import the context before it opens any span of its own: the context is applied to its root
  * span only. The service container exports it before it unblocks the step, and the step process is not started before

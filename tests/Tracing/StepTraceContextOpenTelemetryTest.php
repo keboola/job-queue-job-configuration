@@ -16,7 +16,8 @@ class StepTraceContextOpenTelemetryTest extends TestCase
         $span = OpenTelemetry\API\Globals::tracerProvider()->getTracer('test')->spanBuilder('job.step')->startSpan();
         $scope = $span->activate();
         (new Keboola\JobQueue\JobConfiguration\Tracing\StepTraceContext($argv[1]))->export();
-        echo json_encode(['traceId' => $span->getContext()->getTraceId(), 'spanId' => $span->getContext()->getSpanId()]);
+        $spanContext = $span->getContext();
+        echo json_encode(['traceId' => $spanContext->getTraceId(), 'spanId' => $spanContext->getSpanId()]);
         $scope->detach();
         $span->end();
         PHP;
@@ -32,6 +33,25 @@ class StepTraceContextOpenTelemetryTest extends TestCase
             'parentId' => $parent->isValid() ? $parent->getSpanId() : null,
         ]);
         PHP;
+
+    // bin/run of the service container: the process span of the job, the step span that exports the context
+    private const SERVICE_CONTAINER_SCRIPT = <<<'PHP'
+        $tracer = Keboola\JobQueue\Telemetry\TracerFactory::create();
+        $tracer->startProcessSpan(resource: 'app:run');
+        $dataDirPath = $argv[1];
+        echo json_encode($tracer->inSpan('job.step', 'input-mapping', [], function () use ($dataDirPath): array {
+            (new Keboola\JobQueue\JobConfiguration\Tracing\StepTraceContext($dataDirPath))->export();
+            $stepSpan = OpenTelemetry\API\Trace\Span::getCurrent()->getContext();
+            return ['traceId' => $stepSpan->getTraceId(), 'spanId' => $stepSpan->getSpanId()];
+        }));
+        PHP;
+
+    // the context of the daemon span that starts the job pod, the daemon sets it on every container of the pod
+    private const JOB_POD_ENV = [
+        'TRACEPARENT' => '00-' . self::DAEMON_TRACE_ID . '-' . self::DAEMON_SPAN_ID . '-03',
+    ];
+    private const DAEMON_TRACE_ID = 'ff13895834ec59884b055321feabc0d2';
+    private const DAEMON_SPAN_ID = '477831bf7b85dc8e';
 
     private string $dataDirPath;
 
@@ -109,10 +129,48 @@ class StepTraceContextOpenTelemetryTest extends TestCase
         self::assertNull($importer['parentId']);
     }
 
+    public function testJobPodProcessesJoinTraceOfDaemon(): void
+    {
+        $serviceContainer = $this->runPhp(self::SERVICE_CONTAINER_SCRIPT, self::JOB_POD_ENV);
+        $step = $this->runPhp(self::IMPORT_SCRIPT, self::JOB_POD_ENV);
+
+        // the service container continues the daemon span, the step continues the step span from the file
+        self::assertSame(self::DAEMON_TRACE_ID, $serviceContainer['traceId']);
+        self::assertSame(self::DAEMON_TRACE_ID, $step['traceId']);
+        self::assertSame($serviceContainer['spanId'], $step['parentId']);
+    }
+
+    public function testImportWithoutFileContinuesTraceOfJobPod(): void
+    {
+        $importer = $this->runPhp(self::IMPORT_SCRIPT, self::JOB_POD_ENV);
+
+        self::assertSame(self::DAEMON_TRACE_ID, $importer['traceId']);
+        self::assertSame(self::DAEMON_SPAN_ID, $importer['parentId']);
+    }
+
+    public function testImportOfDatadogContextContinuesTraceOfJobPod(): void
+    {
+        // written by a service container still built with the Datadog tracer
+        file_put_contents(
+            $this->dataDirPath . '/' . StepTraceContext::FILE_NAME,
+            (string) json_encode([
+                'x-datadog-trace-id' => '1234567890123456789',
+                'x-datadog-parent-id' => '987654321',
+                'x-datadog-sampling-priority' => '1',
+            ]),
+        );
+
+        $importer = $this->runPhp(self::IMPORT_SCRIPT, self::JOB_POD_ENV);
+
+        self::assertSame(self::DAEMON_TRACE_ID, $importer['traceId']);
+        self::assertSame(self::DAEMON_SPAN_ID, $importer['parentId']);
+    }
+
     /**
+     * @param array<string, string> $env
      * @return array<string, mixed>
      */
-    private function runPhp(string $code): array
+    private function runPhp(string $code, array $env = []): array
     {
         $script = sprintf(
             "<?php\nrequire %s;\n%s\n",
@@ -131,6 +189,10 @@ class StepTraceContextOpenTelemetryTest extends TestCase
                     'OTEL_METRICS_EXPORTER' => 'none',
                     'OTEL_LOGS_EXPORTER' => 'none',
                     'OTEL_PROPAGATORS' => 'tracecontext,baggage',
+                    // not inherited from the environment of the test run, false removes a variable
+                    'TRACEPARENT' => false,
+                    'TRACESTATE' => false,
+                    ...$env,
                 ],
             );
             $process->mustRun();
