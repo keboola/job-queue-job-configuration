@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\Tests\Tracing;
 
 use Keboola\JobQueue\JobConfiguration\Tracing\StepTraceContext;
-use Keboola\JobQueue\Telemetry\OpenTelemetry\Datadog\DatadogIds;
 use Keboola\Temp\Temp;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Process\Process;
@@ -36,15 +35,14 @@ class StepTraceContextTest extends TestCase
 
     // bin/run of the service container: the process span of the job, the step span that exports the context
     private const SERVICE_CONTAINER_SCRIPT = <<<'PHP'
-        $tracer = Keboola\JobQueue\Telemetry\TracerFactory::create();
-        $tracer->startProcessSpan('app:run');
-        $dataDirPath = $argv[1];
-        $attributes = ['job.step.type' => 'input-mapping'];
-        echo json_encode($tracer->inSpan('job.step', $attributes, function () use ($dataDirPath): array {
-            (new Keboola\JobQueue\JobConfiguration\Tracing\StepTraceContext($dataDirPath))->export();
-            $stepSpan = OpenTelemetry\API\Trace\Span::getCurrent()->getContext();
-            return ['traceId' => $stepSpan->getTraceId(), 'spanId' => $stepSpan->getSpanId()];
-        }));
+        Keboola\JobQueue\Telemetry\Tracing::startProcessSpan('app:run');
+        $span = Keboola\JobQueue\Telemetry\Tracing::tracer()->spanBuilder('job.step')->startSpan();
+        $scope = $span->activate();
+        (new Keboola\JobQueue\JobConfiguration\Tracing\StepTraceContext($argv[1]))->export();
+        $stepSpan = $span->getContext();
+        echo json_encode(['traceId' => $stepSpan->getTraceId(), 'spanId' => $stepSpan->getSpanId()]);
+        $scope->detach();
+        $span->end();
         PHP;
 
     // the context of the daemon span that starts the job pod, the daemon sets it on every container of the pod
@@ -60,14 +58,10 @@ class StepTraceContextTest extends TestCase
     {
         parent::setUp();
 
-        if (!extension_loaded('opentelemetry')) {
-            self::markTestSkipped('opentelemetry extension is not loaded');
-        }
-
         $this->dataDirPath = (new Temp())->getTmpFolder();
     }
 
-    public function testExportWritesW3cAndDatadogTraceContextOfActiveSpan(): void
+    public function testExportWritesW3cTraceContextOfActiveSpan(): void
     {
         $exporter = $this->runPhp(self::EXPORT_SCRIPT);
 
@@ -84,12 +78,7 @@ class StepTraceContextTest extends TestCase
             sprintf('~^00-%s-%s-0[13]$~', $exporter['traceId'], $exporter['spanId']),
             $headers['traceparent'],
         );
-        // the Datadog format as well, for a step process still built with the Datadog tracer
-        self::assertSame(
-            DatadogIds::hexToDecimal(substr($exporter['traceId'], 16)),
-            $headers['x-datadog-trace-id'] ?? null,
-        );
-        self::assertSame(DatadogIds::hexToDecimal($exporter['spanId']), $headers['x-datadog-parent-id'] ?? null);
+        self::assertSame(['traceparent'], array_keys($headers));
     }
 
     public function testStepProcessContinuesExportedTrace(): void
@@ -110,23 +99,6 @@ class StepTraceContextTest extends TestCase
         self::assertNull($importer['parentId']);
     }
 
-    public function testImportContinuesDatadogContext(): void
-    {
-        // written by a service container still built with the Datadog tracer
-        file_put_contents(
-            $this->dataDirPath . '/' . StepTraceContext::FILE_NAME,
-            (string) json_encode([
-                'x-datadog-trace-id' => '1234567890123456789',
-                'x-datadog-parent-id' => '987654321',
-                'x-datadog-sampling-priority' => '1',
-            ]),
-        );
-
-        $importer = $this->runPhp(self::IMPORT_SCRIPT);
-
-        self::assertSame('0000000000000000112210f47de98115', $importer['traceId']);
-        self::assertSame('000000003ade68b1', $importer['parentId']);
-    }
 
     public function testImportIgnoresMalformedFile(): void
     {
@@ -156,23 +128,6 @@ class StepTraceContextTest extends TestCase
         self::assertSame(self::DAEMON_SPAN_ID, $importer['parentId']);
     }
 
-    public function testImportPrefersDatadogContextOfFileToJobPod(): void
-    {
-        // written by a service container still built with the Datadog tracer, its step span is the closer parent
-        file_put_contents(
-            $this->dataDirPath . '/' . StepTraceContext::FILE_NAME,
-            (string) json_encode([
-                'x-datadog-trace-id' => '1234567890123456789',
-                'x-datadog-parent-id' => '987654321',
-                'x-datadog-sampling-priority' => '1',
-            ]),
-        );
-
-        $importer = $this->runPhp(self::IMPORT_SCRIPT, self::JOB_POD_ENV);
-
-        self::assertSame('0000000000000000112210f47de98115', $importer['traceId']);
-        self::assertSame('000000003ade68b1', $importer['parentId']);
-    }
 
     public function testImportOfMalformedFileContinuesTraceOfJobPod(): void
     {
