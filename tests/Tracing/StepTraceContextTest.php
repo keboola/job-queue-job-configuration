@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\JobQueue\JobConfiguration\Tests\Tracing;
 
 use Keboola\JobQueue\JobConfiguration\Tracing\StepTraceContext;
+use Keboola\JobQueue\Telemetry\OpenTelemetry\Datadog\DatadogIds;
 use Keboola\Temp\Temp;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Process\Process;
@@ -66,7 +67,7 @@ class StepTraceContextTest extends TestCase
         $this->dataDirPath = (new Temp())->getTmpFolder();
     }
 
-    public function testExportWritesW3cTraceContextOfActiveSpan(): void
+    public function testExportWritesW3cAndDatadogTraceContextOfActiveSpan(): void
     {
         $exporter = $this->runPhp(self::EXPORT_SCRIPT);
 
@@ -83,6 +84,12 @@ class StepTraceContextTest extends TestCase
             sprintf('~^00-%s-%s-0[13]$~', $exporter['traceId'], $exporter['spanId']),
             $headers['traceparent'],
         );
+        // the Datadog format as well, for a step process still built with the Datadog tracer
+        self::assertSame(
+            DatadogIds::hexToDecimal(substr($exporter['traceId'], 16)),
+            $headers['x-datadog-trace-id'] ?? null,
+        );
+        self::assertSame(DatadogIds::hexToDecimal($exporter['spanId']), $headers['x-datadog-parent-id'] ?? null);
     }
 
     public function testStepProcessContinuesExportedTrace(): void

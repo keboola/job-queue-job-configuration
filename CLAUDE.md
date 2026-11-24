@@ -64,7 +64,7 @@ Staging variants (S3, ABS, BigQuery, GCS, Snowflake) each have their own `InputD
 
 - `JobStorageApiClient/` — Factory + options for constructing Storage API clients with job-specific auth.
 - `Exception/` — `ComponentInvalidException` (extends `ApplicationExceptionInterface`), `InvalidDataException`, `UserException`.
-- `Tracing/StepTraceContext` — Hands the trace context from the service container to the input/output mapping step through `trace-context.json` in the step data dir (W3C `traceparent`; the `x-datadog-*` headers an older service container built with the Datadog tracer wrote are read as well). A step without a usable file continues the job pod's `TRACEPARENT` / `TRACESTATE` environment (the daemon span) instead of starting a new trace. Tracing goes through `keboola/job-queue-telemetry` (`libs/telemetry`).
+- `Tracing/StepTraceContext` — Hands the trace context from the service container to the input/output mapping step through `trace-context.json` in the step data dir (W3C `traceparent` and Datadog `x-datadog-*` headers are written and read, the W3C context wins). A step without a usable file continues the job pod's `TRACEPARENT` / `TRACESTATE` environment (the daemon span) instead of starting a new trace. Tracing goes through `keboola/job-queue-telemetry` (`libs/telemetry`).
 - `JobDefinition/UnitConverter` — Memory string ↔ bytes conversion (e.g. `256m` → bytes).
 
 ### Test suites

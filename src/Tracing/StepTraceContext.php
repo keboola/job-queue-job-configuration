@@ -13,8 +13,9 @@ use RuntimeException;
  * Carries the trace context from the service container to a step container through the step data dir, so the step's
  * own trace continues under the service container span that runs the step.
  *
- * The file holds the W3C traceparent / tracestate of the step span. The x-datadog-* headers a service container built
- * with the Datadog tracer wrote are read as well (the W3C context wins when a file holds both). Without a usable file
+ * The file holds the W3C traceparent / tracestate and the Datadog x-datadog-* headers of the step span, so a step built
+ * with either tracer continues it while the job pod images are rolled out; both formats are read (the W3C context wins
+ * when a file holds both). Without a usable file
  * the step continues the TRACEPARENT / TRACESTATE environment of the job pod, the context of the daemon span that
  * started the pod and that the service container continues as well: the step is then a sibling of the service
  * container span instead of its child, but stays in the trace of the job (see TracerInterface::startProcessSpan()).
