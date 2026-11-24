@@ -12,18 +12,46 @@ use Symfony\Component\Process\Process;
 class StepTraceContextTest extends TestCase
 {
     private const EXPORT_SCRIPT = <<<'PHP'
-        $span = DDTrace\start_span();
+        $span = OpenTelemetry\API\Globals::tracerProvider()->getTracer('test')->spanBuilder('job.step')->startSpan();
+        $scope = $span->activate();
         (new Keboola\JobQueue\JobConfiguration\Tracing\StepTraceContext($argv[1]))->export();
-        echo json_encode(['traceId' => DDTrace\trace_id(), 'spanId' => $span->id]);
-        DDTrace\close_span();
+        $spanContext = $span->getContext();
+        echo json_encode(['traceId' => $spanContext->getTraceId(), 'spanId' => $spanContext->getSpanId()]);
+        $scope->detach();
+        $span->end();
         PHP;
 
     private const IMPORT_SCRIPT = <<<'PHP'
-        (new Keboola\JobQueue\JobConfiguration\Tracing\StepTraceContext($argv[1]))->import();
-        $root = DDTrace\root_span();
-        $parentId = isset($root->parentId) ? $root->parentId : null;
-        echo json_encode(['traceId' => DDTrace\trace_id(), 'parentId' => $parentId]);
+        (new Keboola\JobQueue\JobConfiguration\Tracing\StepTraceContext($argv[1]))->import('input-mapping');
+        $root = OpenTelemetry\API\Trace\LocalRootSpan::current();
+        assert($root instanceof OpenTelemetry\SDK\Trace\ReadableSpanInterface);
+        $parent = $root->getParentContext();
+        echo json_encode([
+            'name' => $root->getName(),
+            'traceId' => $root->getContext()->getTraceId(),
+            'parentId' => $parent->isValid() ? $parent->getSpanId() : null,
+        ]);
         PHP;
+
+    // bin/run of the service container: the process span of the job, the step span that exports the context
+    private const SERVICE_CONTAINER_SCRIPT = <<<'PHP'
+        $tracer = Keboola\JobQueue\Telemetry\TracerFactory::create();
+        $tracer->startProcessSpan('app:run');
+        $dataDirPath = $argv[1];
+        $attributes = ['job.step.type' => 'input-mapping'];
+        echo json_encode($tracer->inSpan('job.step', $attributes, function () use ($dataDirPath): array {
+            (new Keboola\JobQueue\JobConfiguration\Tracing\StepTraceContext($dataDirPath))->export();
+            $stepSpan = OpenTelemetry\API\Trace\Span::getCurrent()->getContext();
+            return ['traceId' => $stepSpan->getTraceId(), 'spanId' => $stepSpan->getSpanId()];
+        }));
+        PHP;
+
+    // the context of the daemon span that starts the job pod, the daemon sets it on every container of the pod
+    private const JOB_POD_ENV = [
+        'TRACEPARENT' => '00-' . self::DAEMON_TRACE_ID . '-' . self::DAEMON_SPAN_ID . '-03',
+    ];
+    private const DAEMON_TRACE_ID = 'ff13895834ec59884b055321feabc0d2';
+    private const DAEMON_SPAN_ID = '477831bf7b85dc8e';
 
     private string $dataDirPath;
 
@@ -31,14 +59,14 @@ class StepTraceContextTest extends TestCase
     {
         parent::setUp();
 
-        if (!extension_loaded('ddtrace')) {
-            self::markTestSkipped('ddtrace extension is not loaded');
+        if (!extension_loaded('opentelemetry')) {
+            self::markTestSkipped('opentelemetry extension is not loaded');
         }
 
         $this->dataDirPath = (new Temp())->getTmpFolder();
     }
 
-    public function testExportWritesActiveSpanContext(): void
+    public function testExportWritesW3cTraceContextOfActiveSpan(): void
     {
         $exporter = $this->runPhp(self::EXPORT_SCRIPT);
 
@@ -48,18 +76,13 @@ class StepTraceContextTest extends TestCase
             flags: JSON_THROW_ON_ERROR,
         );
         self::assertIsArray($headers);
-        self::assertSame($exporter['spanId'], $headers['x-datadog-parent-id'] ?? null);
-        self::assertArrayHasKey('x-datadog-trace-id', $headers);
-    }
-
-    public function testExportWithTracerDisabledWritesNoFile(): void
-    {
-        $this->runPhp(
-            '(new Keboola\JobQueue\JobConfiguration\Tracing\StepTraceContext($argv[1]))->export(); echo "{}";',
-            ['DD_TRACE_ENABLED' => 'false'],
+        self::assertIsString($exporter['traceId']);
+        self::assertIsString($exporter['spanId']);
+        self::assertIsString($headers['traceparent'] ?? null);
+        self::assertMatchesRegularExpression(
+            sprintf('~^00-%s-%s-0[13]$~', $exporter['traceId'], $exporter['spanId']),
+            $headers['traceparent'],
         );
-
-        self::assertFileDoesNotExist($this->dataDirPath . '/' . StepTraceContext::FILE_NAME);
     }
 
     public function testStepProcessContinuesExportedTrace(): void
@@ -67,41 +90,91 @@ class StepTraceContextTest extends TestCase
         $exporter = $this->runPhp(self::EXPORT_SCRIPT);
         $importer = $this->runPhp(self::IMPORT_SCRIPT);
 
+        self::assertSame('input-mapping', $importer['name']);
         self::assertSame($exporter['traceId'], $importer['traceId']);
         self::assertSame($exporter['spanId'], $importer['parentId']);
     }
 
-    public function testImportWithoutFileKeepsOwnTrace(): void
+    public function testImportWithoutFileStartsOwnTrace(): void
     {
         $importer = $this->runPhp(self::IMPORT_SCRIPT);
 
+        self::assertSame('input-mapping', $importer['name']);
         self::assertNull($importer['parentId']);
     }
 
-    public function testImportIgnoresMalformedFile(): void
+    public function testImportContinuesDatadogContext(): void
     {
-        file_put_contents($this->dataDirPath . '/' . StepTraceContext::FILE_NAME, '{"x-datadog-trace-id": ');
-
-        $importer = $this->runPhp(self::IMPORT_SCRIPT);
-
-        self::assertNull($importer['parentId']);
-    }
-
-    public function testImportSkipsNonStringValues(): void
-    {
+        // written by a service container still built with the Datadog tracer
         file_put_contents(
             $this->dataDirPath . '/' . StepTraceContext::FILE_NAME,
             (string) json_encode([
                 'x-datadog-trace-id' => '1234567890123456789',
-                'x-datadog-parent-id' => 987654321,
+                'x-datadog-parent-id' => '987654321',
+                'x-datadog-sampling-priority' => '1',
             ]),
         );
 
         $importer = $this->runPhp(self::IMPORT_SCRIPT);
 
-        self::assertSame('1234567890123456789', $importer['traceId']);
-        // ddtrace would accept the int parent id
+        self::assertSame('0000000000000000112210f47de98115', $importer['traceId']);
+        self::assertSame('000000003ade68b1', $importer['parentId']);
+    }
+
+    public function testImportIgnoresMalformedFile(): void
+    {
+        file_put_contents($this->dataDirPath . '/' . StepTraceContext::FILE_NAME, '{"traceparent": ');
+
+        $importer = $this->runPhp(self::IMPORT_SCRIPT);
+
         self::assertNull($importer['parentId']);
+    }
+
+    public function testJobPodProcessesJoinTraceOfDaemon(): void
+    {
+        $serviceContainer = $this->runPhp(self::SERVICE_CONTAINER_SCRIPT, self::JOB_POD_ENV);
+        $step = $this->runPhp(self::IMPORT_SCRIPT, self::JOB_POD_ENV);
+
+        // the service container continues the daemon span, the step continues the step span from the file
+        self::assertSame(self::DAEMON_TRACE_ID, $serviceContainer['traceId']);
+        self::assertSame(self::DAEMON_TRACE_ID, $step['traceId']);
+        self::assertSame($serviceContainer['spanId'], $step['parentId']);
+    }
+
+    public function testImportWithoutFileContinuesTraceOfJobPod(): void
+    {
+        $importer = $this->runPhp(self::IMPORT_SCRIPT, self::JOB_POD_ENV);
+
+        self::assertSame(self::DAEMON_TRACE_ID, $importer['traceId']);
+        self::assertSame(self::DAEMON_SPAN_ID, $importer['parentId']);
+    }
+
+    public function testImportPrefersDatadogContextOfFileToJobPod(): void
+    {
+        // written by a service container still built with the Datadog tracer, its step span is the closer parent
+        file_put_contents(
+            $this->dataDirPath . '/' . StepTraceContext::FILE_NAME,
+            (string) json_encode([
+                'x-datadog-trace-id' => '1234567890123456789',
+                'x-datadog-parent-id' => '987654321',
+                'x-datadog-sampling-priority' => '1',
+            ]),
+        );
+
+        $importer = $this->runPhp(self::IMPORT_SCRIPT, self::JOB_POD_ENV);
+
+        self::assertSame('0000000000000000112210f47de98115', $importer['traceId']);
+        self::assertSame('000000003ade68b1', $importer['parentId']);
+    }
+
+    public function testImportOfMalformedFileContinuesTraceOfJobPod(): void
+    {
+        file_put_contents($this->dataDirPath . '/' . StepTraceContext::FILE_NAME, '{"traceparent": ');
+
+        $importer = $this->runPhp(self::IMPORT_SCRIPT, self::JOB_POD_ENV);
+
+        self::assertSame(self::DAEMON_TRACE_ID, $importer['traceId']);
+        self::assertSame(self::DAEMON_SPAN_ID, $importer['parentId']);
     }
 
     /**
@@ -120,10 +193,16 @@ class StepTraceContextTest extends TestCase
 
         try {
             $process = new Process(
-                ['php', $scriptPath, $this->dataDirPath],
+                ['php', '-d', 'zend.assertions=1', $scriptPath, $this->dataDirPath],
                 env: [
-                    'DD_TRACE_CLI_ENABLED' => 'true',
-                    'DD_TRACE_AGENT_URL' => 'http://localhost:1',
+                    'OTEL_PHP_AUTOLOAD_ENABLED' => 'true',
+                    'OTEL_TRACES_EXPORTER' => 'none',
+                    'OTEL_METRICS_EXPORTER' => 'none',
+                    'OTEL_LOGS_EXPORTER' => 'none',
+                    'OTEL_PROPAGATORS' => 'tracecontext,baggage',
+                    // not inherited from the environment of the test run, false removes a variable
+                    'TRACEPARENT' => false,
+                    'TRACESTATE' => false,
                     ...$env,
                 ],
             );
